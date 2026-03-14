@@ -52,17 +52,13 @@ class YahooFinanceAdapter(StockDataSource):
     async def fetch_market_cap(self, ticker: str) -> int | None:
         """Fetch the current market capitalization for a ticker."""
         try:
-            cap: int | None = await self._run_sync(
-                self._get_market_cap, ticker
-            )
+            cap: int | None = await self._run_sync(self._get_market_cap, ticker)
             return cap
         except Exception:
             logger.exception("Error fetching market cap for %s", ticker)
             return None
 
-    async def fetch_performance(
-        self, ticker: str, days: int
-    ) -> float | None:
+    async def fetch_performance(self, ticker: str, days: int) -> float | None:
         """Fetch stock performance (% change) over N days."""
         try:
             perf: float | None = await self._run_sync(
@@ -70,9 +66,7 @@ class YahooFinanceAdapter(StockDataSource):
             )
             return perf
         except Exception:
-            logger.exception(
-                "Error fetching %d-day performance for %s", days, ticker
-            )
+            logger.exception("Error fetching %d-day performance for %s", days, ticker)
             return None
 
     @staticmethod
