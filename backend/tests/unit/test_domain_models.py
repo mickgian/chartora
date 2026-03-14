@@ -56,8 +56,10 @@ class TestTicker:
 class TestScoreComponent:
     def test_valid_component(self) -> None:
         sc = ScoreComponent(
-            name="patents", raw_value=42.0,
-            normalized_value=75.0, weight=0.25,
+            name="patents",
+            raw_value=42.0,
+            normalized_value=75.0,
+            weight=0.25,
         )
         assert sc.weighted_value == 75.0 * 0.25
 
@@ -169,7 +171,8 @@ class TestStockPrice:
 
     def test_minimal_stock_price(self) -> None:
         sp = StockPrice(
-            company_id=1, price_date=date(2025, 1, 1),
+            company_id=1,
+            price_date=date(2025, 1, 1),
             close_price=Decimal("10.00"),
         )
         assert sp.open_price is None
@@ -178,7 +181,8 @@ class TestStockPrice:
     def test_negative_price_raises(self) -> None:
         with pytest.raises(ValueError, match="cannot be negative"):
             StockPrice(
-                company_id=1, price_date=date(2025, 1, 1),
+                company_id=1,
+                price_date=date(2025, 1, 1),
                 close_price=Decimal("-1.00"),
             )
 
@@ -200,15 +204,19 @@ class TestPatent:
     def test_empty_patent_number_raises(self) -> None:
         with pytest.raises(ValueError, match="Patent number cannot be empty"):
             Patent(
-                company_id=1, patent_number="",
-                title="Test", filing_date=date(2025, 1, 1),
+                company_id=1,
+                patent_number="",
+                title="Test",
+                filing_date=date(2025, 1, 1),
             )
 
     def test_empty_title_raises(self) -> None:
         with pytest.raises(ValueError, match="Patent title cannot be empty"):
             Patent(
-                company_id=1, patent_number="US123",
-                title="", filing_date=date(2025, 1, 1),
+                company_id=1,
+                patent_number="US123",
+                title="",
+                filing_date=date(2025, 1, 1),
             )
 
     def test_epo_patent(self) -> None:
@@ -238,7 +246,8 @@ class TestFundingRound:
     def test_negative_amount_raises(self) -> None:
         with pytest.raises(ValueError, match="cannot be negative"):
             FundingRound(
-                company_id=1, round_date=date(2025, 1, 1),
+                company_id=1,
+                round_date=date(2025, 1, 1),
                 amount=Decimal("-100"),
             )
 
@@ -305,13 +314,7 @@ class TestQuantumPowerScore:
             funding_strength=50.0,
             news_sentiment=90.0,
         )
-        expected = (
-            80.0 * 0.20
-            + 60.0 * 0.25
-            + 70.0 * 0.20
-            + 50.0 * 0.20
-            + 90.0 * 0.15
-        )
+        expected = 80.0 * 0.20 + 60.0 * 0.25 + 70.0 * 0.20 + 50.0 * 0.20 + 90.0 * 0.15
         assert score.total_score == round(expected, 2)
 
     def test_all_zeros(self) -> None:

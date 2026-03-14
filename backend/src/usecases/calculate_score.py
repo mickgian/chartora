@@ -172,9 +172,7 @@ def calculate_score(score_input: ScoreInput) -> QuantumPowerScore:
     patent_velocity = round(
         _normalize_patent_velocity(score_input.patents_filed_12m), 2
     )
-    qubit_progress = round(
-        _normalize_qubit_progress(score_input.qubit_count), 2
-    )
+    qubit_progress = round(_normalize_qubit_progress(score_input.qubit_count), 2)
     funding_strength = round(
         _normalize_funding_strength(
             score_input.total_funding_usd,

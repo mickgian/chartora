@@ -38,9 +38,7 @@ class StockDataSource(ABC):
         """Fetch the current market capitalization for a ticker."""
 
     @abstractmethod
-    async def fetch_performance(
-        self, ticker: str, days: int
-    ) -> float | None:
+    async def fetch_performance(self, ticker: str, days: int) -> float | None:
         """Fetch stock performance (% change) over a given number of days."""
 
 
@@ -54,9 +52,7 @@ class PatentDataSource(ABC):
         """Search for patents filed by a company within a date range."""
 
     @abstractmethod
-    async def get_patent_count(
-        self, company_name: str, date_range: DateRange
-    ) -> int:
+    async def get_patent_count(self, company_name: str, date_range: DateRange) -> int:
         """Get the count of patents filed by a company within a date range."""
 
 
@@ -102,7 +98,5 @@ class SentimentAnalyzer(ABC):
         """
 
     @abstractmethod
-    async def analyze_batch(
-        self, texts: list[str]
-    ) -> list[tuple[str, float]]:
+    async def analyze_batch(self, texts: list[str]) -> list[tuple[str, float]]:
         """Analyze sentiment of multiple texts."""

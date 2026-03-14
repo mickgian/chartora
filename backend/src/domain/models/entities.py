@@ -161,9 +161,7 @@ class QuantumPowerScore:
             ("news_sentiment", self.news_sentiment),
         ]:
             if not 0.0 <= value <= 100.0:
-                raise ValueError(
-                    f"{name} must be between 0 and 100, got {value}"
-                )
+                raise ValueError(f"{name} must be between 0 and 100, got {value}")
         self.total_score = self._calculate_total()
 
     def _calculate_total(self) -> float:

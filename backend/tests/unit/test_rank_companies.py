@@ -146,10 +146,7 @@ class TestRankChanges:
 
 class TestRankingResult:
     def test_top_n(self) -> None:
-        scores = [
-            _make_score(i, stock=float(100 - i * 10))
-            for i in range(1, 6)
-        ]
+        scores = [_make_score(i, stock=float(100 - i * 10)) for i in range(1, 6)]
         result = rank_companies(scores, metric=RankingMetric.STOCK_MOMENTUM)
         top3 = result.top(3)
         assert len(top3) == 3

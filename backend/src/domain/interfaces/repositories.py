@@ -82,9 +82,7 @@ class PatentRepository(ABC):
         """Get patents filed within a date range for a company."""
 
     @abstractmethod
-    async def count_by_date_range(
-        self, company_id: int, date_range: DateRange
-    ) -> int:
+    async def count_by_date_range(self, company_id: int, date_range: DateRange) -> int:
         """Count patents filed within a date range for a company."""
 
     @abstractmethod
@@ -156,9 +154,7 @@ class FilingRepository(ABC):
         """Get all filings for a company."""
 
     @abstractmethod
-    async def get_by_type(
-        self, company_id: int, filing_type: str
-    ) -> list[Filing]:
+    async def get_by_type(self, company_id: int, filing_type: str) -> list[Filing]:
         """Get filings of a specific type for a company."""
 
     @abstractmethod
