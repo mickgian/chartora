@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { AdSlot } from "@/components/ads/AdSlot";
 
 export function Footer() {
   return (
     <footer className="border-t border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950">
       <div className="mx-auto max-w-7xl px-4 py-8">
+        <AdSlot adSlot="footer-banner" placement="footer" className="mb-6" />
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="text-sm text-gray-500 dark:text-gray-400">
             <Link href="/" className="font-semibold text-gray-700 dark:text-gray-300">

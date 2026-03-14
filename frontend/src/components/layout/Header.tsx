@@ -37,6 +37,12 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <Link
+            href="/pro"
+            className="hidden rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 md:inline-block dark:bg-indigo-500 dark:hover:bg-indigo-600"
+          >
+            Go Pro
+          </Link>
           <button
             onClick={toggleTheme}
             className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
@@ -101,6 +107,13 @@ export function Header() {
               {link.label}
             </Link>
           ))}
+          <Link
+            href="/pro"
+            onClick={() => setMenuOpen(false)}
+            className="block rounded-lg px-3 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/30"
+          >
+            Go Pro
+          </Link>
         </nav>
       )}
     </header>

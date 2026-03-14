@@ -10,6 +10,7 @@ from src.domain.models.value_objects import (
     PatentSource,
     Sector,
     SentimentLabel,
+    SubscriptionStatus,
     Ticker,
     TrendDirection,
 )
@@ -181,3 +182,23 @@ class QuantumPowerScore:
         if self.rank_change is None or self.rank_change == 0:
             return TrendDirection.FLAT
         return TrendDirection.UP if self.rank_change > 0 else TrendDirection.DOWN
+
+
+@dataclass
+class User:
+    """A registered user with optional premium subscription."""
+
+    email: str
+    subscription_status: SubscriptionStatus = SubscriptionStatus.INACTIVE
+    stripe_customer_id: str | None = None
+    stripe_subscription_id: str | None = None
+    id: int | None = None
+
+    def __post_init__(self) -> None:
+        if not self.email or "@" not in self.email:
+            raise ValueError("A valid email address is required")
+
+    @property
+    def is_premium(self) -> bool:
+        """Check whether user has an active premium subscription."""
+        return self.subscription_status == SubscriptionStatus.ACTIVE

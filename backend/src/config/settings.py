@@ -15,6 +15,12 @@ class Settings:
     news_api_key: str = ""
     claude_api_key: str = ""
 
+    # Stripe
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_price_id: str = ""
+    frontend_url: str = "http://localhost:3000"
+
     # Server
     host: str = field(default="0.0.0.0")
     port: int = 8000

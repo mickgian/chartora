@@ -14,6 +14,7 @@ dependencies = [
     "httpx>=0.28.0",
     "yfinance>=0.2.36",
     "sentry-sdk[fastapi]>=2.0.0",
+    "stripe>=8.0.0",
 ]
 
 [project.optional-dependencies]
@@ -98,6 +99,14 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "sentry_sdk.*"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "stripe.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "src.adapters.api.routers.payments"
+disallow_untyped_calls = false
 
 [[tool.mypy.overrides]]
 module = "src.adapters.api.middleware"

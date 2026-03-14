@@ -11,7 +11,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.adapters.api.middleware import RequestTimingMiddleware
-from src.adapters.api.routers import companies, leaderboard, rankings
+from src.adapters.api.routers import (
+    affiliate,
+    companies,
+    leaderboard,
+    payments,
+    rankings,
+)
 from src.config.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -105,6 +111,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(leaderboard.router)
     app.include_router(companies.router)
     app.include_router(rankings.router)
+    app.include_router(affiliate.router)
+    app.include_router(payments.router)
 
     return app
 
