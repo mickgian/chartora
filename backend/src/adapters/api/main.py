@@ -3,16 +3,20 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from src.adapters.api.middleware import RequestTimingMiddleware
 from src.adapters.api.routers import companies, leaderboard, rankings
 from src.config.settings import Settings
 
 logger = logging.getLogger(__name__)
+
+_start_time: float = time.time()
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -31,6 +35,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # Store settings on app state for dependency injection
     app.state.settings = settings
+
+    # Request timing middleware (added first so it wraps everything)
+    app.add_middleware(RequestTimingMiddleware)
 
     # CORS
     app.add_middleware(
@@ -59,10 +66,40 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             content={"detail": str(exc)},
         )
 
-    # Health check
+    # Health check with monitoring details
     @app.get("/health")
     async def health_check() -> dict[str, Any]:
-        return {"status": "healthy"}
+        uptime_seconds = time.time() - _start_time
+        return {
+            "status": "healthy",
+            "version": "0.1.0",
+            "uptime_seconds": round(uptime_seconds, 1),
+        }
+
+    # Readiness probe — checks database connectivity
+    @app.get("/ready", response_class=JSONResponse)
+    async def readiness_check(request: Request) -> JSONResponse:
+        db_ok = False
+        factory = getattr(request.app.state, "session_factory", None)
+        if factory is not None:
+            try:
+                from sqlalchemy import text
+
+                async with factory() as session:
+                    await session.execute(text("SELECT 1"))
+                    db_ok = True
+            except Exception:
+                logger.warning("Readiness check: database unavailable")
+
+        status = "ready" if db_ok else "not_ready"
+        status_code = 200 if db_ok else 503
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                "status": status,
+                "database": "connected" if db_ok else "unavailable",
+            },
+        )
 
     # Register routers
     app.include_router(leaderboard.router)

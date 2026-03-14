@@ -1,0 +1,52 @@
+import type { MetadataRoute } from "next";
+import type { RankingMetric } from "@/types/api";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chartora.com";
+
+const COMPANY_SLUGS = [
+  "ionq",
+  "d-wave-quantum",
+  "rigetti-computing",
+  "quantum-computing-inc",
+  "arqit-quantum",
+  "zapata-computing",
+  "ibm",
+  "google",
+  "microsoft",
+  "amazon",
+  "intel",
+  "honeywell-quantinuum",
+  "defiance-quantum-etf",
+  "ark-space-exploration",
+];
+
+const RANKING_METRICS: RankingMetric[] = ["stock-performance", "patents", "funding", "sentiment"];
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const now = new Date();
+
+  const staticPages: MetadataRoute.Sitemap = [
+    {
+      url: SITE_URL,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 1.0,
+    },
+  ];
+
+  const companyPages: MetadataRoute.Sitemap = COMPANY_SLUGS.map((slug) => ({
+    url: `${SITE_URL}/company/${slug}`,
+    lastModified: now,
+    changeFrequency: "daily" as const,
+    priority: 0.8,
+  }));
+
+  const rankingPages: MetadataRoute.Sitemap = RANKING_METRICS.map((metric) => ({
+    url: `${SITE_URL}/rankings/${metric}`,
+    lastModified: now,
+    changeFrequency: "daily" as const,
+    priority: 0.7,
+  }));
+
+  return [...staticPages, ...companyPages, ...rankingPages];
+}
