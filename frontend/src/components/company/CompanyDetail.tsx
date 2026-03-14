@@ -8,6 +8,8 @@ import { useApi } from "@/hooks/use-api";
 import { CardSkeleton, ChartSkeleton } from "@/components/ui/LoadingSkeleton";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { ScoreBadge } from "@/components/leaderboard/ScoreBadge";
+import { AdSlot } from "@/components/ads/AdSlot";
+import { TradeButton } from "@/components/affiliate/TradeButton";
 import { StockChart } from "./StockChart";
 import { PatentTimeline } from "./PatentTimeline";
 import { NewsFeed } from "./NewsFeed";
@@ -102,6 +104,7 @@ export function CompanyDetail({ slug }: CompanyDetailProps) {
           <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-800">
             <PatentTimeline slug={slug} />
           </div>
+          <AdSlot adSlot="company-between" placement="between-sections" />
           <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-800">
             <NewsFeed slug={slug} />
           </div>
@@ -111,6 +114,8 @@ export function CompanyDetail({ slug }: CompanyDetailProps) {
           <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-800">
             <CompetitorComparison currentSlug={slug} />
           </div>
+          <TradeButton ticker={company.ticker} companySlug={company.slug} />
+          <AdSlot adSlot="company-sidebar" placement="sidebar" />
           {company.website && (
             <a
               href={company.website}

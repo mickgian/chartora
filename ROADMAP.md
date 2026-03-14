@@ -246,21 +246,21 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 
 > Depends on: W5.1, W5.2
 
-### [W6.1] Ad integration `[ ]` → W5.1
+### [W6.1] Ad integration `[x]` → W5.1
 - Google AdSense integration
 - Ad placement: sidebar, between sections, footer
 - Responsive ad units
 - Ad-free detection for premium users
 - Write tests to verify ad slots render correctly
 
-### [W6.2] Affiliate link system `[ ]` → W4.2, W4.3
+### [W6.2] Affiliate link system `[x]` → W4.2, W4.3
 - "Trade [TICKER]" buttons next to each company
 - Affiliate links to brokers (Interactive Brokers, eToro)
 - Click tracking for conversion analytics
 - Disclosure notice (FTC compliance)
 - Write tests for link generation
 
-### [W6.3] Stripe payment integration `[ ]` → W3.1
+### [W6.3] Stripe payment integration `[x]` → W3.1
 - Stripe Checkout for premium subscriptions
 - Webhook handler for payment events
 - User model with subscription status

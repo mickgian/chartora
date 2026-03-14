@@ -50,6 +50,15 @@ class TrendDirection(StrEnum):
     FLAT = "flat"
 
 
+class SubscriptionStatus(StrEnum):
+    """User subscription status."""
+
+    ACTIVE = "active"
+    CANCELED = "canceled"
+    PAST_DUE = "past_due"
+    INACTIVE = "inactive"
+
+
 @dataclass(frozen=True)
 class Ticker:
     """A stock ticker symbol."""

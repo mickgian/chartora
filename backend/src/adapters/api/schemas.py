@@ -138,5 +138,19 @@ class RankingResponse(BaseModel):
     count: int
 
 
+class CheckoutRequest(BaseModel):
+    email: str
+
+
+class CheckoutResponse(BaseModel):
+    checkout_url: str
+    session_id: str
+
+
+class SubscriptionStatusResponse(BaseModel):
+    status: str
+    is_premium: bool
+
+
 class ErrorResponse(BaseModel):
     detail: str
