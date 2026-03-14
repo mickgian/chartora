@@ -127,20 +127,20 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 
 > Depends on: W1.3, W1.4, W2.6
 
-### [W3.1] FastAPI application setup `[ ]` → W0.1
+### [W3.1] FastAPI application setup `[x]` → W0.1
 - Create FastAPI app with dependency injection
 - Set up CORS, error handling, request validation
 - Configure OpenAPI docs
 - Write health check endpoint with tests
 
-### [W3.2] Leaderboard API endpoints `[ ]` → W1.4, W2.6, W3.1
+### [W3.2] Leaderboard API endpoints `[x]` → W1.4, W2.6, W3.1
 - `GET /api/v1/leaderboard` — full ranking with scores
 - `GET /api/v1/leaderboard?sort_by={metric}` — sort by specific metric
 - `GET /api/v1/leaderboard?limit={n}` — top N companies
 - Response includes: rank, company, score, trend, all metrics
 - Write API tests
 
-### [W3.3] Company detail API endpoints `[ ]` → W2.6, W3.1
+### [W3.3] Company detail API endpoints `[x]` → W2.6, W3.1
 - `GET /api/v1/companies/{slug}` — full company profile
 - `GET /api/v1/companies/{slug}/stock` — stock price history
 - `GET /api/v1/companies/{slug}/patents` — patent timeline
@@ -148,14 +148,14 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 - `GET /api/v1/companies/{slug}/filings` — SEC filings summary
 - Write API tests
 
-### [W3.4] Rankings API endpoints `[ ]` → W1.4, W2.6, W3.1
+### [W3.4] Rankings API endpoints `[x]` → W1.4, W2.6, W3.1
 - `GET /api/v1/rankings/patents` — companies ranked by patent count
 - `GET /api/v1/rankings/stock-performance` — ranked by stock momentum
 - `GET /api/v1/rankings/funding` — ranked by total funding
 - `GET /api/v1/rankings/sentiment` — ranked by news sentiment
 - Write API tests
 
-### [W3.5] Data refresh orchestrator `[ ]` → W2.1, W2.2, W2.3, W2.4, W2.5, W2.6
+### [W3.5] Data refresh orchestrator `[x]` → W2.1, W2.2, W2.3, W2.4, W2.5, W2.6
 - Create cron-compatible script that:
   1. Pulls fresh stock data from Yahoo Finance
   2. Pulls new patent filings from USPTO
