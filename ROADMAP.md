@@ -79,7 +79,7 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 
 > Depends on: W1.1, W1.2
 
-### [W2.1] Yahoo Finance adapter `[ ]` → W1.2
+### [W2.1] Yahoo Finance adapter `[x]` → W1.2
 - Implement `StockDataSource` using `yfinance`
 - Fetch current price, market cap, 30/60/90 day performance
 - Fetch historical OHLCV data (2+ years)
@@ -87,14 +87,14 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 - Write integration tests with mocked responses
 - Write unit tests for data transformation
 
-### [W2.2] USPTO Patent API adapter `[ ]` → W1.2
+### [W2.2] USPTO Patent API adapter `[x]` → W1.2
 - Implement `PatentDataSource` for USPTO
 - Search patents by company/assignee name
 - Parse patent metadata: title, date, classification, abstract
 - Calculate patent velocity (filings per 12 months)
 - Write integration tests with mocked responses
 
-### [W2.3] SEC EDGAR adapter `[ ]` → W1.2
+### [W2.3] SEC EDGAR adapter `[x]` → W1.2
 - Implement `FilingDataSource` for SEC EDGAR
 - Fetch 10-K/10-Q for R&D spending
 - Fetch Form 4 for insider trading
@@ -102,20 +102,20 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 - Parse XBRL/JSON filing data
 - Write integration tests with mocked responses
 
-### [W2.4] News API adapter `[ ]` → W1.2
+### [W2.4] News API adapter `[x]` → W1.2
 - Implement `NewsDataSource` using NewsAPI.org
 - Fetch recent headlines per company
 - Alternative: GDELT Project as free fallback
 - Write integration tests with mocked responses
 
-### [W2.5] Sentiment analysis adapter `[ ]` → W1.2, W2.4
+### [W2.5] Sentiment analysis adapter `[x]` → W1.2, W2.4
 - Implement sentiment scoring for news articles
 - Use Claude API for sentiment analysis
 - Score each article: bullish/bearish/neutral + confidence
 - Aggregate to company-level sentiment score
 - Write unit tests with known sentiment inputs
 
-### [W2.6] PostgreSQL repository implementations `[ ]` → W0.3, W1.2
+### [W2.6] PostgreSQL repository implementations `[x]` → W0.3, W1.2
 - Implement all repository interfaces against PostgreSQL
 - Use `asyncpg` or `psycopg3` for async DB access
 - Write integration tests against test database
