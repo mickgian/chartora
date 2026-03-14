@@ -51,7 +51,7 @@ class PgAlertPreferenceRepository(AlertPreferenceRepository):
             user_id=pref.user_id,
             alert_type=pref.alert_type,
             enabled=pref.enabled,
-            threshold=pref.threshold,  # type: ignore[arg-type]
+            threshold=pref.threshold,
         )
         self._session.add(row)
         await self._session.flush()
