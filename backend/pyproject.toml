@@ -87,6 +87,10 @@ module = "src.infrastructure.database"
 disallow_subclassing_any = false
 
 [[tool.mypy.overrides]]
+module = "src.adapters.api.schemas"
+disallow_subclassing_any = false
+
+[[tool.mypy.overrides]]
 module = "yfinance.*"
 ignore_missing_imports = true
 
