@@ -1,0 +1,111 @@
+/**
+ * API client for the Chartora backend.
+ * Provides typed fetch wrappers with error handling and retries.
+ */
+
+import type {
+  CompanyDetailResponse,
+  FilingListResponse,
+  LeaderboardResponse,
+  NewsListResponse,
+  PatentListResponse,
+  RankingMetric,
+  RankingResponse,
+  SortableMetric,
+  StockHistoryResponse,
+} from "@/types/api";
+
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    public statusText: string,
+    public detail?: string,
+  ) {
+    super(detail ?? `API error: ${status} ${statusText}`);
+    this.name = "ApiError";
+  }
+}
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 1000;
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(url: string, retries = MAX_RETRIES): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(url);
+
+      if (response.ok) return response;
+
+      if (response.status >= 500 && attempt < retries) {
+        await sleep(RETRY_DELAY_MS * (attempt + 1));
+        continue;
+      }
+
+      let detail: string | undefined;
+      try {
+        const body = await response.json();
+        detail = body.detail;
+      } catch {
+        // ignore parse errors
+      }
+      throw new ApiError(response.status, response.statusText, detail);
+    } catch (error) {
+      if (error instanceof ApiError) throw error;
+
+      if (attempt < retries) {
+        await sleep(RETRY_DELAY_MS * (attempt + 1));
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw new Error("Unexpected: exhausted retries without result");
+}
+
+async function get<T>(path: string): Promise<T> {
+  const response = await fetchWithRetry(`${BASE_URL}${path}`);
+  return response.json() as Promise<T>;
+}
+
+export const apiClient = {
+  getLeaderboard(params?: {
+    sort_by?: SortableMetric;
+    limit?: number;
+  }): Promise<LeaderboardResponse> {
+    const searchParams = new URLSearchParams();
+    if (params?.sort_by) searchParams.set("sort_by", params.sort_by);
+    if (params?.limit) searchParams.set("limit", String(params.limit));
+    const qs = searchParams.toString();
+    return get(`/api/v1/leaderboard${qs ? `?${qs}` : ""}`);
+  },
+
+  getCompany(slug: string): Promise<CompanyDetailResponse> {
+    return get(`/api/v1/companies/${encodeURIComponent(slug)}`);
+  },
+
+  getStockHistory(slug: string, days = 90): Promise<StockHistoryResponse> {
+    return get(`/api/v1/companies/${encodeURIComponent(slug)}/stock?days=${days}`);
+  },
+
+  getPatents(slug: string): Promise<PatentListResponse> {
+    return get(`/api/v1/companies/${encodeURIComponent(slug)}/patents`);
+  },
+
+  getNews(slug: string, limit = 20): Promise<NewsListResponse> {
+    return get(`/api/v1/companies/${encodeURIComponent(slug)}/news?limit=${limit}`);
+  },
+
+  getFilings(slug: string): Promise<FilingListResponse> {
+    return get(`/api/v1/companies/${encodeURIComponent(slug)}/filings`);
+  },
+
+  getRanking(metric: RankingMetric): Promise<RankingResponse> {
+    return get(`/api/v1/rankings/${encodeURIComponent(metric)}`);
+  },
+};

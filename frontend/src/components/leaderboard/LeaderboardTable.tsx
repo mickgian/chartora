@@ -1,0 +1,128 @@
+"use client";
+
+import Link from "next/link";
+import { useCallback, useState } from "react";
+import type { LeaderboardResponse, SortableMetric } from "@/types/api";
+import { apiClient } from "@/lib/api-client";
+import { useApi } from "@/hooks/use-api";
+import { TableSkeleton } from "@/components/ui/LoadingSkeleton";
+import { ErrorMessage } from "@/components/ui/ErrorMessage";
+import { ScoreBadge } from "./ScoreBadge";
+import { TrendArrow } from "./TrendArrow";
+
+const METRIC_LABELS: Record<SortableMetric, string> = {
+  total_score: "Score",
+  stock_momentum: "Stock %",
+  patent_velocity: "Patents",
+  qubit_progress: "Qubits",
+  funding_strength: "Funding",
+  news_sentiment: "Sentiment",
+};
+
+const SORTABLE_METRICS: SortableMetric[] = [
+  "total_score",
+  "stock_momentum",
+  "patent_velocity",
+  "qubit_progress",
+  "funding_strength",
+  "news_sentiment",
+];
+
+export function LeaderboardTable() {
+  const [sortBy, setSortBy] = useState<SortableMetric>("total_score");
+
+  const fetcher = useCallback(() => apiClient.getLeaderboard({ sort_by: sortBy }), [sortBy]);
+  const { data, error, loading, refetch } = useApi<LeaderboardResponse>(fetcher, [sortBy]);
+
+  if (loading) return <TableSkeleton rows={12} />;
+  if (error) return <ErrorMessage message={error.message} onRetry={refetch} />;
+  if (!data) return null;
+
+  return (
+    <div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Quantum Power Rankings</h1>
+        {data.updated_at && (
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            Updated {new Date(data.updated_at).toLocaleDateString()}
+          </span>
+        )}
+      </div>
+
+      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
+              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Rank</th>
+              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Company</th>
+              {SORTABLE_METRICS.map((metric) => (
+                <th key={metric} className="px-4 py-3">
+                  <button
+                    onClick={() => setSortBy(metric)}
+                    className={`font-medium transition-colors ${
+                      sortBy === metric
+                        ? "text-indigo-600 dark:text-indigo-400"
+                        : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    }`}
+                  >
+                    {METRIC_LABELS[metric]}
+                    {sortBy === metric && " ↓"}
+                  </button>
+                </th>
+              ))}
+              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Trend</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.entries.map((entry) => (
+              <tr
+                key={entry.company.slug}
+                className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-800/50 dark:hover:bg-gray-900/50"
+              >
+                <td className="px-4 py-3 font-bold text-gray-900 dark:text-white">{entry.rank}</td>
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/company/${entry.company.slug}`}
+                    className="font-medium text-gray-900 hover:text-indigo-600 dark:text-white dark:hover:text-indigo-400"
+                  >
+                    {entry.company.name}
+                    {entry.company.ticker && (
+                      <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                        {entry.company.ticker}
+                      </span>
+                    )}
+                  </Link>
+                </td>
+                <td className="px-4 py-3">
+                  <ScoreBadge score={entry.score.total_score} />
+                </td>
+                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-300">
+                  {entry.score.stock_momentum.toFixed(1)}
+                </td>
+                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-300">
+                  {entry.score.patent_velocity.toFixed(1)}
+                </td>
+                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-300">
+                  {entry.score.qubit_progress.toFixed(1)}
+                </td>
+                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-300">
+                  {entry.score.funding_strength.toFixed(1)}
+                </td>
+                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-300">
+                  {entry.score.news_sentiment.toFixed(1)}
+                </td>
+                <td className="px-4 py-3">
+                  <TrendArrow trend={entry.trend} rankChange={entry.score.rank_change} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
+        {data.count} companies tracked. Click column headers to sort.
+      </p>
+    </div>
+  );
+}

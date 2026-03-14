@@ -173,13 +173,13 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 
 > Depends on: W0.2, W3.2
 
-### [W4.1] API client and types `[ ]` → W0.2, W3.2
+### [W4.1] API client and types `[x]` → W0.2, W3.2
 - Create TypeScript types matching API responses
 - Create API client module with fetch wrapper
 - Handle errors, loading states, retries
 - Write unit tests for API client
 
-### [W4.2] Main Leaderboard page `[ ]` → W4.1
+### [W4.2] Main Leaderboard page `[x]` → W4.1
 - Sortable data table with all companies
 - Columns: Rank, Company, Score, Stock %, Patents, Funding, Sentiment, Trend
 - Color-coded trend arrows (green up, red down, gray flat)
@@ -188,7 +188,7 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 - Mobile responsive
 - Write component tests
 
-### [W4.3] Company detail page `[ ]` → W4.1
+### [W4.3] Company detail page `[x]` → W4.1
 - Route: `/company/[slug]`
 - Stock price chart (30/90/365 day toggle)
 - Patent filing timeline chart
@@ -197,14 +197,14 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 - Competitor comparison widget
 - Write component tests
 
-### [W4.4] Metric deep dive pages `[ ]` → W4.1
+### [W4.4] Metric deep dive pages `[x]` → W4.1
 - Route: `/rankings/[metric]`
 - Visual bar/column chart per metric
 - Embeddable chart component (iframe-ready)
 - Social share meta tags per page
 - Write component tests
 
-### [W4.5] Layout and navigation `[ ]` → W0.2
+### [W4.5] Layout and navigation `[x]` → W0.2
 - Header with logo, nav links
 - Footer with attribution, links
 - Responsive sidebar/hamburger menu
