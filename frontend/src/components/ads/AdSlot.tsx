@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export type AdFormat = "auto" | "horizontal" | "vertical" | "rectangle";
 
@@ -28,14 +29,16 @@ declare global {
 
 /**
  * Renders a Google AdSense ad unit.
- * Hidden when the user has a premium subscription (detected via data attribute on <html>).
+ * Hidden when the user has a premium subscription (detected via auth context).
  */
 export function AdSlot({ adSlot, adFormat = "auto", placement, className = "" }: AdSlotProps) {
   const adRef = useRef<HTMLModElement>(null);
   const pushed = useRef(false);
+  const { user } = useAuth();
 
   const isPremium =
-    typeof document !== "undefined" && document.documentElement.dataset.premium === "true";
+    user?.is_premium ||
+    (typeof document !== "undefined" && document.documentElement.dataset.premium === "true");
 
   useEffect(() => {
     if (isPremium || pushed.current) return;

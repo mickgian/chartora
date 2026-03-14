@@ -1,39 +1,62 @@
 """Tests for the premium gate middleware."""
 
-import pytest
-from fastapi import Depends, FastAPI
-from fastapi.testclient import TestClient
+import asyncio
 
-from src.adapters.api.premium_gate import require_premium
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+from src.adapters.api.main import create_app
+from src.config.settings import Settings
+from src.infrastructure.database import Base
 
 
 @pytest.fixture
 def client():
-    app = FastAPI()
+    settings = Settings(
+        database_url="sqlite+aiosqlite:///:memory:",
+        jwt_secret_key="test-secret-32-chars-long-enough!",
+        stripe_secret_key="sk_test_fake",
+        stripe_webhook_secret="whsec_fake",
+    )
+    app = create_app(settings)
 
-    premium_dep = Depends(require_premium)
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    factory = async_sessionmaker(engine, expire_on_commit=False)
 
-    @app.get("/premium-endpoint")
-    async def premium_route(
-        premium_info: dict = premium_dep,
-    ):
-        return {"access": "granted", "premium": premium_info["premium"]}
+    asyncio.get_event_loop_policy().new_event_loop().run_until_complete(
+        _create_tables(engine)
+    )
+    app.state.session_factory = factory
 
     return TestClient(app)
 
 
-def test_premium_gate_rejects_without_token(client):
-    response = client.get("/premium-endpoint")
-    assert response.status_code == 403
-    assert "Premium subscription required" in response.json()["detail"]
+async def _create_tables(engine):  # type: ignore[no-untyped-def]
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
-def test_premium_gate_accepts_with_token(client):
+def test_premium_gate_rejects_without_auth(client):
+    """Premium endpoints require authentication."""
+    response = client.get("/api/v1/pro/export/json")
+    assert response.status_code == 401
+    assert "Authentication required" in response.json()["detail"]
+
+
+def test_premium_gate_rejects_invalid_bearer(client):
+    """Invalid JWT tokens are rejected."""
     response = client.get(
-        "/premium-endpoint",
-        headers={"X-Premium-Token": "test-token"},
+        "/api/v1/pro/export/json",
+        headers={"Authorization": "Bearer invalid.token"},
     )
-    assert response.status_code == 200
-    data = response.json()
-    assert data["access"] == "granted"
-    assert data["premium"] is True
+    assert response.status_code == 401
+
+
+def test_premium_gate_rejects_invalid_api_key(client):
+    """Invalid API keys are rejected."""
+    response = client.get(
+        "/api/v1/pro/export/json",
+        headers={"X-API-Key": "invalid_key"},
+    )
+    assert response.status_code == 401

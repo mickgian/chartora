@@ -189,9 +189,12 @@ class User:
     """A registered user with optional premium subscription."""
 
     email: str
+    password_hash: str = ""
     subscription_status: SubscriptionStatus = SubscriptionStatus.INACTIVE
     stripe_customer_id: str | None = None
     stripe_subscription_id: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
     id: int | None = None
 
     def __post_init__(self) -> None:
@@ -202,3 +205,28 @@ class User:
     def is_premium(self) -> bool:
         """Check whether user has an active premium subscription."""
         return self.subscription_status == SubscriptionStatus.ACTIVE
+
+
+@dataclass
+class AlertPreference:
+    """User preferences for email alerts."""
+
+    user_id: int
+    alert_type: str  # "score_change" or "insider_trading"
+    enabled: bool = True
+    threshold: float | None = None  # e.g. 10.0 for ±10 point score change
+    id: int | None = None
+
+
+@dataclass
+class ApiKey:
+    """An API key for programmatic access to premium endpoints."""
+
+    user_id: int
+    key_hash: str
+    name: str
+    prefix: str  # First 8 chars of the key for identification
+    created_at: datetime | None = None
+    last_used_at: datetime | None = None
+    is_active: bool = True
+    id: int | None = None

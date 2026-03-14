@@ -1,5 +1,19 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+
+// Mock AuthProvider to control premium state
+vi.mock("@/components/auth/AuthProvider", () => ({
+  useAuth: () => ({
+    user: null,
+    loading: false,
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn(),
+    refreshUser: vi.fn(),
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 import { AdSlot } from "@/components/ads/AdSlot";
 
 describe("AdSlot", () => {
@@ -32,7 +46,7 @@ describe("AdSlot", () => {
     expect(screen.getByLabelText("Advertisement")).toBeInTheDocument();
   });
 
-  it("hides ads for premium users", () => {
+  it("hides ads when premium data attribute is set", () => {
     document.documentElement.dataset.premium = "true";
     render(<AdSlot adSlot="test-slot" placement="sidebar" />);
     expect(screen.queryByTestId("ad-slot-sidebar")).not.toBeInTheDocument();

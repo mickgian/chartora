@@ -15,6 +15,9 @@ dependencies = [
     "yfinance>=0.2.36",
     "sentry-sdk[fastapi]>=2.0.0",
     "stripe>=8.0.0",
+    "pyjwt>=2.8.0",
+    "bcrypt>=4.1.0",
+    "httpx>=0.28.0",
 ]
 
 [project.optional-dependencies]
@@ -102,6 +105,14 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "stripe.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "jwt.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "bcrypt.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

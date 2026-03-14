@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { useTheme } from "./ThemeProvider";
 
 const NAV_LINKS = [
@@ -14,13 +15,14 @@ const NAV_LINKS = [
 
 export function Header() {
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-800 dark:bg-gray-950/80">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-          <span className="text-indigo-600 dark:text-indigo-400">⚛</span>
+          <span className="text-indigo-600 dark:text-indigo-400">&#9883;</span>
           <span>Chartora</span>
         </Link>
 
@@ -37,12 +39,43 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link
-            href="/pro"
-            className="hidden rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 md:inline-block dark:bg-indigo-500 dark:hover:bg-indigo-600"
-          >
-            Go Pro
-          </Link>
+          {user ? (
+            <>
+              {user.is_premium && (
+                <span className="hidden rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 md:inline-block dark:bg-indigo-900/50 dark:text-indigo-300" data-testid="premium-badge">
+                  PRO
+                </span>
+              )}
+              <Link
+                href="/pro/dashboard"
+                className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 md:inline-block dark:text-gray-400 dark:hover:text-gray-100"
+              >
+                Dashboard
+              </Link>
+              <button
+                onClick={logout}
+                className="hidden text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 md:inline-block dark:text-gray-400 dark:hover:text-gray-200"
+                data-testid="logout-button"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 md:inline-block dark:text-gray-400 dark:hover:text-gray-100"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/pro"
+                className="hidden rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700 md:inline-block dark:bg-indigo-500 dark:hover:bg-indigo-600"
+              >
+                Go Pro
+              </Link>
+            </>
+          )}
           <button
             onClick={toggleTheme}
             className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
@@ -107,13 +140,43 @@ export function Header() {
               {link.label}
             </Link>
           ))}
-          <Link
-            href="/pro"
-            onClick={() => setMenuOpen(false)}
-            className="block rounded-lg px-3 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/30"
-          >
-            Go Pro
-          </Link>
+          {user ? (
+            <>
+              <Link
+                href="/pro/dashboard"
+                onClick={() => setMenuOpen(false)}
+                className="block rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+              >
+                Dashboard {user.is_premium && "(PRO)"}
+              </Link>
+              <button
+                onClick={() => {
+                  logout();
+                  setMenuOpen(false);
+                }}
+                className="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="block rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/pro"
+                onClick={() => setMenuOpen(false)}
+                className="block rounded-lg px-3 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/30"
+              >
+                Go Pro
+              </Link>
+            </>
+          )}
         </nav>
       )}
     </header>

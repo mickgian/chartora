@@ -161,3 +161,69 @@ class FilingTable(Base):
     )
 
     company: Mapped["CompanyTable"] = relationship(back_populates="filings")
+
+
+class UserTable(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    subscription_status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="inactive"
+    )
+    stripe_customer_id: Mapped[str | None] = mapped_column(
+        String(255), unique=True, nullable=True
+    )
+    stripe_subscription_id: Mapped[str | None] = mapped_column(
+        String(255), unique=True, nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    alert_preferences: Mapped[list["AlertPreferenceTable"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    api_keys: Mapped[list["ApiKeyTable"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+
+
+class AlertPreferenceTable(Base):
+    __tablename__ = "alert_preferences"
+    __table_args__ = (
+        UniqueConstraint("user_id", "alert_type", name="uq_alert_user_type"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    alert_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    threshold: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
+
+    user: Mapped["UserTable"] = relationship(back_populates="alert_preferences")
+
+
+class ApiKeyTable(Base):
+    __tablename__ = "api_keys"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    key_hash: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    prefix: Mapped[str] = mapped_column(String(8), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    user: Mapped["UserTable"] = relationship(back_populates="api_keys")

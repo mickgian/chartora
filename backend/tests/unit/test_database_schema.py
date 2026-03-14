@@ -1,6 +1,8 @@
 """Tests for database schema definitions."""
 
 from src.infrastructure.database import (
+    AlertPreferenceTable,
+    ApiKeyTable,
     Base,
     CompanyTable,
     FilingTable,
@@ -8,6 +10,7 @@ from src.infrastructure.database import (
     PatentTable,
     ScoreTable,
     StockPriceTable,
+    UserTable,
 )
 
 
@@ -20,6 +23,9 @@ def test_all_tables_registered():
         "scores",
         "news_articles",
         "filings",
+        "users",
+        "alert_preferences",
+        "api_keys",
     }
     assert expected == table_names
 
