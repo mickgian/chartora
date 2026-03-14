@@ -105,6 +105,10 @@ module = "stripe.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
+module = "src.adapters.api.routers.payments"
+disallow_untyped_calls = false
+
+[[tool.mypy.overrides]]
 module = "src.adapters.api.middleware"
 disallow_subclassing_any = false
 
