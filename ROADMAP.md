@@ -49,25 +49,25 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 
 > Depends on: W0.1, W0.3
 
-### [W1.1] Domain models `[ ]` → W0.1, W0.3
+### [W1.1] Domain models `[x]` → W0.1, W0.3
 - Define domain entities: `Company`, `StockPrice`, `Patent`, `FundingRound`, `NewsArticle`, `QuantumPowerScore`
 - Define value objects: `Ticker`, `ScoreComponent`, `DateRange`
 - Write unit tests for all domain models
 - No external dependencies — pure Python dataclasses/Pydantic models
 
-### [W1.2] Repository interfaces (ports) `[ ]` → W0.1
+### [W1.2] Repository interfaces (ports) `[x]` → W0.1
 - Define abstract interfaces: `CompanyRepository`, `StockRepository`, `PatentRepository`, `ScoreRepository`, `NewsRepository`
 - Define data source interfaces: `StockDataSource`, `PatentDataSource`, `NewsDataSource`, `FilingDataSource`
 - Write interface contracts as tests
 
-### [W1.3] Quantum Power Score algorithm `[ ]` → W1.1
+### [W1.3] Quantum Power Score algorithm `[x]` → W1.1
 - Implement score calculation use case
 - Weighted scoring: stock momentum (20%), patent velocity (25%), qubit progress (20%), funding strength (20%), news sentiment (15%)
 - Normalize each component to 0-100 scale
 - Write comprehensive unit tests with known inputs/outputs
 - Test edge cases: missing data, zero values, single company
 
-### [W1.4] Company ranking use case `[ ]` → W1.1, W1.3
+### [W1.4] Company ranking use case `[x]` → W1.1, W1.3
 - Implement ranking logic: sort companies by Quantum Power Score
 - Support ranking by individual metrics
 - Calculate rank changes (up/down/flat)
