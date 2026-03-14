@@ -2,11 +2,14 @@ import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { Header } from "@/components/layout/Header";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 
 function renderHeader() {
   return render(
     <ThemeProvider>
-      <Header />
+      <AuthProvider>
+        <Header />
+      </AuthProvider>
     </ThemeProvider>,
   );
 }
@@ -39,5 +42,15 @@ describe("Header", () => {
     // Mobile menu should now show duplicate nav links
     const leaderboardLinks = screen.getAllByText("Leaderboard");
     expect(leaderboardLinks.length).toBeGreaterThan(1);
+  });
+
+  it("shows sign in link when not logged in", () => {
+    renderHeader();
+    expect(screen.getByText("Sign in")).toBeInTheDocument();
+  });
+
+  it("shows Go Pro link when not logged in", () => {
+    renderHeader();
+    expect(screen.getByText("Go Pro")).toBeInTheDocument();
   });
 });

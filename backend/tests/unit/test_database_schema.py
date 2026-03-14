@@ -20,6 +20,9 @@ def test_all_tables_registered():
         "scores",
         "news_articles",
         "filings",
+        "users",
+        "alert_preferences",
+        "api_keys",
     }
     assert expected == table_names
 

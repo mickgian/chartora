@@ -13,9 +13,11 @@ from fastapi.responses import JSONResponse
 from src.adapters.api.middleware import RequestTimingMiddleware
 from src.adapters.api.routers import (
     affiliate,
+    auth,
     companies,
     leaderboard,
     payments,
+    premium,
     rankings,
 )
 from src.config.settings import Settings
@@ -113,6 +115,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(rankings.router)
     app.include_router(affiliate.router)
     app.include_router(payments.router)
+    app.include_router(auth.router)
+    app.include_router(premium.router)
 
     return app
 

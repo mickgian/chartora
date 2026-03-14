@@ -47,6 +47,7 @@ coverage/
 # Database
 *.sql.bak
 *.dump
+*.db
 
 # Docker
 docker-compose.override.yml

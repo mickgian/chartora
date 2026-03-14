@@ -273,13 +273,13 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 
 > Depends on: W6.3
 
-### [W7.1] User authentication `[ ]` → W6.3
+### [W7.1] User authentication `[x]` → W6.3
 - Email/password registration and login
 - JWT token-based auth
 - Password reset flow via Resend.com
 - Write auth tests
 
-### [W7.2] Historical data views `[ ]` → W7.1, W2.6
+### [W7.2] Historical data views `[x]` → W7.1, W2.6
 - Historical Quantum Power Score chart (backfilled + daily snapshots)
 - Full patent history timeline
 - Insider trading history table
@@ -287,14 +287,14 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 - Premium-gated API endpoints
 - Write tests
 
-### [W7.3] Alerts and exports `[ ]` → W7.1
+### [W7.3] Alerts and exports `[x]` → W7.1
 - Email alerts when a company's score changes significantly (±10 points)
 - Email alerts on insider trading activity
 - CSV/JSON export of current rankings
 - API access with API key management
 - Write tests for alert triggers and export formats
 
-### [W7.4] Ad-free premium experience `[ ]` → W7.1, W6.1
+### [W7.4] Ad-free premium experience `[x]` → W7.1, W6.1
 - Remove all ads for authenticated premium users
 - Premium badge on profile
 - Write tests

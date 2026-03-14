@@ -11,20 +11,26 @@ from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from src.adapters.repositories import (
+    PgAlertPreferenceRepository,
+    PgApiKeyRepository,
     PgCompanyRepository,
     PgFilingRepository,
     PgNewsRepository,
     PgPatentRepository,
     PgScoreRepository,
     PgStockRepository,
+    PgUserRepository,
 )
 from src.domain.interfaces.repositories import (
+    AlertPreferenceRepository,
+    ApiKeyRepository,
     CompanyRepository,
     FilingRepository,
     NewsRepository,
     PatentRepository,
     ScoreRepository,
     StockRepository,
+    UserRepository,
 )
 
 if TYPE_CHECKING:
@@ -115,9 +121,30 @@ def get_filing_repo(
     return PgFilingRepository(session)
 
 
+def get_user_repo(
+    session: SessionDep,
+) -> UserRepository:
+    return PgUserRepository(session)
+
+
+def get_alert_pref_repo(
+    session: SessionDep,
+) -> AlertPreferenceRepository:
+    return PgAlertPreferenceRepository(session)
+
+
+def get_api_key_repo(
+    session: SessionDep,
+) -> ApiKeyRepository:
+    return PgApiKeyRepository(session)
+
+
 CompanyRepoDep = Annotated[CompanyRepository, Depends(get_company_repo)]
 StockRepoDep = Annotated[StockRepository, Depends(get_stock_repo)]
 PatentRepoDep = Annotated[PatentRepository, Depends(get_patent_repo)]
 ScoreRepoDep = Annotated[ScoreRepository, Depends(get_score_repo)]
 NewsRepoDep = Annotated[NewsRepository, Depends(get_news_repo)]
 FilingRepoDep = Annotated[FilingRepository, Depends(get_filing_repo)]
+UserRepoDep = Annotated[UserRepository, Depends(get_user_repo)]
+AlertPrefRepoDep = Annotated[AlertPreferenceRepository, Depends(get_alert_pref_repo)]
+ApiKeyRepoDep = Annotated[ApiKeyRepository, Depends(get_api_key_repo)]
