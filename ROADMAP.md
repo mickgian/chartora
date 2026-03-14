@@ -218,7 +218,7 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 
 > Depends on: W4.2, W4.3, W4.4, W4.5
 
-### [W5.1] SEO optimization `[ ]` → W4.2, W4.3, W4.4
+### [W5.1] SEO optimization `[x]` → W4.2, W4.3, W4.4
 - Dynamic meta tags per page (title, description, OG image)
 - Generate `sitemap.xml` dynamically from company list
 - Add `robots.txt`
@@ -226,7 +226,7 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 - Canonical URLs
 - Write tests for meta tag generation
 
-### [W5.2] Production deployment setup `[ ]` → W0.4, W3.5
+### [W5.2] Production deployment setup `[x]` → W0.4, W3.5
 - Finalize Docker Compose for production
 - Nginx config with SSL termination (Let's Encrypt)
 - Set up cron job for daily data refresh
@@ -234,7 +234,7 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 - Health monitoring endpoint
 - Write deployment verification tests
 
-### [W5.3] Analytics and monitoring `[ ]` → W5.2
+### [W5.3] Analytics and monitoring `[x]` → W5.2
 - Add Plausible Analytics or Umami (privacy-friendly, self-hostable)
 - Set up error tracking (Sentry free tier)
 - API response time logging

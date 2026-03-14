@@ -1,23 +1,64 @@
+import type { Metadata } from "next";
 import { MetricDeepDive } from "@/components/rankings/MetricDeepDive";
 import type { RankingMetric } from "@/types/api";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chartora.com";
+
 const VALID_METRICS: RankingMetric[] = ["stock-performance", "patents", "funding", "sentiment"];
 
-const METRIC_TITLES: Record<RankingMetric, string> = {
-  "stock-performance": "Stock Performance Rankings",
-  patents: "Patent Activity Rankings",
-  funding: "Funding Rankings",
-  sentiment: "News Sentiment Rankings",
+const METRIC_META: Record<RankingMetric, { title: string; description: string }> = {
+  "stock-performance": {
+    title: "Stock Performance Rankings",
+    description:
+      "Quantum computing companies ranked by stock momentum — 30, 60, and 90 day price performance.",
+  },
+  patents: {
+    title: "Patent Activity Rankings",
+    description:
+      "Quantum computing companies ranked by patent filing velocity over the last 12 months.",
+  },
+  funding: {
+    title: "Funding Rankings",
+    description:
+      "Quantum computing companies ranked by total funding raised and recent investment rounds.",
+  },
+  sentiment: {
+    title: "News Sentiment Rankings",
+    description:
+      "Quantum computing companies ranked by AI-scored news sentiment from recent media coverage.",
+  },
 };
 
 interface MetricPageProps {
   params: Promise<{ metric: string }>;
 }
 
-export async function generateMetadata({ params }: MetricPageProps) {
+export async function generateMetadata({ params }: MetricPageProps): Promise<Metadata> {
   const { metric } = await params;
-  const title = METRIC_TITLES[metric as RankingMetric] ?? "Rankings";
-  return { title };
+  const meta = METRIC_META[metric as RankingMetric];
+  if (!meta) {
+    return { title: "Rankings" };
+  }
+  const url = `${SITE_URL}/rankings/${metric}`;
+  return {
+    title: meta.title,
+    description: meta.description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      type: "website",
+      title: meta.title,
+      description: meta.description,
+      url,
+      siteName: "Chartora",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: meta.title,
+      description: meta.description,
+    },
+  };
 }
 
 export default async function MetricPage({ params }: MetricPageProps) {
@@ -33,5 +74,22 @@ export default async function MetricPage({ params }: MetricPageProps) {
     );
   }
 
-  return <MetricDeepDive metric={metric as RankingMetric} />;
+  const meta = METRIC_META[metric as RankingMetric];
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: meta.title,
+    description: meta.description,
+    url: `${SITE_URL}/rankings/${metric}`,
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <MetricDeepDive metric={metric as RankingMetric} />
+    </>
+  );
 }

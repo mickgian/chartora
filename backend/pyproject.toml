@@ -13,6 +13,7 @@ dependencies = [
     "asyncpg>=0.30.0",
     "httpx>=0.28.0",
     "yfinance>=0.2.36",
+    "sentry-sdk[fastapi]>=2.0.0",
 ]
 
 [project.optional-dependencies]
@@ -93,6 +94,14 @@ disallow_subclassing_any = false
 [[tool.mypy.overrides]]
 module = "yfinance.*"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "sentry_sdk.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "src.adapters.api.middleware"
+disallow_subclassing_any = false
 
 [tool.coverage.run]
 source = ["src"]

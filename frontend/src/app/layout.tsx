@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { PlausibleAnalytics } from "@/components/analytics/PlausibleAnalytics";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,6 +16,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chartora.com";
+
 export const metadata: Metadata = {
   title: {
     default: "Chartora — Quantum Computing Company Rankings",
@@ -22,6 +25,36 @@ export const metadata: Metadata = {
   },
   description:
     "Live leaderboard ranking quantum computing companies by Quantum Power Score — combining stock performance, patents, qubits, funding, and sentiment.",
+  metadataBase: new URL(SITE_URL),
+  openGraph: {
+    type: "website",
+    siteName: "Chartora",
+    title: "Chartora — Quantum Computing Company Rankings",
+    description:
+      "Live leaderboard ranking quantum computing companies by Quantum Power Score — combining stock performance, patents, qubits, funding, and sentiment.",
+    url: SITE_URL,
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Chartora — Quantum Computing Company Rankings",
+    description:
+      "Live leaderboard ranking quantum computing companies by Quantum Power Score.",
+  },
+  alternates: {
+    canonical: SITE_URL,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -31,6 +64,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <PlausibleAnalytics />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider>
           <div className="flex min-h-screen flex-col">
