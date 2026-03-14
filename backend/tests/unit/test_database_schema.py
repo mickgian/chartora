@@ -1,8 +1,6 @@
 """Tests for database schema definitions."""
 
 from src.infrastructure.database import (
-    AlertPreferenceTable,
-    ApiKeyTable,
     Base,
     CompanyTable,
     FilingTable,
@@ -10,7 +8,6 @@ from src.infrastructure.database import (
     PatentTable,
     ScoreTable,
     StockPriceTable,
-    UserTable,
 )
 
 

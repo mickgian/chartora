@@ -1,7 +1,6 @@
 """Tests for authentication infrastructure and routes."""
 
 from datetime import timedelta
-from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -19,7 +18,6 @@ from src.infrastructure.auth import (
     hash_reset_token,
     verify_password,
 )
-
 
 # ── Password hashing tests ──
 
