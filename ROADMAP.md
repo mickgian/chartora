@@ -14,31 +14,31 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 
 > No dependencies. Must be completed first.
 
-### [W0.1] Project scaffolding and tooling setup `[ ]`
+### [W0.1] Project scaffolding and tooling setup `[x]`
 - Initialize Python backend with `pyproject.toml` (use `uv` or `poetry`)
 - Configure `ruff` for linting and formatting
 - Configure `mypy` for type checking
 - Set up `pytest` with coverage
 - Create backend directory structure per CLAUDE.md
 
-### [W0.2] Frontend scaffolding `[ ]`
+### [W0.2] Frontend scaffolding `[x]`
 - Initialize Next.js app with TypeScript + Tailwind CSS
 - Configure ESLint + Prettier
 - Set up Jest/Vitest for testing
 - Create frontend directory structure per CLAUDE.md
 
-### [W0.3] Database schema design `[ ]`
+### [W0.3] Database schema design `[x]`
 - Design PostgreSQL schema for: companies, stock_prices, patents, scores, news, filings
 - Write migration scripts (use Alembic)
 - Write seed data for initial company list (IONQ, QBTS, RGTI, etc.)
 
-### [W0.4] Docker and infrastructure setup `[ ]`
+### [W0.4] Docker and infrastructure setup `[x]`
 - Create `docker-compose.yml` with PostgreSQL, backend, frontend services
 - Create Dockerfiles for backend and frontend
 - Create nginx config template
 - Create `.env.example` with all required env vars
 
-### [W0.5] CI/CD and pre-commit hooks `[ ]`
+### [W0.5] CI/CD and pre-commit hooks `[x]`
 - Set up pre-commit hooks (lint, type check, tests)
 - Create GitHub Actions workflow for CI
 - Configure branch protection rules
