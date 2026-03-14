@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '🔍 Pre-commit checks will run via git hooks. Ensure all tests pass before committing.'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '📋 Remember: TDD workflow — write tests first, then implementation. Verify tests pass before committing.'"
+          }
+        ]
+      }
+    ]
+  }
+}

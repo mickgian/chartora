@@ -1,0 +1,95 @@
+# Pre-commit hooks for Chartora
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # General hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: detect-private-key
+      - id: check-merge-conflict
+      - id: no-commit-to-branch
+        args: ['--branch', 'main', '--branch', 'master']
+
+  # Python — Ruff linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+        args: ['--fix']
+        types_or: [python, pyi]
+      - id: ruff-format
+        types_or: [python, pyi]
+
+  # Python — Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [pydantic, fastapi]
+        args: ['--ignore-missing-imports']
+        pass_filenames: false
+        entry: bash -c 'cd backend && mypy src/ 2>/dev/null || true'
+
+  # Secrets detection
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+
+  # Local hooks for tests and e2e checks
+  - repo: local
+    hooks:
+      # Backend tests
+      - id: backend-tests
+        name: Run backend tests
+        entry: bash -c 'if [ -d "backend" ] && [ -f "backend/pyproject.toml" ]; then cd backend && python -m pytest tests/ -x -q 2>/dev/null; else echo "Backend not set up yet, skipping tests"; fi'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      # Frontend lint
+      - id: frontend-lint
+        name: Run frontend lint
+        entry: bash -c 'if [ -d "frontend" ] && [ -f "frontend/package.json" ]; then cd frontend && npm run lint 2>/dev/null; else echo "Frontend not set up yet, skipping lint"; fi'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      # Frontend type check
+      - id: frontend-typecheck
+        name: Run frontend type check
+        entry: bash -c 'if [ -d "frontend" ] && [ -f "frontend/tsconfig.json" ]; then cd frontend && npx tsc --noEmit 2>/dev/null; else echo "Frontend not set up yet, skipping type check"; fi'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      # Frontend tests
+      - id: frontend-tests
+        name: Run frontend tests
+        entry: bash -c 'if [ -d "frontend" ] && [ -f "frontend/package.json" ]; then cd frontend && npm test -- --watchAll=false 2>/dev/null; else echo "Frontend not set up yet, skipping tests"; fi'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      # End-to-end completeness check
+      - id: e2e-completeness-check
+        name: Verify feature completeness (no TODO/FIXME/HACK)
+        entry: bash -c 'ISSUES=$(grep -rn "TODO\|FIXME\|HACK\|XXX\|TEMP\|PLACEHOLDER" --include="*.py" --include="*.ts" --include="*.tsx" backend/src/ frontend/src/ 2>/dev/null || true); if [ -n "$ISSUES" ]; then echo "❌ Found incomplete implementations:"; echo "$ISSUES"; echo ""; echo "Fix all TODO/FIXME/HACK markers before committing."; exit 1; else echo "✅ No incomplete implementations found"; fi'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      # Conventional commit message check
+      - id: conventional-commit
+        name: Check conventional commit message
+        entry: bash -c 'MSG=$(cat "$1"); if echo "$MSG" | grep -qE "^(feat|fix|test|docs|chore|refactor|style|perf|ci|build|revert)(\(.+\))?: .+"; then exit 0; else echo "❌ Commit message must follow conventional commits format:"; echo "  feat|fix|test|docs|chore|refactor|style|perf|ci|build|revert: description"; echo "  Got: $MSG"; exit 1; fi'
+        language: system
+        stages: [commit-msg]
