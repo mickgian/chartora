@@ -229,9 +229,7 @@ async def _get_user_from_token(
     try:
         payload = decode_token(token, settings)
     except pyjwt.PyJWTError as exc:
-        raise HTTPException(
-            status_code=401, detail="Invalid or expired token"
-        ) from exc
+        raise HTTPException(status_code=401, detail="Invalid or expired token") from exc
 
     if payload.get("type") != "access":
         raise HTTPException(status_code=401, detail="Invalid token type")

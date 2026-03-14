@@ -262,36 +262,40 @@ async def export_rankings_csv(
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow([
-        "rank",
-        "company",
-        "ticker",
-        "sector",
-        "total_score",
-        "stock_momentum",
-        "patent_velocity",
-        "qubit_progress",
-        "funding_strength",
-        "news_sentiment",
-        "score_date",
-    ])
+    writer.writerow(
+        [
+            "rank",
+            "company",
+            "ticker",
+            "sector",
+            "total_score",
+            "stock_momentum",
+            "patent_velocity",
+            "qubit_progress",
+            "funding_strength",
+            "news_sentiment",
+            "score_date",
+        ]
+    )
 
     ranked = sorted(scores, key=lambda s: s.total_score, reverse=True)
     for rank_idx, score in enumerate(ranked, 1):
         company = company_map.get(score.company_id)
-        writer.writerow([
-            rank_idx,
-            company.name if company else "Unknown",
-            str(company.ticker) if company and company.ticker else "",
-            company.sector.value if company else "",
-            score.total_score,
-            score.stock_momentum,
-            score.patent_velocity,
-            score.qubit_progress,
-            score.funding_strength,
-            score.news_sentiment,
-            score.score_date.isoformat(),
-        ])
+        writer.writerow(
+            [
+                rank_idx,
+                company.name if company else "Unknown",
+                str(company.ticker) if company and company.ticker else "",
+                company.sector.value if company else "",
+                score.total_score,
+                score.stock_momentum,
+                score.patent_velocity,
+                score.qubit_progress,
+                score.funding_strength,
+                score.news_sentiment,
+                score.score_date.isoformat(),
+            ]
+        )
 
     output.seek(0)
     return StreamingResponse(
@@ -299,8 +303,7 @@ async def export_rankings_csv(
         media_type="text/csv",
         headers={
             "Content-Disposition": (
-                "attachment; filename=chartora-rankings-"
-                f"{date.today().isoformat()}.csv"
+                f"attachment; filename=chartora-rankings-{date.today().isoformat()}.csv"
             )
         },
     )
@@ -320,19 +323,21 @@ async def export_rankings_json(
     entries = []
     for rank_idx, score in enumerate(ranked, 1):
         company = company_map.get(score.company_id)
-        entries.append({
-            "rank": rank_idx,
-            "company": company.name if company else "Unknown",
-            "ticker": str(company.ticker) if company and company.ticker else None,
-            "sector": company.sector.value if company else None,
-            "total_score": score.total_score,
-            "stock_momentum": score.stock_momentum,
-            "patent_velocity": score.patent_velocity,
-            "qubit_progress": score.qubit_progress,
-            "funding_strength": score.funding_strength,
-            "news_sentiment": score.news_sentiment,
-            "score_date": score.score_date.isoformat(),
-        })
+        entries.append(
+            {
+                "rank": rank_idx,
+                "company": company.name if company else "Unknown",
+                "ticker": str(company.ticker) if company and company.ticker else None,
+                "sector": company.sector.value if company else None,
+                "total_score": score.total_score,
+                "stock_momentum": score.stock_momentum,
+                "patent_velocity": score.patent_velocity,
+                "qubit_progress": score.qubit_progress,
+                "funding_strength": score.funding_strength,
+                "news_sentiment": score.news_sentiment,
+                "score_date": score.score_date.isoformat(),
+            }
+        )
 
     return {
         "exported_at": datetime.now(UTC).isoformat(),

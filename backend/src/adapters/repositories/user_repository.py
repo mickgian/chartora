@@ -44,9 +44,7 @@ class PgUserRepository(UserRepository):
 
     async def get_by_stripe_subscription_id(self, subscription_id: str) -> User | None:
         result = await self._session.execute(
-            select(UserTable).where(
-                UserTable.stripe_subscription_id == subscription_id
-            )
+            select(UserTable).where(UserTable.stripe_subscription_id == subscription_id)
         )
         row = result.scalar_one_or_none()
         return self._to_entity(row) if row else None
@@ -79,9 +77,7 @@ class PgUserRepository(UserRepository):
         return self._to_entity(row)
 
     async def delete(self, user_id: int) -> None:
-        await self._session.execute(
-            delete(UserTable).where(UserTable.id == user_id)
-        )
+        await self._session.execute(delete(UserTable).where(UserTable.id == user_id))
         await self._session.flush()
 
     @staticmethod

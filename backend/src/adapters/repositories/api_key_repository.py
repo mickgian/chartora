@@ -60,9 +60,7 @@ class PgApiKeyRepository(ApiKeyRepository):
         return self._to_entity(row)
 
     async def delete(self, key_id: int) -> None:
-        await self._session.execute(
-            delete(ApiKeyTable).where(ApiKeyTable.id == key_id)
-        )
+        await self._session.execute(delete(ApiKeyTable).where(ApiKeyTable.id == key_id))
         await self._session.flush()
 
     @staticmethod

@@ -22,9 +22,7 @@ class PgAlertPreferenceRepository(AlertPreferenceRepository):
 
     async def get_by_user(self, user_id: int) -> list[AlertPreference]:
         result = await self._session.execute(
-            select(AlertPreferenceTable).where(
-                AlertPreferenceTable.user_id == user_id
-            )
+            select(AlertPreferenceTable).where(AlertPreferenceTable.user_id == user_id)
         )
         return [self._to_entity(row) for row in result.scalars().all()]
 
@@ -40,9 +38,7 @@ class PgAlertPreferenceRepository(AlertPreferenceRepository):
     async def save(self, pref: AlertPreference) -> AlertPreference:
         if pref.id is not None:
             result = await self._session.execute(
-                select(AlertPreferenceTable).where(
-                    AlertPreferenceTable.id == pref.id
-                )
+                select(AlertPreferenceTable).where(AlertPreferenceTable.id == pref.id)
             )
             row = result.scalar_one_or_none()
             if row is not None:

@@ -57,9 +57,7 @@ async def send_password_reset_email(
             if response.status_code < 300:
                 logger.info("Password reset email sent to %s", to_email)
                 return True
-            logger.error(
-                "Resend API error %s: %s", response.status_code, response.text
-            )
+            logger.error("Resend API error %s: %s", response.status_code, response.text)
             return False
     except httpx.HTTPError:
         logger.exception("Failed to send password reset email to %s", to_email)
