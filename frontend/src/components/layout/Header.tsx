@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { href: "/rankings/patents", label: "Patents" },
   { href: "/rankings/funding", label: "Funding" },
   { href: "/rankings/sentiment", label: "Sentiment" },
+  { href: "/methodology", label: "Methodology" },
 ];
 
 export function Header() {

@@ -102,7 +102,10 @@ COMPANIES = [
         "ticker": "HON",
         "sector": "big_tech",
         "is_etf": False,
-        "description": "Quantinuum — trapped-ion quantum computing (Honeywell subsidiary).",
+        "description": (
+            "Quantinuum — trapped-ion quantum computing"
+            " (Honeywell subsidiary)."
+        ),
     },
     # ETFs
     {
@@ -137,7 +140,8 @@ def seed(database_url: str | None = None) -> None:
             conn.execute(
                 text(
                     """
-                    INSERT INTO companies (name, slug, ticker, sector, is_etf, description)
+                    INSERT INTO companies
+                        (name, slug, ticker, sector, is_etf, description)
                     VALUES (:name, :slug, :ticker, :sector, :is_etf, :description)
                     ON CONFLICT (slug) DO NOTHING
                     """

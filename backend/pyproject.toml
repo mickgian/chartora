@@ -123,6 +123,14 @@ disallow_untyped_calls = false
 module = "src.adapters.api.middleware"
 disallow_subclassing_any = false
 
+[[tool.mypy.overrides]]
+module = "src.adapters.api.routers.api_docs"
+disallow_subclassing_any = false
+
+[[tool.mypy.overrides]]
+module = "src.adapters.api.routers.sectors"
+disallow_subclassing_any = false
+
 [tool.coverage.run]
 source = ["src"]
 omit = ["tests/*"]
