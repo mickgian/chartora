@@ -22,9 +22,7 @@ class RequestTimingMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp) -> None:
         super().__init__(app)
 
-    async def dispatch(
-        self, request: Request, call_next: Any
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: Any) -> Response:
         start = time.perf_counter()
         response: Response = await call_next(request)
         duration_ms = (time.perf_counter() - start) * 1000
