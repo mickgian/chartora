@@ -3,13 +3,13 @@ services:
     image: postgres:16-alpine
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-chartora}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${POSTGRES_DB:-chartora}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chartora}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,9 +24,9 @@ services:
       dockerfile: Dockerfile
     restart: always
     environment:
-      CHARTORA_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      CHARTORA_NEWS_API_KEY: ${NEWS_API_KEY}
-      CHARTORA_CLAUDE_API_KEY: ${CLAUDE_API_KEY}
+      CHARTORA_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-chartora}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@db:5432/${POSTGRES_DB:-chartora}
+      CHARTORA_NEWS_API_KEY: ${NEWS_API_KEY:-}
+      CHARTORA_CLAUDE_API_KEY: ${CLAUDE_API_KEY:-}
       CHARTORA_DEBUG: "false"
       SENTRY_DSN: ${SENTRY_DSN:-}
     expose:
