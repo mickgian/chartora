@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from sqlalchemy import delete, select
@@ -12,6 +13,10 @@ from src.infrastructure.database import AlertPreferenceTable
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
+
+def _to_decimal(value: float | None) -> Decimal | None:
+    return Decimal(str(value)) if value is not None else None
 
 
 class PgAlertPreferenceRepository(AlertPreferenceRepository):
@@ -43,7 +48,7 @@ class PgAlertPreferenceRepository(AlertPreferenceRepository):
             row = result.scalar_one_or_none()
             if row is not None:
                 row.enabled = pref.enabled
-                row.threshold = pref.threshold
+                row.threshold = _to_decimal(pref.threshold)
                 await self._session.flush()
                 return self._to_entity(row)
 
@@ -51,7 +56,7 @@ class PgAlertPreferenceRepository(AlertPreferenceRepository):
             user_id=pref.user_id,
             alert_type=pref.alert_type,
             enabled=pref.enabled,
-            threshold=pref.threshold,
+            threshold=_to_decimal(pref.threshold),
         )
         self._session.add(row)
         await self._session.flush()
