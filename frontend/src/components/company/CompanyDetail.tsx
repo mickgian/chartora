@@ -61,13 +61,13 @@ export function CompanyDetail({ slug }: CompanyDetailProps) {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{company.name}</h1>
             <div className="mt-1 flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
               {company.ticker && (
-                <span className="rounded bg-gray-100 px-2 py-0.5 font-mono font-medium dark:bg-gray-800">
+                <span className="rounded bg-gray-100 px-2 py-0.5 font-mono font-medium dark:bg-gray-700">
                   {company.ticker}
                 </span>
               )}
               <span className="capitalize">{company.sector.replace("_", " ")}</span>
               {company.is_etf && (
-                <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-800/50 dark:text-blue-200">
                   ETF
                 </span>
               )}
@@ -86,7 +86,7 @@ export function CompanyDetail({ slug }: CompanyDetailProps) {
       {score && (
         <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
           {Object.entries(METRIC_LABELS).map(([key, label]) => (
-            <div key={key} className="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+            <div key={key} className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
               <div className="text-xs text-gray-500 dark:text-gray-400">{label}</div>
               <div className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
                 {(score[key as keyof typeof score] as number).toFixed(1)}
@@ -98,20 +98,20 @@ export function CompanyDetail({ slug }: CompanyDetailProps) {
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="space-y-8 lg:col-span-2">
-          <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-800">
+          <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
             <StockChart slug={slug} />
           </div>
-          <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-800">
+          <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
             <PatentTimeline slug={slug} />
           </div>
           <AdSlot adSlot="company-between" placement="between-sections" />
-          <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-800">
+          <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
             <NewsFeed slug={slug} />
           </div>
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-800">
+          <div className="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
             <CompetitorComparison currentSlug={slug} />
           </div>
           <TradeButton ticker={company.ticker} companySlug={company.slug} />
@@ -121,7 +121,7 @@ export function CompanyDetail({ slug }: CompanyDetailProps) {
               href={company.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="block rounded-lg border border-gray-200 p-4 text-center text-sm font-medium text-indigo-600 transition-colors hover:bg-indigo-50 dark:border-gray-800 dark:text-indigo-400 dark:hover:bg-indigo-950/30"
+              className="block rounded-lg border border-gray-200 p-4 text-center text-sm font-medium text-indigo-600 transition-colors hover:bg-indigo-50 dark:border-gray-700 dark:text-indigo-300 dark:hover:bg-indigo-900/30"
             >
               Visit Company Website
             </a>

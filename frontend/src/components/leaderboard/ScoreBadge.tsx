@@ -3,14 +3,14 @@ interface ScoreBadgeProps {
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 80) return "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300";
+  if (score >= 80) return "bg-green-100 text-green-800 dark:bg-green-800/50 dark:text-green-200";
   if (score >= 60)
-    return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300";
+    return "bg-emerald-100 text-emerald-800 dark:bg-emerald-800/50 dark:text-emerald-200";
   if (score >= 40)
-    return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300";
+    return "bg-yellow-100 text-yellow-800 dark:bg-yellow-800/50 dark:text-yellow-200";
   if (score >= 20)
-    return "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300";
-  return "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300";
+    return "bg-orange-100 text-orange-800 dark:bg-orange-800/50 dark:text-orange-200";
+  return "bg-red-100 text-red-800 dark:bg-red-800/50 dark:text-red-200";
 }
 
 function getBarWidth(score: number): string {
@@ -25,7 +25,7 @@ export function ScoreBadge({ score }: ScoreBadgeProps) {
       >
         {score.toFixed(1)}
       </span>
-      <div className="hidden h-2 w-16 overflow-hidden rounded-full bg-gray-200 sm:block dark:bg-gray-700">
+      <div className="hidden h-2 w-16 overflow-hidden rounded-full bg-gray-200 sm:block dark:bg-gray-600">
         <div
           className="h-full rounded-full bg-indigo-500 transition-all"
           style={{ width: getBarWidth(score) }}

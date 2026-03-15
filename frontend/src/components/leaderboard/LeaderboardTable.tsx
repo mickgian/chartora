@@ -41,7 +41,7 @@ export function LeaderboardTable() {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Quantum Power Rankings</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">Quantum Power Rankings</h1>
         {data.updated_at && (
           <span className="text-xs text-gray-500 dark:text-gray-400">
             Updated {new Date(data.updated_at).toLocaleDateString()}
@@ -49,20 +49,20 @@ export function LeaderboardTable() {
         )}
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-600/50">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
-              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Rank</th>
-              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Company</th>
+            <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-600/50 dark:bg-gray-800">
+              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-300">Rank</th>
+              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-300">Company</th>
               {SORTABLE_METRICS.map((metric) => (
                 <th key={metric} className="px-4 py-3">
                   <button
                     onClick={() => setSortBy(metric)}
                     className={`font-medium transition-colors ${
                       sortBy === metric
-                        ? "text-indigo-600 dark:text-indigo-400"
-                        : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        ? "text-indigo-600 dark:text-indigo-300"
+                        : "text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
                     }`}
                   >
                     {METRIC_LABELS[metric]}
@@ -70,20 +70,20 @@ export function LeaderboardTable() {
                   </button>
                 </th>
               ))}
-              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Trend</th>
+              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-300">Trend</th>
             </tr>
           </thead>
           <tbody>
             {data.entries.map((entry) => (
               <tr
                 key={entry.company.slug}
-                className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-800/50 dark:hover:bg-gray-900/50"
+                className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700/50 dark:hover:bg-gray-700/30"
               >
-                <td className="px-4 py-3 font-bold text-gray-900 dark:text-white">{entry.rank}</td>
+                <td className="px-4 py-3 font-bold text-gray-900 dark:text-indigo-300">{entry.rank}</td>
                 <td className="px-4 py-3">
                   <Link
                     href={`/company/${entry.company.slug}`}
-                    className="font-medium text-gray-900 hover:text-indigo-600 dark:text-white dark:hover:text-indigo-400"
+                    className="font-medium text-gray-900 hover:text-indigo-600 dark:text-gray-100 dark:hover:text-indigo-300"
                   >
                     {entry.company.name}
                     {entry.company.ticker && (
@@ -96,19 +96,19 @@ export function LeaderboardTable() {
                 <td className="px-4 py-3">
                   <ScoreBadge score={entry.score.total_score} />
                 </td>
-                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-300">
+                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-200">
                   {entry.score.stock_momentum.toFixed(1)}
                 </td>
-                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-300">
+                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-200">
                   {entry.score.patent_velocity.toFixed(1)}
                 </td>
-                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-300">
+                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-200">
                   {entry.score.qubit_progress.toFixed(1)}
                 </td>
-                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-300">
+                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-200">
                   {entry.score.funding_strength.toFixed(1)}
                 </td>
-                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-300">
+                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-gray-200">
                   {entry.score.news_sentiment.toFixed(1)}
                 </td>
                 <td className="px-4 py-3">
@@ -120,7 +120,7 @@ export function LeaderboardTable() {
         </table>
       </div>
 
-      <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
+      <p className="mt-3 text-xs text-gray-400 dark:text-gray-400">
         {data.count} companies tracked. Click column headers to sort.
       </p>
     </div>
