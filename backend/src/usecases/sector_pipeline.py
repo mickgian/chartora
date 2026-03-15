@@ -125,9 +125,7 @@ class SectorPipeline:
 
         # Fetch patents
         patent_range = DateRange(start=today - timedelta(days=30), end=today)
-        patents = await self._patent_source.search_patents(
-            company.name, patent_range
-        )
+        patents = await self._patent_source.search_patents(company.name, patent_range)
         if patents:
             await repos.patent_repo.save_many(patents)
 
@@ -137,12 +135,8 @@ class SectorPipeline:
             analysed = await self._sentiment_analyzer.analyze_batch(
                 [a.title for a in articles],
             )
-            for article, (label, confidence) in zip(
-                articles, analysed, strict=True
-            ):
-                object.__setattr__(
-                    article, "sentiment", SentimentLabel(label)
-                )
+            for article, (label, confidence) in zip(articles, analysed, strict=True):
+                object.__setattr__(article, "sentiment", SentimentLabel(label))
                 object.__setattr__(
                     article,
                     "sentiment_score",

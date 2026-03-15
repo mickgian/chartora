@@ -59,9 +59,7 @@ class InMemoryCache:
         """Remove all expired entries and return the count of evicted items."""
         now = time.monotonic()
         async with self._lock:
-            expired_keys = [
-                k for k, v in self._store.items() if now > v.expires_at
-            ]
+            expired_keys = [k for k, v in self._store.items() if now > v.expires_at]
             for k in expired_keys:
                 del self._store[k]
             return len(expired_keys)

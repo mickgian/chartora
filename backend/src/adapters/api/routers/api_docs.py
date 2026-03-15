@@ -152,13 +152,19 @@ async def list_schemas() -> SchemaListResponse:
             description="A tracked company entity.",
             fields=[
                 SchemaField(
-                    name="id", type="integer", description="Unique ID.",
+                    name="id",
+                    type="integer",
+                    description="Unique ID.",
                 ),
                 SchemaField(
-                    name="name", type="string", description="Company name.",
+                    name="name",
+                    type="string",
+                    description="Company name.",
                 ),
                 SchemaField(
-                    name="slug", type="string", description="URL-friendly slug.",
+                    name="slug",
+                    type="string",
+                    description="URL-friendly slug.",
                 ),
                 SchemaField(
                     name="sector",
