@@ -13,6 +13,7 @@ import {
 import type { StockHistoryResponse } from "@/types/api";
 import { apiClient } from "@/lib/api-client";
 import { useApi } from "@/hooks/use-api";
+import { useTheme } from "@/components/layout/ThemeProvider";
 import { ChartSkeleton } from "@/components/ui/LoadingSkeleton";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 
@@ -27,6 +28,8 @@ interface StockChartProps {
 }
 
 export function StockChart({ slug }: StockChartProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const [days, setDays] = useState(90);
 
   const fetcher = useCallback(() => apiClient.getStockHistory(slug, days), [slug, days]);
@@ -76,18 +79,21 @@ export function StockChart({ slug }: StockChartProps) {
               <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#374151" : "#e5e7eb"} />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 12, fill: isDark ? "#d1d5db" : "#6b7280" }}
             tickFormatter={(v: string) =>
               new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })
             }
+            stroke={isDark ? "#4b5563" : "#d1d5db"}
           />
-          <YAxis domain={[minPrice, maxPrice]} tick={{ fontSize: 12 }} />
+          <YAxis domain={[minPrice, maxPrice]} tick={{ fontSize: 12, fill: isDark ? "#d1d5db" : "#6b7280" }} stroke={isDark ? "#4b5563" : "#d1d5db"} />
           <Tooltip
             labelFormatter={(v) => new Date(String(v)).toLocaleDateString()}
             formatter={(value) => [`$${Number(value).toFixed(2)}`, "Price"]}
+            contentStyle={isDark ? { backgroundColor: "#1f2937", border: "1px solid #4b5563", borderRadius: "8px", color: "#f3f4f6" } : undefined}
+            labelStyle={isDark ? { color: "#d1d5db" } : undefined}
           />
           <Area
             type="monotone"

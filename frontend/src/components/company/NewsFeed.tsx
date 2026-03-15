@@ -15,7 +15,7 @@ function SentimentBadge({ sentiment }: { sentiment: string | null }) {
   const colors: Record<string, string> = {
     bullish: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
     bearish: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
-    neutral: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+    neutral: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
   };
   return (
     <span
@@ -51,7 +51,7 @@ export function NewsFeed({ slug }: NewsFeedProps) {
         {data.articles.map((article, i) => (
           <li
             key={i}
-            className="rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900/50"
+            className="rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/30"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">

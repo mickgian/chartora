@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useTheme } from "@/components/layout/ThemeProvider";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -36,6 +37,8 @@ const PERIOD_OPTIONS = [
 ];
 
 export function HistoricalScoreChart() {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [selectedSlug, setSelectedSlug] = useState<string>("");
   const [period, setPeriod] = useState(365);
@@ -140,15 +143,17 @@ export function HistoricalScoreChart() {
                   <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+              <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#374151" : "#e5e7eb"} opacity={isDark ? 0.5 : 0.2} />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 11, fill: isDark ? "#d1d5db" : "#6b7280" }}
                 tickFormatter={(v: string) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                stroke={isDark ? "#4b5563" : "#d1d5db"}
               />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
+              <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: isDark ? "#d1d5db" : "#6b7280" }} stroke={isDark ? "#4b5563" : "#d1d5db"} />
               <Tooltip
-                contentStyle={{ borderRadius: "8px", fontSize: "12px" }}
+                contentStyle={isDark ? { backgroundColor: "#1f2937", border: "1px solid #4b5563", borderRadius: "8px", fontSize: "12px", color: "#f3f4f6" } : { borderRadius: "8px", fontSize: "12px" }}
+                labelStyle={isDark ? { color: "#d1d5db" } : undefined}
                 labelFormatter={(v) => new Date(String(v)).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
               />
               <Area

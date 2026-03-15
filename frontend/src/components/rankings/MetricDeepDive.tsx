@@ -62,27 +62,27 @@ export function MetricDeepDive({ metric }: MetricDeepDiveProps) {
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{details.description}</p>
       </div>
 
-      <div className="mb-8 rounded-lg border border-gray-200 p-6 dark:border-gray-800">
+      <div className="mb-8 rounded-lg border border-gray-200 p-6 dark:border-gray-700">
         <MetricChart entries={data.entries} metricLabel={details.label} />
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
-              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Rank</th>
-              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Company</th>
-              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">
+            <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800">
+              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-300">Rank</th>
+              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-300">Company</th>
+              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-300">
                 {details.label}
               </th>
-              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Trend</th>
+              <th className="px-4 py-3 font-medium text-gray-500 dark:text-gray-300">Trend</th>
             </tr>
           </thead>
           <tbody>
             {data.entries.map((entry) => (
               <tr
                 key={entry.company.slug}
-                className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-800/50 dark:hover:bg-gray-900/50"
+                className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700/50 dark:hover:bg-gray-700/30"
               >
                 <td className="px-4 py-3 font-bold text-gray-900 dark:text-white">{entry.rank}</td>
                 <td className="px-4 py-3">
@@ -110,7 +110,7 @@ export function MetricDeepDive({ metric }: MetricDeepDiveProps) {
         </table>
       </div>
 
-      <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
+      <p className="mt-3 text-xs text-gray-400 dark:text-gray-400">
         {data.count} companies ranked by {details.label.toLowerCase()}.
       </p>
     </div>

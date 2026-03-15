@@ -35,7 +35,7 @@ export function TrendArrow({ trend, rankChange }: TrendArrowProps) {
   }
 
   return (
-    <span className="inline-flex items-center text-sm text-gray-400 dark:text-gray-500">
+    <span className="inline-flex items-center text-sm text-gray-400 dark:text-gray-400">
       <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
         <path
           fillRule="evenodd"
