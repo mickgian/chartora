@@ -1,7 +1,7 @@
 import { LeaderboardTable } from "@/components/leaderboard/LeaderboardTable";
 import { AdSlot } from "@/components/ads/AdSlot";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chartora.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://chartora.com";
 
 const jsonLd = {
   "@context": "https://schema.org",

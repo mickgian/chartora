@@ -3,7 +3,7 @@ import type { RankingMetric } from "@/types/api";
 
 export const dynamic = "force-static";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chartora.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://chartora.com";
 
 const COMPANY_SLUGS = [
   "ionq",

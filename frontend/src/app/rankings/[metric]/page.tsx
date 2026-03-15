@@ -4,7 +4,7 @@ import { ShareButtons } from "@/components/sharing/ShareButtons";
 import { EmbedCodeGenerator } from "@/components/sharing/EmbedCodeGenerator";
 import type { RankingMetric } from "@/types/api";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chartora.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://chartora.com";
 
 const VALID_METRICS: RankingMetric[] = ["stock-performance", "patents", "funding", "sentiment"];
 

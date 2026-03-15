@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chartora.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://chartora.com";
 
 export const metadata: Metadata = {
   title: "Quantum Power Score Methodology | Chartora",

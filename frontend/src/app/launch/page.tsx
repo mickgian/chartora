@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LaunchEmailForm } from "@/components/launch/LaunchEmailForm";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://chartora.com";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://chartora.com";
 
 export const metadata: Metadata = {
   title: "Chartora Launch | The Quantum Computing Leaderboard for Investors",
