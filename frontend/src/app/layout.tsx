@@ -20,7 +20,7 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chartora.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://chartora.com";
 
 export const metadata: Metadata = {
   title: {
