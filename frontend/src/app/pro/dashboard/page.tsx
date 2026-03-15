@@ -19,7 +19,7 @@ export default function ProDashboardPage() {
     return (
       <div className="mx-auto max-w-md text-center py-20">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Sign in required</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
+        <p className="mt-2 text-gray-600 dark:text-slate-400">
           Please sign in to access your dashboard.
         </p>
         <Link
@@ -36,7 +36,7 @@ export default function ProDashboardPage() {
     return (
       <div className="mx-auto max-w-md text-center py-20">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Premium required</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
+        <p className="mt-2 text-gray-600 dark:text-slate-400">
           Upgrade to Chartora Pro to access the premium dashboard.
         </p>
         <Link

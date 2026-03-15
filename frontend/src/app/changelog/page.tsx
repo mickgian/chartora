@@ -127,7 +127,7 @@ export default function ChangelogPage() {
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl dark:text-white">
             Changelog
           </h1>
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
+          <p className="mt-4 text-lg text-gray-600 dark:text-slate-400">
             New features, improvements, and fixes. Follow our progress as we
             build the best quantum computing tracker for investors.
           </p>
@@ -138,7 +138,7 @@ export default function ChangelogPage() {
       <section className="mx-auto max-w-3xl px-4 py-12">
         <div className="relative">
           {/* Vertical line */}
-          <div className="absolute left-[19px] top-2 hidden h-[calc(100%-1rem)] w-px bg-gray-200 sm:block dark:bg-gray-700" />
+          <div className="absolute left-[19px] top-2 hidden h-[calc(100%-1rem)] w-px bg-gray-200 sm:block dark:bg-slate-700" />
 
           <div className="space-y-12">
             {CHANGELOG_ENTRIES.map((entry, entryIndex) => (
@@ -155,7 +155,7 @@ export default function ChangelogPage() {
                   <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
                     v{entry.version}
                   </span>
-                  <time className="text-sm text-gray-500 dark:text-gray-400">
+                  <time className="text-sm text-gray-500 dark:text-slate-400">
                     {new Date(entry.date).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
@@ -183,7 +183,7 @@ export default function ChangelogPage() {
                           {changeGroup.items.map((item) => (
                             <li
                               key={item}
-                              className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400"
+                              className="flex items-start gap-2 text-sm text-gray-600 dark:text-slate-400"
                             >
                               <svg
                                 className="mt-0.5 h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500"

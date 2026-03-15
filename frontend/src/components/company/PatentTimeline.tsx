@@ -22,7 +22,7 @@ export function PatentTimeline({ slug }: PatentTimelineProps) {
   if (loading) return <ChartSkeleton />;
   if (error) return <ErrorMessage message={error.message} onRetry={refetch} />;
   if (!data || data.patents.length === 0) {
-    return <p className="text-sm text-gray-500 dark:text-gray-400">No patent data available.</p>;
+    return <p className="text-sm text-gray-500 dark:text-slate-400">No patent data available.</p>;
   }
 
   const monthCounts = new Map<string, number>();
@@ -39,7 +39,7 @@ export function PatentTimeline({ slug }: PatentTimelineProps) {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Patent Filings</h2>
-        <span className="text-sm text-gray-500 dark:text-gray-400">{data.count} total patents</span>
+        <span className="text-sm text-gray-500 dark:text-slate-400">{data.count} total patents</span>
       </div>
 
       <ResponsiveContainer width="100%" height={280}>

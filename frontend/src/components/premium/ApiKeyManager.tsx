@@ -90,7 +90,7 @@ export function ApiKeyManager() {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-gray-600 dark:text-gray-400">
+      <p className="text-sm text-gray-600 dark:text-slate-400">
         Create API keys for programmatic access to Chartora premium endpoints.
       </p>
 
@@ -101,7 +101,7 @@ export function ApiKeyManager() {
           placeholder="Key name (e.g. My App)"
           value={newKeyName}
           onChange={(e) => setNewKeyName(e.target.value)}
-          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-slate-800/80 dark:text-white"
         />
         <button
           onClick={handleCreate}
@@ -130,11 +130,11 @@ export function ApiKeyManager() {
           {keys.map((key) => (
             <div
               key={key.id}
-              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900"
+              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-slate-900"
             >
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">{key.name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-slate-400">
                   {key.prefix}... &middot;{" "}
                   {key.created_at
                     ? `Created ${new Date(key.created_at).toLocaleDateString()}`

@@ -47,8 +47,8 @@ export function CompanyDetail({ slug }: CompanyDetailProps) {
 
   return (
     <div>
-      <nav className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-        <Link href="/" className="hover:text-gray-700 dark:hover:text-gray-300">
+      <nav className="mb-4 text-sm text-gray-500 dark:text-slate-400">
+        <Link href="/" className="hover:text-gray-700 dark:hover:text-slate-300">
           Leaderboard
         </Link>
         <span className="mx-2">/</span>
@@ -59,9 +59,9 @@ export function CompanyDetail({ slug }: CompanyDetailProps) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{company.name}</h1>
-            <div className="mt-1 flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+            <div className="mt-1 flex items-center gap-3 text-sm text-gray-500 dark:text-slate-400">
               {company.ticker && (
-                <span className="rounded bg-gray-100 px-2 py-0.5 font-mono font-medium dark:bg-gray-700">
+                <span className="rounded bg-gray-100 px-2 py-0.5 font-mono font-medium dark:bg-slate-700">
                   {company.ticker}
                 </span>
               )}
@@ -77,7 +77,7 @@ export function CompanyDetail({ slug }: CompanyDetailProps) {
         </div>
 
         {company.description && (
-          <p className="mt-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+          <p className="mt-4 text-sm leading-relaxed text-gray-600 dark:text-slate-400">
             {company.description}
           </p>
         )}
@@ -87,7 +87,7 @@ export function CompanyDetail({ slug }: CompanyDetailProps) {
         <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
           {Object.entries(METRIC_LABELS).map(([key, label]) => (
             <div key={key} className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-              <div className="text-xs text-gray-500 dark:text-gray-400">{label}</div>
+              <div className="text-xs text-gray-500 dark:text-slate-400">{label}</div>
               <div className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
                 {(score[key as keyof typeof score] as number).toFixed(1)}
               </div>

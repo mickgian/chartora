@@ -29,10 +29,10 @@ export function CompetitorComparison({ currentSlug }: CompetitorComparisonProps)
           <Link
             key={entry.company.slug}
             href={`/company/${entry.company.slug}`}
-            className="flex items-center justify-between rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/30"
+            className="flex items-center justify-between rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-slate-800/60"
           >
             <div className="flex items-center gap-3">
-              <span className="text-sm font-bold text-gray-400 dark:text-gray-400">
+              <span className="text-sm font-bold text-gray-400 dark:text-slate-400">
                 #{entry.rank}
               </span>
               <span className="text-sm font-medium text-gray-900 dark:text-white">

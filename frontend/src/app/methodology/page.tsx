@@ -132,13 +132,13 @@ const SCORING_COMPONENTS: ScoringComponent[] = [
 function WeightBar({ weight, color }: { weight: number; color: string }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="h-3 w-full max-w-48 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+      <div className="h-3 w-full max-w-48 overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
         <div
           className={`h-full rounded-full ${color}`}
           style={{ width: `${weight * 4}%` }}
         />
       </div>
-      <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+      <span className="text-sm font-bold text-gray-900 dark:text-slate-100">
         {weight}%
       </span>
     </div>
@@ -149,26 +149,26 @@ function ScoringSection({ component }: { component: ScoringComponent }) {
   return (
     <section className={`rounded-2xl border border-gray-200 p-6 sm:p-8 dark:border-gray-800 ${component.bgColor}`}>
       <div className="mb-4 flex items-start gap-4">
-        <div className="flex-shrink-0 text-gray-700 dark:text-gray-300">
+        <div className="flex-shrink-0 text-gray-700 dark:text-slate-300">
           {component.icon}
         </div>
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">
             {component.title}
           </h3>
           <WeightBar weight={component.weight} color={component.color} />
         </div>
       </div>
-      <p className="mb-4 text-gray-600 dark:text-gray-400">
+      <p className="mb-4 text-gray-600 dark:text-slate-400">
         {component.description}
       </p>
       <div className="mb-4">
-        <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+        <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
           How it works
         </h4>
         <ul className="space-y-1.5">
           {component.details.map((detail) => (
-            <li key={detail} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <li key={detail} className="flex items-start gap-2 text-sm text-gray-600 dark:text-slate-400">
               <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400 dark:bg-gray-500" />
               {detail}
             </li>
@@ -176,14 +176,14 @@ function ScoringSection({ component }: { component: ScoringComponent }) {
         </ul>
       </div>
       <div>
-        <h4 className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+        <h4 className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
           Data sources
         </h4>
         <div className="flex flex-wrap gap-2">
           {component.sources.map((source) => (
             <span
               key={source}
-              className="rounded-full bg-white/70 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800/70 dark:text-gray-300"
+              className="rounded-full bg-white/70 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800/70 dark:text-slate-300"
             >
               {source}
             </span>
@@ -219,10 +219,10 @@ export default function MethodologyPage() {
       <div className="mx-auto max-w-4xl px-4 py-12 sm:py-16">
         {/* Hero */}
         <div className="mb-12 text-center">
-          <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl dark:text-gray-100">
+          <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl dark:text-slate-100">
             Quantum Power Score
           </h1>
-          <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400">
+          <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-slate-400">
             A composite metric from 0 to 100 that ranks quantum computing
             companies across five fundamental dimensions. Designed to give
             investors a single, comparable benchmark for evaluating the quantum
@@ -247,7 +247,7 @@ export default function MethodologyPage() {
 
         {/* Scoring components */}
         <div className="mb-16">
-          <h2 className="mb-8 text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h2 className="mb-8 text-2xl font-bold text-gray-900 dark:text-slate-100">
             Scoring Components
           </h2>
           <div className="space-y-6">
@@ -258,37 +258,37 @@ export default function MethodologyPage() {
         </div>
 
         {/* Data freshness */}
-        <div className="mb-12 rounded-2xl border border-gray-200 bg-gray-50 p-6 sm:p-8 dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="mb-12 rounded-2xl border border-gray-200 bg-gray-50 p-6 sm:p-8 dark:border-gray-800 dark:bg-slate-900/50">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 text-gray-700 dark:text-gray-300">
+            <div className="flex-shrink-0 text-gray-700 dark:text-slate-300">
               <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </div>
             <div>
-              <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-slate-100">
                 Data Freshness
               </h2>
-              <p className="mb-3 text-gray-600 dark:text-gray-400">
+              <p className="mb-3 text-gray-600 dark:text-slate-400">
                 All scores are refreshed daily via an automated data pipeline.
                 Our system fetches the latest data from all sources every 24
                 hours, recalculates scores, and updates the leaderboard
                 automatically.
               </p>
               <ul className="space-y-1.5">
-                <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                   <span className="h-2 w-2 rounded-full bg-green-500" />
                   Stock data updated every market day
                 </li>
-                <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                   <span className="h-2 w-2 rounded-full bg-green-500" />
                   Patent data refreshed daily from USPTO and EPO
                 </li>
-                <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                   <span className="h-2 w-2 rounded-full bg-green-500" />
                   News sentiment analyzed daily with AI
                 </li>
-                <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                   <span className="h-2 w-2 rounded-full bg-green-500" />
                   Funding and SEC filings checked on each update cycle
                 </li>
@@ -298,25 +298,25 @@ export default function MethodologyPage() {
         </div>
 
         {/* Transparency */}
-        <div className="mb-12 rounded-2xl border border-gray-200 bg-gray-50 p-6 sm:p-8 dark:border-gray-800 dark:bg-gray-900/50">
+        <div className="mb-12 rounded-2xl border border-gray-200 bg-gray-50 p-6 sm:p-8 dark:border-gray-800 dark:bg-slate-900/50">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 text-gray-700 dark:text-gray-300">
+            <div className="flex-shrink-0 text-gray-700 dark:text-slate-300">
               <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
             </div>
             <div>
-              <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-slate-100">
                 Transparency & Open Methodology
               </h2>
-              <p className="mb-3 text-gray-600 dark:text-gray-400">
+              <p className="mb-3 text-gray-600 dark:text-slate-400">
                 We believe in full transparency. Our scoring methodology is
                 published here for anyone to review and critique. Every data
                 source is publicly accessible, and our weights are chosen based
                 on what matters most to quantum computing investors.
               </p>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-gray-600 dark:text-slate-400">
                 No black boxes. No hidden factors. If a company&apos;s score
                 changes, you can trace exactly why through the individual
                 component scores visible on each{" "}
@@ -331,7 +331,7 @@ export default function MethodologyPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <p className="mb-4 text-gray-600 dark:text-gray-400">
+          <p className="mb-4 text-gray-600 dark:text-slate-400">
             See the Quantum Power Score in action on the leaderboard.
           </p>
           <Link

@@ -102,7 +102,7 @@ export default function LaunchPage() {
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-900"
+              className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-slate-900"
             >
               <div className="text-indigo-600 dark:text-indigo-400">
                 {feature.icon}
@@ -110,7 +110,7 @@ export default function LaunchPage() {
               <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
                 {feature.title}
               </h3>
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
                 {feature.description}
               </p>
             </div>
@@ -119,12 +119,12 @@ export default function LaunchPage() {
       </section>
 
       {/* Social Proof / Stats */}
-      <section className="border-t border-gray-200 bg-gray-50 py-16 dark:border-gray-800 dark:bg-gray-900/50">
+      <section className="border-t border-gray-200 bg-gray-50 py-16 dark:border-gray-800 dark:bg-slate-900/50">
         <div className="mx-auto max-w-4xl px-4">
           <h2 className="text-center text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">
             Built on real data
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-gray-600 dark:text-gray-400">
+          <p className="mx-auto mt-4 max-w-2xl text-center text-gray-600 dark:text-slate-400">
             Chartora aggregates data from multiple free, publicly available
             sources to produce the most comprehensive view of the quantum
             computing landscape.
@@ -135,7 +135,7 @@ export default function LaunchPage() {
                 <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
                   {stat.value}
                 </p>
-                <p className="mt-1 text-sm font-medium text-gray-600 dark:text-gray-400">
+                <p className="mt-1 text-sm font-medium text-gray-600 dark:text-slate-400">
                   {stat.label}
                 </p>
               </div>
@@ -149,7 +149,7 @@ export default function LaunchPage() {
         <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">
           Ready to explore the leaderboard?
         </h2>
-        <p className="mt-4 text-gray-600 dark:text-gray-400">
+        <p className="mt-4 text-gray-600 dark:text-slate-400">
           Start tracking quantum computing companies today. Free, no account
           required.
         </p>
@@ -162,7 +162,7 @@ export default function LaunchPage() {
           </Link>
           <Link
             href="/methodology"
-            className="rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             Read Methodology
           </Link>
