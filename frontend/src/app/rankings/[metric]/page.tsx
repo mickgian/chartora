@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { MetricDeepDive } from "@/components/rankings/MetricDeepDive";
+import { ShareButtons } from "@/components/sharing/ShareButtons";
+import { EmbedCodeGenerator } from "@/components/sharing/EmbedCodeGenerator";
 import type { RankingMetric } from "@/types/api";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://chartora.com";
@@ -40,6 +42,7 @@ export async function generateMetadata({ params }: MetricPageProps): Promise<Met
     return { title: "Rankings" };
   }
   const url = `${SITE_URL}/rankings/${metric}`;
+  const ogImage = `${SITE_URL}/api/og?title=${encodeURIComponent(meta.title)}&type=ranking&subtitle=${encodeURIComponent(meta.description)}`;
   return {
     title: meta.title,
     description: meta.description,
@@ -52,11 +55,13 @@ export async function generateMetadata({ params }: MetricPageProps): Promise<Met
       description: meta.description,
       url,
       siteName: "Chartora",
+      images: [{ url: ogImage, width: 1200, height: 630, alt: meta.title }],
     },
     twitter: {
       card: "summary_large_image",
       title: meta.title,
       description: meta.description,
+      images: [ogImage],
     },
   };
 }
@@ -83,6 +88,9 @@ export default async function MetricPage({ params }: MetricPageProps) {
     url: `${SITE_URL}/rankings/${metric}`,
   };
 
+  const pageUrl = `${SITE_URL}/rankings/${metric}`;
+  const embedUrl = `${SITE_URL}/rankings/${metric}?embed=true`;
+
   return (
     <>
       <script
@@ -90,6 +98,12 @@ export default async function MetricPage({ params }: MetricPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <MetricDeepDive metric={metric as RankingMetric} />
+      <div className="mt-8 flex flex-col gap-6">
+        <div className="flex justify-end">
+          <ShareButtons url={pageUrl} title={meta.title} description={meta.description} />
+        </div>
+        <EmbedCodeGenerator chartUrl={embedUrl} title={meta.title} />
+      </div>
     </>
   );
 }

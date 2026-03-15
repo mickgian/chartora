@@ -305,26 +305,26 @@ Tasks are organized in **waves** with explicit dependencies. Each wave can only 
 
 > Depends on: W7.1, W7.2, W7.3
 
-### [W8.1] Social sharing and embeds `[ ]` → W5.1
+### [W8.1] Social sharing and embeds `[x]` → W5.1
 - OG image generation (dynamic chart images for social previews)
 - Embed code generator for charts
 - Twitter/X card meta tags
 - LinkedIn share optimization
 
-### [W8.2] Performance optimization `[ ]` → W5.2
+### [W8.2] Performance optimization `[x]` → W5.2
 - API response caching (Redis or in-memory)
 - Frontend static generation where possible (ISR)
 - Image optimization
 - Lighthouse score > 90
 - Load testing with k6 or locust
 
-### [W8.3] Content and landing pages `[ ]` → W5.1
+### [W8.3] Content and landing pages `[x]` → W5.1
 - Landing page explaining Quantum Power Score methodology
 - "About" page with credibility signals
 - Blog/changelog page for updates
 - Product Hunt launch page preparation
 
-### [W8.4] Expansion preparation `[ ]` → W0.1
+### [W8.4] Expansion preparation `[x]` → W0.1
 - Refactor data pipeline to support multiple sectors
 - Abstract company tracker into reusable module
 - Design plugin architecture for new data sources

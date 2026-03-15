@@ -36,12 +36,23 @@ export const metadata: Metadata = {
       "Live leaderboard ranking quantum computing companies by Quantum Power Score — combining stock performance, patents, qubits, funding, and sentiment.",
     url: SITE_URL,
     locale: "en_US",
+    images: [
+      {
+        url: `${SITE_URL}/api/og?title=Quantum+Computing+Company+Rankings&type=leaderboard`,
+        width: 1200,
+        height: 630,
+        alt: "Chartora — Quantum Computing Company Rankings",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Chartora — Quantum Computing Company Rankings",
     description:
       "Live leaderboard ranking quantum computing companies by Quantum Power Score.",
+    images: [
+      `${SITE_URL}/api/og?title=Quantum+Computing+Company+Rankings&type=leaderboard`,
+    ],
   },
   alternates: {
     canonical: SITE_URL,

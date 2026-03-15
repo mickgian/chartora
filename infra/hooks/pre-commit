@@ -1,0 +1,29 @@
+#!/bin/sh
+# Pre-commit hook: run ruff format and lint checks on Python files
+# Install: cp infra/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+BACKEND_DIR="$(git rev-parse --show-toplevel)/backend"
+
+if [ -d "$BACKEND_DIR" ]; then
+    cd "$BACKEND_DIR"
+
+    if command -v python >/dev/null 2>&1 && python -m ruff --version >/dev/null 2>&1; then
+        echo "Running ruff format check..."
+        python -m ruff format --check src/ tests/ 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo ""
+            echo "ERROR: ruff format check failed."
+            echo "Run 'cd backend && python -m ruff format src/ tests/' to fix."
+            exit 1
+        fi
+
+        echo "Running ruff lint check..."
+        python -m ruff check src/ tests/ 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo ""
+            echo "ERROR: ruff lint check failed."
+            echo "Run 'cd backend && python -m ruff check --fix src/ tests/' to fix."
+            exit 1
+        fi
+    fi
+fi

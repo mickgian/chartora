@@ -31,6 +31,9 @@ class Settings:
     resend_api_key: str = ""
     email_from: str = "noreply@chartora.com"
 
+    # Cache
+    cache_ttl_seconds: int = 300
+
     # Server
     host: str = field(default="0.0.0.0")
     port: int = 8000

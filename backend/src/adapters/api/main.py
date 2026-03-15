@@ -13,14 +13,17 @@ from fastapi.responses import JSONResponse
 from src.adapters.api.middleware import RequestTimingMiddleware
 from src.adapters.api.routers import (
     affiliate,
+    api_docs,
     auth,
     companies,
     leaderboard,
     payments,
     premium,
     rankings,
+    sectors,
 )
 from src.config.settings import Settings
+from src.infrastructure.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +120,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(payments.router)
     app.include_router(auth.router)
     app.include_router(premium.router)
+    app.include_router(api_docs.router)
+    app.include_router(sectors.router)
+
+    @app.on_event("startup")
+    async def _startup_cache() -> None:
+        logger.info(
+            "In-memory cache initialised (default TTL=%ds)",
+            settings.cache_ttl_seconds,
+        )
+
+    @app.get("/api/v1/cache/stats")
+    async def cache_stats() -> dict[str, Any]:
+        """Return current cache statistics for monitoring."""
+        evicted = await cache._evict_expired()
+        return {
+            "size": cache.size,
+            "evicted": evicted,
+            "default_ttl_seconds": settings.cache_ttl_seconds,
+        }
 
     return app
 
