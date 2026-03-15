@@ -16,12 +16,15 @@ if TYPE_CHECKING:
 
 def hash_password(password: str) -> str:
     """Hash a password using bcrypt."""
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    raw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+    hashed: str = raw.decode("utf-8")
+    return hashed
 
 
 def verify_password(password: str, hashed: str) -> bool:
     """Verify a password against its bcrypt hash."""
-    return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+    result: bool = bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+    return result
 
 
 def create_access_token(
@@ -42,9 +45,10 @@ def create_access_token(
         "iat": now,
         "type": "access",
     }
-    return jwt.encode(
+    token: str = jwt.encode(
         payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
     )
+    return token
 
 
 def create_refresh_token(
@@ -60,9 +64,10 @@ def create_refresh_token(
         "iat": now,
         "type": "refresh",
     }
-    return jwt.encode(
+    token: str = jwt.encode(
         payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
     )
+    return token
 
 
 def decode_token(token: str, settings: Settings) -> dict[str, Any]:

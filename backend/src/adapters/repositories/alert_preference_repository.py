@@ -43,7 +43,7 @@ class PgAlertPreferenceRepository(AlertPreferenceRepository):
             row = result.scalar_one_or_none()
             if row is not None:
                 row.enabled = pref.enabled
-                row.threshold = pref.threshold  # type: ignore[assignment]
+                row.threshold = pref.threshold
                 await self._session.flush()
                 return self._to_entity(row)
 

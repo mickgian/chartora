@@ -93,7 +93,8 @@ async def send_alert_email(
                 },
                 timeout=10.0,
             )
-            return response.status_code < 300
+            sent: bool = response.status_code < 300
+            return sent
     except httpx.HTTPError:
         logger.exception("Failed to send alert email to %s", to_email)
         return False
