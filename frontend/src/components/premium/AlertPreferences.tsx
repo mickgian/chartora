@@ -125,7 +125,7 @@ export function AlertPreferences() {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-gray-600 dark:text-gray-400">
+      <p className="text-sm text-gray-600 dark:text-slate-400">
         Configure email alerts for quantum computing market events.
       </p>
 
@@ -136,17 +136,17 @@ export function AlertPreferences() {
         return (
           <div
             key={at.type}
-            className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900"
+            className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-slate-900"
           >
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-medium text-gray-900 dark:text-white">{at.label}</h3>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{at.description}</p>
+                <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{at.description}</p>
               </div>
               <button
                 onClick={() => toggleAlert(at.type)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  enabled ? "bg-indigo-600" : "bg-gray-300 dark:bg-gray-600"
+                  enabled ? "bg-indigo-600" : "bg-gray-300 dark:bg-slate-700"
                 }`}
                 aria-label={`Toggle ${at.label}`}
               >
@@ -160,7 +160,7 @@ export function AlertPreferences() {
 
             {at.hasThreshold && enabled && (
               <div className="mt-3 flex items-center gap-2">
-                <label className="text-sm text-gray-600 dark:text-gray-400">
+                <label className="text-sm text-gray-600 dark:text-slate-400">
                   Threshold (points):
                 </label>
                 <input
@@ -169,7 +169,7 @@ export function AlertPreferences() {
                   max={50}
                   value={pref?.threshold ?? at.defaultThreshold ?? 10}
                   onChange={(e) => setThreshold(at.type, Number(e.target.value))}
-                  className="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm dark:border-gray-700 dark:bg-slate-800/80 dark:text-white"
                 />
               </div>
             )}
@@ -186,7 +186,7 @@ export function AlertPreferences() {
           {saving ? "Saving..." : "Save preferences"}
         </button>
         {message && (
-          <span className="text-sm text-gray-600 dark:text-gray-400">{message}</span>
+          <span className="text-sm text-gray-600 dark:text-slate-400">{message}</span>
         )}
       </div>
     </div>

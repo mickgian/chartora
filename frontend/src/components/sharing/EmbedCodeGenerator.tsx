@@ -28,13 +28,13 @@ export function EmbedCodeGenerator({
   }, [embedCode]);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
+    <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-slate-900">
       <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
         Embed this chart
       </h3>
 
       <div className="mb-4 flex items-center gap-4">
-        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
           Width
           <input
             type="number"
@@ -42,10 +42,10 @@ export function EmbedCodeGenerator({
             onChange={(e) => setWidth(Number(e.target.value))}
             min={200}
             max={1200}
-            className="w-20 rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            className="w-20 rounded border border-gray-300 px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-white"
           />
         </label>
-        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
           Height
           <input
             type="number"
@@ -53,7 +53,7 @@ export function EmbedCodeGenerator({
             onChange={(e) => setHeight(Number(e.target.value))}
             min={200}
             max={800}
-            className="w-20 rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            className="w-20 rounded border border-gray-300 px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-white"
           />
         </label>
       </div>
@@ -63,7 +63,7 @@ export function EmbedCodeGenerator({
           readOnly
           value={embedCode}
           rows={3}
-          className="w-full rounded-lg border border-gray-300 bg-gray-50 p-3 font-mono text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+          className="w-full rounded-lg border border-gray-300 bg-gray-50 p-3 font-mono text-xs text-gray-700 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300"
         />
         <button
           onClick={handleCopy}

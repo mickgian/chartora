@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
     return (
       <div className="mx-auto max-w-md text-center">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Check your email</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
+        <p className="mt-2 text-gray-600 dark:text-slate-400">
           If an account exists for <strong>{email}</strong>, we&apos;ve sent a password reset link.
         </p>
         <Link
@@ -56,13 +56,13 @@ export default function ForgotPasswordPage() {
   return (
     <div className="mx-auto max-w-md">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reset password</h1>
-      <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+      <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
         Enter your email and we&apos;ll send you a reset link.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
             Email
           </label>
           <input
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-slate-800/80 dark:text-white"
           />
         </div>
 
@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
         </button>
       </form>
 
-      <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+      <p className="mt-4 text-center text-sm text-gray-600 dark:text-slate-400">
         Remember your password?{" "}
         <Link href="/login" className="text-indigo-600 hover:underline dark:text-indigo-400">
           Sign in

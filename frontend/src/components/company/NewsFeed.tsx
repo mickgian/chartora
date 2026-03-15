@@ -15,7 +15,7 @@ function SentimentBadge({ sentiment }: { sentiment: string | null }) {
   const colors: Record<string, string> = {
     bullish: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
     bearish: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
-    neutral: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
+    neutral: "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300",
   };
   return (
     <span
@@ -41,7 +41,7 @@ export function NewsFeed({ slug }: NewsFeedProps) {
   }
   if (error) return <ErrorMessage message={error.message} onRetry={refetch} />;
   if (!data || data.articles.length === 0) {
-    return <p className="text-sm text-gray-500 dark:text-gray-400">No recent news.</p>;
+    return <p className="text-sm text-gray-500 dark:text-slate-400">No recent news.</p>;
   }
 
   return (
@@ -51,7 +51,7 @@ export function NewsFeed({ slug }: NewsFeedProps) {
         {data.articles.map((article, i) => (
           <li
             key={i}
-            className="rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/30"
+            className="rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-slate-800/60"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
@@ -63,7 +63,7 @@ export function NewsFeed({ slug }: NewsFeedProps) {
                 >
                   {article.title}
                 </a>
-                <div className="mt-1 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                <div className="mt-1 flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
                   {article.source_name && <span>{article.source_name}</span>}
                   <span>{new Date(article.published_at).toLocaleDateString()}</span>
                 </div>

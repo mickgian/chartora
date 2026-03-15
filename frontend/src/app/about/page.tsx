@@ -108,10 +108,10 @@ export default function AboutPage() {
     <div className="mx-auto max-w-4xl px-4 py-12 sm:py-16">
       {/* Hero / Mission */}
       <div className="mb-16 text-center">
-        <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl dark:text-gray-100">
+        <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl dark:text-slate-100">
           About Chartora
         </h1>
-        <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400">
+        <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-slate-400">
           Chartora is a free, auto-updating leaderboard that ranks quantum
           computing companies using publicly available data. We built it so
           investors can track the quantum revolution in one place — without
@@ -121,22 +121,22 @@ export default function AboutPage() {
 
       {/* Why Chartora */}
       <section className="mb-16">
-        <h2 className="mb-8 text-center text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="mb-8 text-center text-2xl font-bold text-gray-900 dark:text-slate-100">
           Why Chartora?
         </h2>
         <div className="grid gap-6 sm:grid-cols-2">
           {VALUE_PROPS.map((prop) => (
             <div
               key={prop.title}
-              className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900/50"
+              className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-slate-900/50"
             >
               <div className="mb-3 text-indigo-600 dark:text-indigo-400">
                 {prop.icon}
               </div>
-              <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+              <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-slate-100">
                 {prop.title}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-slate-400">
                 {prop.description}
               </p>
             </div>
@@ -146,22 +146,22 @@ export default function AboutPage() {
 
       {/* Data Sources */}
       <section className="mb-16">
-        <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-slate-100">
           Data Sources
         </h2>
-        <p className="mb-6 text-gray-600 dark:text-gray-400">
+        <p className="mb-6 text-gray-600 dark:text-slate-400">
           Chartora pulls data exclusively from free, publicly available APIs.
           Every data point feeding into the Quantum Power Score can be
           independently verified.
         </p>
         <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-900">
+            <thead className="bg-gray-50 dark:bg-slate-900">
               <tr>
-                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-slate-300">
                   Source
                 </th>
-                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300">
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-slate-300">
                   Data Provided
                 </th>
               </tr>
@@ -169,10 +169,10 @@ export default function AboutPage() {
             <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
               {DATA_SOURCES.map((source) => (
                 <tr key={source.name} className="bg-white dark:bg-gray-950">
-                  <td className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
+                  <td className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-slate-100">
                     {source.name}
                   </td>
-                  <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                  <td className="px-4 py-3 text-gray-600 dark:text-slate-400">
                     {source.usage}
                   </td>
                 </tr>
@@ -183,17 +183,17 @@ export default function AboutPage() {
       </section>
 
       {/* Team / Credibility */}
-      <section className="mb-16 rounded-2xl border border-gray-200 bg-gray-50 p-6 sm:p-8 dark:border-gray-800 dark:bg-gray-900/50">
-        <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-gray-100">
+      <section className="mb-16 rounded-2xl border border-gray-200 bg-gray-50 p-6 sm:p-8 dark:border-gray-800 dark:bg-slate-900/50">
+        <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-slate-100">
           Built by Enthusiasts
         </h2>
-        <p className="mb-3 text-gray-600 dark:text-gray-400">
+        <p className="mb-3 text-gray-600 dark:text-slate-400">
           Chartora is built by a team of quantum computing and financial data
           enthusiasts who saw a gap in the market: there was no single,
           transparent, auto-updating resource for investors to compare quantum
           computing companies side by side.
         </p>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-gray-600 dark:text-slate-400">
           We combine expertise in data engineering, financial analysis, and
           software development to deliver a product that stays current, stays
           accurate, and stays free at its core.
@@ -202,16 +202,16 @@ export default function AboutPage() {
 
       {/* FAQ */}
       <section className="mb-16">
-        <h2 className="mb-8 text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="mb-8 text-2xl font-bold text-gray-900 dark:text-slate-100">
           Frequently Asked Questions
         </h2>
         <div className="space-y-6">
           {FAQS.map((faq) => (
             <div key={faq.question}>
-              <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+              <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-slate-100">
                 {faq.question}
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">{faq.answer}</p>
+              <p className="text-gray-600 dark:text-slate-400">{faq.answer}</p>
             </div>
           ))}
         </div>
@@ -219,10 +219,10 @@ export default function AboutPage() {
 
       {/* CTA */}
       <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-8 text-center dark:border-indigo-900 dark:bg-indigo-950/30">
-        <h2 className="mb-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="mb-3 text-2xl font-bold text-gray-900 dark:text-slate-100">
           Ready to go deeper?
         </h2>
-        <p className="mb-6 text-gray-600 dark:text-gray-400">
+        <p className="mb-6 text-gray-600 dark:text-slate-400">
           Unlock historical trends, insider trading alerts, data exports, and
           more with Chartora Pro.
         </p>

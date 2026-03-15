@@ -38,7 +38,7 @@ export function StockChart({ slug }: StockChartProps) {
   if (loading) return <ChartSkeleton />;
   if (error) return <ErrorMessage message={error.message} onRetry={refetch} />;
   if (!data || data.prices.length === 0) {
-    return <p className="text-sm text-gray-500 dark:text-gray-400">No stock data available.</p>;
+    return <p className="text-sm text-gray-500 dark:text-slate-400">No stock data available.</p>;
   }
 
   const chartData = data.prices.map((p) => ({
@@ -62,7 +62,7 @@ export function StockChart({ slug }: StockChartProps) {
               className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
                 days === opt.days
                   ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
-                  : "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                  : "text-gray-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800"
               }`}
             >
               {opt.label}

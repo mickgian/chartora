@@ -19,7 +19,7 @@ export function TradeButton({ ticker, companySlug, className = "" }: TradeButton
 
   return (
     <div className={`space-y-2 ${className}`} data-testid="trade-button">
-      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <p className="text-sm font-medium text-gray-700 dark:text-slate-300">
         Trade {ticker}
       </p>
       <div className="flex flex-wrap gap-2">

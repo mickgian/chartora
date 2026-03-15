@@ -25,7 +25,7 @@ export function PremiumDashboard() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Premium Dashboard</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-gray-500 dark:text-slate-400">
             Welcome back, {user?.email}
           </p>
         </div>
@@ -34,15 +34,15 @@ export function PremiumDashboard() {
         </span>
       </div>
 
-      <div className="mb-6 flex gap-1 overflow-x-auto rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
+      <div className="mb-6 flex gap-1 overflow-x-auto rounded-lg bg-gray-100 p-1 dark:bg-slate-800/80">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === tab.id
-                ? "bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
-                : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                ? "bg-white text-gray-900 shadow-sm dark:bg-slate-700 dark:text-white"
+                : "text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200"
             }`}
           >
             {tab.label}

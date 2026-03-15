@@ -54,20 +54,20 @@ export function PremiumCheckout() {
     <div className="mx-auto max-w-2xl">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Chartora Pro</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
+        <p className="mt-2 text-gray-600 dark:text-slate-400">
           Premium quantum computing intelligence for serious investors.
         </p>
       </div>
 
-      <div className="mt-8 rounded-xl border-2 border-indigo-200 bg-white p-8 shadow-sm dark:border-indigo-800 dark:bg-gray-900">
+      <div className="mt-8 rounded-xl border-2 border-indigo-200 bg-white p-8 shadow-sm dark:border-indigo-800 dark:bg-slate-900">
         <div className="mb-6 text-center">
           <span className="text-4xl font-bold text-gray-900 dark:text-white">$9</span>
-          <span className="text-gray-500 dark:text-gray-400">/month</span>
+          <span className="text-gray-500 dark:text-slate-400">/month</span>
         </div>
 
         <ul className="mb-8 space-y-3">
           {FEATURES.map((feature) => (
-            <li key={feature} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <li key={feature} className="flex items-start gap-2 text-sm text-gray-700 dark:text-slate-300">
               <span className="mt-0.5 text-indigo-500">&#10003;</span>
               {feature}
             </li>
@@ -76,7 +76,7 @@ export function PremiumCheckout() {
 
         <form onSubmit={handleCheckout} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
               Email address
             </label>
             <input
@@ -86,7 +86,7 @@ export function PremiumCheckout() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"
+              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-slate-800/80 dark:text-white dark:placeholder-gray-500"
             />
           </div>
 

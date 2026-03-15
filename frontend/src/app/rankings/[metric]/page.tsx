@@ -76,7 +76,7 @@ export default async function MetricPage({ params }: MetricPageProps) {
     return (
       <div className="py-12 text-center">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Invalid metric</h1>
-        <p className="mt-2 text-gray-500 dark:text-gray-400">
+        <p className="mt-2 text-gray-500 dark:text-slate-400">
           Valid metrics: {VALID_METRICS.join(", ")}
         </p>
       </div>
