@@ -16,6 +16,8 @@ database_url = os.environ.get(
     "CHARTORA_DATABASE_URL",
     "postgresql://chartora:chartora@localhost:5432/chartora",
 )
+# Alembic needs a sync driver (psycopg2), strip asyncpg if present
+database_url = database_url.replace("+asyncpg", "")
 config.set_main_option("sqlalchemy.url", database_url)
 
 target_metadata = Base.metadata

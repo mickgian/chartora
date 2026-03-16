@@ -19,12 +19,13 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
+    restart: on-failure
     environment:
       CHARTORA_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-chartora}:${POSTGRES_PASSWORD:-chartora}@db:5432/${POSTGRES_DB:-chartora}
       CHARTORA_NEWS_API_KEY: ${NEWS_API_KEY:-}
       CHARTORA_CLAUDE_API_KEY: ${CLAUDE_API_KEY:-}
     ports:
-      - "8000:8000"
+      - "8085:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -33,13 +34,15 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8085
     environment:
-      NEXT_PUBLIC_API_URL: http://backend:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8085
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
       NEXT_PUBLIC_PLAUSIBLE_DOMAIN: ${PLAUSIBLE_DOMAIN:-}
       NEXT_PUBLIC_PLAUSIBLE_SCRIPT_URL: ${PLAUSIBLE_SCRIPT_URL:-}
     ports:
-      - "3000:3000"
+      - "3002:3000"
     depends_on:
       - backend
 
