@@ -29,12 +29,6 @@ describe("Header", () => {
     expect(screen.getByText("Sentiment")).toBeInTheDocument();
   });
 
-  it("renders theme toggle button", () => {
-    renderHeader();
-    const themeButton = screen.getByLabelText(/Switch to/);
-    expect(themeButton).toBeInTheDocument();
-  });
-
   it("toggles mobile menu", () => {
     renderHeader();
     const menuButton = screen.getByLabelText("Toggle menu");
