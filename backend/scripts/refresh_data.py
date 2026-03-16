@@ -249,19 +249,34 @@ KNOWN_QUBIT_COUNTS: dict[str, int] = {
     "ark-space-exploration-etf": 0,
 }
 
+# Estimated quantum-computing patents filed in the last 12 months, derived from
+# publicly available data (press releases, SEC filings, patent databases).
+# Sources (as of early 2026):
+#   IBM: 191 quantum patents granted in 2024 (GreyB, Benzinga)
+#   Google: 168 quantum patents granted in 2024 (Benzinga)
+#   Microsoft: ~546 total / 178 families; ~94 in last 5 yrs (GreyB)
+#   D-Wave: 1,338 publications / 262 families over 26 yrs (PatentVest)
+#   IonQ: 1,060 total IP assets as of Aug 2025 (IonQ press release)
+#   Rigetti: 252 issued+pending as of Aug 2025 (investor presentation)
+#   Quantinuum: 410 publications / 188 families (PatentVest)
+#   Arqit: ~52 registered patents (IPqwery/GreyB)
+#   QUBT: 100+ patents from LSI acquisition + organic (SEC filings)
+#   Zapata: 60+ patents granted+pending (GlobeNewswire Oct 2025)
+#   Amazon/AWS: undisclosed, estimated from Ocelot + Braket activity
+#   Intel: top-10 holder but second tier ~35/yr (QED-C, MIT QIR)
 KNOWN_PATENT_COUNTS: dict[str, int] = {
-    "ionq": 25,
-    "d-wave-quantum": 15,
-    "rigetti-computing": 12,
-    "quantum-computing-inc": 3,
-    "arqit-quantum": 8,
-    "zapata-computing": 5,
-    "ibm": 150,
-    "alphabet-google": 80,
-    "microsoft": 45,
-    "amazon-aws": 20,
-    "intel": 30,
-    "honeywell-quantinuum": 35,
+    "ionq": 80,
+    "d-wave-quantum": 40,
+    "rigetti-computing": 45,
+    "quantum-computing-inc": 15,
+    "arqit-quantum": 12,
+    "zapata-computing": 10,
+    "ibm": 190,
+    "alphabet-google": 170,
+    "microsoft": 50,
+    "amazon-aws": 30,
+    "intel": 35,
+    "honeywell-quantinuum": 45,
     "defiance-quantum-etf": 0,
     "ark-space-exploration-etf": 0,
 }
