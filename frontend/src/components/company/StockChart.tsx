@@ -17,11 +17,22 @@ import { useTheme } from "@/components/layout/ThemeProvider";
 import { ChartSkeleton } from "@/components/ui/LoadingSkeleton";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 
+function ytdDays(): number {
+  const now = new Date();
+  const jan1 = new Date(now.getFullYear(), 0, 1);
+  return Math.ceil((now.getTime() - jan1.getTime()) / 86_400_000);
+}
+
 const PERIOD_OPTIONS = [
-  { label: "30D", days: 30 },
-  { label: "90D", days: 90 },
+  { label: "1D", days: 1 },
+  { label: "5D", days: 5 },
+  { label: "1M", days: 30 },
+  { label: "6M", days: 180 },
+  { label: "YTD", days: ytdDays() },
   { label: "1Y", days: 365 },
-] as const;
+  { label: "5Y", days: 1825 },
+  { label: "ALL", days: 7300 },
+];
 
 interface StockChartProps {
   slug: string;
@@ -30,7 +41,7 @@ interface StockChartProps {
 export function StockChart({ slug }: StockChartProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
-  const [days, setDays] = useState(90);
+  const [days, setDays] = useState(365);
 
   const fetcher = useCallback(() => apiClient.getStockHistory(slug, days), [slug, days]);
   const { data, error, loading, refetch } = useApi<StockHistoryResponse>(fetcher, [slug, days]);

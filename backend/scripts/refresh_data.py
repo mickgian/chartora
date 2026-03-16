@@ -72,7 +72,7 @@ async def refresh_stock_data(
     )
 
     today = date.today()
-    date_range = DateRange(start=today - timedelta(days=7), end=today)
+    date_range = DateRange(start=today - timedelta(days=1825), end=today)
     prices = await stock_adapter.fetch_history(ticker, date_range)
 
     if not prices:

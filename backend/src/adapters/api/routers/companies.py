@@ -102,9 +102,9 @@ async def get_company_stock(
     company_repo: CompanyRepoDep,
     stock_repo: StockRepoDep,
     days: int = Query(
-        default=90,
+        default=365,
         ge=1,
-        le=730,
+        le=7300,
         description="Number of days of history",
     ),
 ) -> StockHistoryResponse:
