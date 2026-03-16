@@ -20,10 +20,10 @@ services:
       context: ../backend
       dockerfile: Dockerfile
     restart: on-failure
+    env_file:
+      - ../backend/.env
     environment:
       CHARTORA_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-chartora}:${POSTGRES_PASSWORD:-chartora}@db:5432/${POSTGRES_DB:-chartora}
-      CHARTORA_NEWS_API_KEY: ${NEWS_API_KEY:-}
-      CHARTORA_CLAUDE_API_KEY: ${CLAUDE_API_KEY:-}
       CHARTORA_FORCE_REFRESH: ${FORCE_REFRESH:-false}
     ports:
       - "8085:8000"
