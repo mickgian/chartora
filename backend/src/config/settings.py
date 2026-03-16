@@ -61,6 +61,12 @@ class Settings:
     resend_api_key: str = field(default_factory=lambda: _env("RESEND_API_KEY"))
     email_from: str = "noreply@chartora.com"
 
+    # Data refresh
+    force_refresh: bool = field(
+        default_factory=lambda: _env("CHARTORA_FORCE_REFRESH", "false").lower()
+        in ("true", "1", "yes")
+    )
+
     # Cache
     cache_ttl_seconds: int = 300
 

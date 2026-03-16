@@ -182,10 +182,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
             await engine.dispose()
 
-            if count > 0:
+            if count > 0 and not settings.force_refresh:
                 logger.info(
                     "[STARTUP] Scores table has %d rows — "
-                    "skipping initial refresh",
+                    "skipping initial refresh "
+                    "(set CHARTORA_FORCE_REFRESH=true to override)",
                     count,
                 )
                 return
