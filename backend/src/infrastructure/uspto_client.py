@@ -1,10 +1,12 @@
 """USPTO Patent API adapter for fetching patent data.
 
-Implements the PatentDataSource interface using the USPTO PatentsView API.
+Implements the PatentDataSource interface using the USPTO PatentsView
+PatentSearch API (search.patentsview.org).
 """
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import date
 from typing import Any
@@ -17,26 +19,35 @@ from src.domain.models.value_objects import DateRange, PatentSource
 
 logger = logging.getLogger(__name__)
 
-# USPTO PatentsView API base URL
-PATENTSVIEW_API_URL = "https://api.patentsview.org/patents/query"
+# PatentsView PatentSearch API base URL
+PATENTSVIEW_API_URL = "https://search.patentsview.org/api/v1/patent/"
 
 
 class UsptoPatentAdapter(PatentDataSource):
-    """Fetches patent data from the USPTO PatentsView API."""
+    """Fetches patent data from the USPTO PatentsView PatentSearch API."""
 
     def __init__(
         self,
         http_client: httpx.AsyncClient | None = None,
         timeout: float = 30.0,
+        api_key: str | None = None,
     ) -> None:
         self._client = http_client
         self._timeout = timeout
+        self._api_key = api_key
 
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create an HTTP client."""
         if self._client is None:
             self._client = httpx.AsyncClient(timeout=self._timeout)
         return self._client
+
+    def _headers(self) -> dict[str, str]:
+        """Build request headers, including API key if available."""
+        headers: dict[str, str] = {}
+        if self._api_key:
+            headers["X-Api-Key"] = self._api_key
+        return headers
 
     async def search_patents(
         self, company_name: str, date_range: DateRange
@@ -46,20 +57,21 @@ class UsptoPatentAdapter(PatentDataSource):
             client = await self._get_client()
             query = self._build_query(company_name, date_range)
             fields = [
-                "patent_number",
+                "patent_id",
                 "patent_title",
                 "patent_date",
                 "patent_abstract",
                 "patent_type",
             ]
-            payload: dict[str, Any] = {
-                "q": query,
-                "f": fields,
-                "o": {"per_page": 100},
+            params: dict[str, str] = {
+                "q": json.dumps(query),
+                "f": json.dumps(fields),
+                "o": json.dumps({"per_page": 100}),
             }
-            response = await client.post(
+            response = await client.get(
                 PATENTSVIEW_API_URL,
-                json=payload,
+                params=params,
+                headers=self._headers(),
             )
             response.raise_for_status()
             data = response.json()
@@ -78,14 +90,15 @@ class UsptoPatentAdapter(PatentDataSource):
         try:
             client = await self._get_client()
             query = self._build_query(company_name, date_range)
-            payload: dict[str, Any] = {
-                "q": query,
-                "f": ["patent_number"],
-                "o": {"per_page": 1},
+            params: dict[str, str] = {
+                "q": json.dumps(query),
+                "f": json.dumps(["patent_id"]),
+                "o": json.dumps({"per_page": 1}),
             }
-            response = await client.post(
+            response = await client.get(
                 PATENTSVIEW_API_URL,
-                json=payload,
+                params=params,
+                headers=self._headers(),
             )
             response.raise_for_status()
             data = response.json()
@@ -97,10 +110,14 @@ class UsptoPatentAdapter(PatentDataSource):
 
     @staticmethod
     def _build_query(company_name: str, date_range: DateRange) -> dict[str, Any]:
-        """Build a PatentsView API query."""
+        """Build a PatentsView PatentSearch API query."""
         return {
             "_and": [
-                {"_contains": {"assignee_organization": company_name}},
+                {
+                    "_contains": {
+                        "assignees_at_grant.assignee_organization": company_name,
+                    }
+                },
                 {"_gte": {"patent_date": date_range.start.isoformat()}},
                 {"_lte": {"patent_date": date_range.end.isoformat()}},
             ]
@@ -108,14 +125,14 @@ class UsptoPatentAdapter(PatentDataSource):
 
     @staticmethod
     def _parse_patents(data: dict[str, Any]) -> list[Patent]:
-        """Parse PatentsView API response into Patent entities."""
+        """Parse PatentsView PatentSearch API response into Patent entities."""
         patents_data = data.get("patents")
         if not patents_data:
             return []
 
         patents: list[Patent] = []
         for item in patents_data:
-            patent_number = item.get("patent_number", "")
+            patent_number = item.get("patent_id", "")
             title = item.get("patent_title", "")
             if not patent_number or not title:
                 continue
