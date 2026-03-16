@@ -42,21 +42,30 @@ class TestParseResponse:
 
     def test_handles_empty_content(self):
         data = {"content": []}
-        sentiment, confidence = ClaudeSentimentAnalyzer._parse_response(data)
-        assert sentiment == "neutral"
-        assert confidence == 0.5
+        result = ClaudeSentimentAnalyzer._parse_response(data)
+        assert result is None
 
     def test_handles_missing_content(self):
         data = {}
-        sentiment, confidence = ClaudeSentimentAnalyzer._parse_response(data)
-        assert sentiment == "neutral"
-        assert confidence == 0.5
+        result = ClaudeSentimentAnalyzer._parse_response(data)
+        assert result is None
 
     def test_handles_invalid_json(self):
-        data = {"content": [{"text": "This is not JSON"}]}
+        data = {"content": [{"text": "This is not JSON at all no braces"}]}
+        result = ClaudeSentimentAnalyzer._parse_response(data)
+        assert result is None
+
+    def test_extracts_json_from_surrounding_text(self):
+        data = {
+            "content": [
+                {
+                    "text": 'Here is my analysis: {"sentiment": "bullish", "confidence": 0.75} hope that helps!'
+                }
+            ]
+        }
         sentiment, confidence = ClaudeSentimentAnalyzer._parse_response(data)
-        assert sentiment == "neutral"
-        assert confidence == 0.5
+        assert sentiment == "bullish"
+        assert confidence == 0.75
 
     def test_handles_invalid_sentiment_label(self):
         data = {

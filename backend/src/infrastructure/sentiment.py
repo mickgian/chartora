@@ -99,12 +99,13 @@ class ClaudeSentimentAnalyzer(SentimentAnalyzer):
         return results
 
     @staticmethod
-    def _parse_response(data: dict[str, Any]) -> tuple[str, float]:
+    def _parse_response(data: dict[str, Any]) -> tuple[str, float] | None:
         """Parse Claude API response into sentiment label and confidence."""
         try:
             content = data.get("content", [])
             if not content:
-                return ("neutral", 0.5)
+                logger.warning("Empty content in sentiment response")
+                return None
 
             text = content[0].get("text", "")
             # Extract JSON from response (handle potential markdown wrapping)
@@ -112,6 +113,12 @@ class ClaudeSentimentAnalyzer(SentimentAnalyzer):
             if text.startswith("```"):
                 lines = text.split("\n")
                 text = "\n".join(lines[1:-1])
+
+            # Try to extract JSON object if surrounded by other text
+            start = text.find("{")
+            end = text.rfind("}")
+            if start != -1 and end != -1:
+                text = text[start : end + 1]
 
             parsed = json.loads(text)
             sentiment = parsed.get("sentiment", "neutral").lower()
@@ -126,5 +133,8 @@ class ClaudeSentimentAnalyzer(SentimentAnalyzer):
 
             return (sentiment, confidence)
         except (json.JSONDecodeError, KeyError, IndexError, TypeError):
-            logger.warning("Could not parse sentiment response")
-            return ("neutral", 0.5)
+            raw = data.get("content", [{}])[0].get("text", "") if data.get("content") else ""
+            logger.warning(
+                "Could not parse sentiment response: %s", raw[:200]
+            )
+            return None
