@@ -127,7 +127,7 @@ export function LeaderboardTable() {
                       key={metric}
                       className={`px-4 py-3 tabular-nums ${
                         isHardcoded
-                          ? "text-red-500 dark:text-red-400"
+                          ? "text-red-700 dark:text-red-400"
                           : "text-gray-700 dark:text-slate-200"
                       }`}
                       title={isHardcoded ? "Hardcoded / estimated data" : undefined}
