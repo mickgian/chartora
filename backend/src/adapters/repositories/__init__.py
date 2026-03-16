@@ -6,6 +6,9 @@ from src.adapters.repositories.alert_preference_repository import (
 from src.adapters.repositories.api_key_repository import PgApiKeyRepository
 from src.adapters.repositories.company_repository import PgCompanyRepository
 from src.adapters.repositories.filing_repository import PgFilingRepository
+from src.adapters.repositories.government_contract_repository import (
+    PgGovernmentContractRepository,
+)
 from src.adapters.repositories.news_repository import PgNewsRepository
 from src.adapters.repositories.patent_repository import PgPatentRepository
 from src.adapters.repositories.score_repository import PgScoreRepository
@@ -17,6 +20,7 @@ __all__ = [
     "PgApiKeyRepository",
     "PgCompanyRepository",
     "PgFilingRepository",
+    "PgGovernmentContractRepository",
     "PgNewsRepository",
     "PgPatentRepository",
     "PgScoreRepository",

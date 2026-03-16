@@ -9,11 +9,16 @@
 import type {
   CompanyDetailResponse,
   FilingListResponse,
+  GovernmentContractListResponse,
+  HistoricalScoresResponse,
+  InsiderTradingResponse,
+  InstitutionalOwnershipResponse,
   LeaderboardResponse,
   NewsListResponse,
   PatentListResponse,
   RankingMetric,
   RankingResponse,
+  RdSpendingResponse,
   SortableMetric,
   StockHistoryResponse,
 } from "@/types/api";
@@ -120,5 +125,34 @@ export const apiClient = {
   getRanking(metric: RankingMetric): Promise<RankingResponse> {
     if (IS_DEMO) return Promise.resolve(mockApi.getRanking(metric));
     return get(`/api/v1/rankings/${encodeURIComponent(metric)}`);
+  },
+
+  // Premium endpoints (require auth token)
+  getHistoricalScores(slug: string, days = 365): Promise<HistoricalScoresResponse> {
+    return get(`/api/v1/pro/historical-scores/${encodeURIComponent(slug)}?days=${days}`);
+  },
+
+  getFullPatentHistory(slug: string): Promise<{ company_slug: string; company_name: string; patents: unknown[]; count: number }> {
+    return get(`/api/v1/pro/patents/${encodeURIComponent(slug)}/full-history`);
+  },
+
+  getInsiderTrading(slug: string): Promise<InsiderTradingResponse> {
+    return get(`/api/v1/pro/insider-trading/${encodeURIComponent(slug)}`);
+  },
+
+  getInstitutionalOwnership(slug: string): Promise<InstitutionalOwnershipResponse> {
+    return get(`/api/v1/pro/institutional-ownership/${encodeURIComponent(slug)}`);
+  },
+
+  getRdSpending(slug: string): Promise<RdSpendingResponse> {
+    return get(`/api/v1/pro/rd-spending/${encodeURIComponent(slug)}`);
+  },
+
+  getGovernmentContracts(slug: string): Promise<GovernmentContractListResponse> {
+    return get(`/api/v1/pro/government-contracts/${encodeURIComponent(slug)}`);
+  },
+
+  getGovernmentContractRankings(): Promise<RankingResponse> {
+    return get("/api/v1/rankings/government-contracts");
   },
 };

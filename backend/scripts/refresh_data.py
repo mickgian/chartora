@@ -22,6 +22,8 @@ from sqlalchemy.ext.asyncio import (
 
 from src.adapters.repositories import (
     PgCompanyRepository,
+    PgFilingRepository,
+    PgGovernmentContractRepository,
     PgNewsRepository,
     PgPatentRepository,
     PgScoreRepository,
@@ -30,7 +32,9 @@ from src.adapters.repositories import (
 from src.config.settings import Settings
 from src.domain.models.value_objects import DateRange, SentimentLabel
 from src.infrastructure.news_client import NewsApiAdapter
+from src.infrastructure.sec_edgar import SecEdgarAdapter
 from src.infrastructure.sentiment import ClaudeSentimentAnalyzer
+from src.infrastructure.usaspending_client import UsaSpendingAdapter
 from src.infrastructure.uspto_client import UsptoPatentAdapter
 from src.infrastructure.yahoo_finance import YahooFinanceAdapter
 from src.usecases.calculate_score import ScoreInput, calculate_score
@@ -169,6 +173,65 @@ async def refresh_news_data(
     )
 
 
+async def refresh_filing_data(
+    company: Company,
+    filing_adapter: SecEdgarAdapter,
+    filing_repo: PgFilingRepository,
+) -> None:
+    """Pull SEC filings for a single company."""
+    if company.ticker is None:
+        logger.info(
+            "Skipping filings for %s (no ticker)",
+            company.name,
+        )
+        return
+
+    ticker = company.ticker.symbol
+    logger.info("Fetching SEC filings for %s (%s)", company.name, ticker)
+
+    filings = await filing_adapter.fetch_filings(ticker)
+    if not filings:
+        logger.info("No filings returned for %s", ticker)
+        return
+
+    for f in filings:
+        object.__setattr__(f, "company_id", company.id)
+
+    await filing_repo.save_many(filings)
+    logger.info(
+        "Saved %d filings for %s",
+        len(filings),
+        company.name,
+    )
+
+
+async def refresh_government_contracts(
+    company: Company,
+    usaspending_adapter: UsaSpendingAdapter,
+    gov_contract_repo: PgGovernmentContractRepository,
+) -> None:
+    """Pull government contracts for a single company."""
+    logger.info(
+        "Fetching government contracts for %s",
+        company.name,
+    )
+
+    contracts = await usaspending_adapter.search_contracts(company.name)
+    if not contracts:
+        logger.info("No government contracts found for %s", company.name)
+        return
+
+    for c in contracts:
+        object.__setattr__(c, "company_id", company.id)
+
+    await gov_contract_repo.save_many(contracts)
+    logger.info(
+        "Saved %d government contracts for %s",
+        len(contracts),
+        company.name,
+    )
+
+
 async def recalculate_scores(
     companies: list[Company],
     stock_repo: PgStockRepository,
@@ -269,6 +332,8 @@ async def run_refresh(
     patent_adapter = UsptoPatentAdapter()
     news_adapter = NewsApiAdapter(api_key=settings.news_api_key)
     sentiment_analyzer = ClaudeSentimentAnalyzer(api_key=settings.claude_api_key)
+    filing_adapter = SecEdgarAdapter()
+    usaspending_adapter = UsaSpendingAdapter()
 
     async with session_factory() as session:
         # Initialize repositories
@@ -277,6 +342,8 @@ async def run_refresh(
         patent_repo = PgPatentRepository(session)
         news_repo = PgNewsRepository(session)
         score_repo = PgScoreRepository(session)
+        filing_repo = PgFilingRepository(session)
+        gov_contract_repo = PgGovernmentContractRepository(session)
 
         # Get all companies
         companies = await company_repo.get_all()
@@ -321,7 +388,31 @@ async def run_refresh(
                     company.name,
                 )
 
-        # Step 4: Recalculate scores
+        # Step 4: Refresh SEC filings
+        for company in companies:
+            try:
+                await refresh_filing_data(
+                    company, filing_adapter, filing_repo
+                )
+            except Exception:
+                logger.exception(
+                    "Error refreshing filings for %s",
+                    company.name,
+                )
+
+        # Step 5: Refresh government contracts
+        for company in companies:
+            try:
+                await refresh_government_contracts(
+                    company, usaspending_adapter, gov_contract_repo
+                )
+            except Exception:
+                logger.exception(
+                    "Error refreshing gov contracts for %s",
+                    company.name,
+                )
+
+        # Step 6: Recalculate scores
         try:
             await recalculate_scores(
                 companies,

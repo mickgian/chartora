@@ -15,6 +15,7 @@ from src.adapters.repositories import (
     PgApiKeyRepository,
     PgCompanyRepository,
     PgFilingRepository,
+    PgGovernmentContractRepository,
     PgNewsRepository,
     PgPatentRepository,
     PgScoreRepository,
@@ -26,6 +27,7 @@ from src.domain.interfaces.repositories import (
     ApiKeyRepository,
     CompanyRepository,
     FilingRepository,
+    GovernmentContractRepository,
     NewsRepository,
     PatentRepository,
     ScoreRepository,
@@ -139,6 +141,12 @@ def get_api_key_repo(
     return PgApiKeyRepository(session)
 
 
+def get_gov_contract_repo(
+    session: SessionDep,
+) -> GovernmentContractRepository:
+    return PgGovernmentContractRepository(session)
+
+
 CompanyRepoDep = Annotated[CompanyRepository, Depends(get_company_repo)]
 StockRepoDep = Annotated[StockRepository, Depends(get_stock_repo)]
 PatentRepoDep = Annotated[PatentRepository, Depends(get_patent_repo)]
@@ -148,3 +156,6 @@ FilingRepoDep = Annotated[FilingRepository, Depends(get_filing_repo)]
 UserRepoDep = Annotated[UserRepository, Depends(get_user_repo)]
 AlertPrefRepoDep = Annotated[AlertPreferenceRepository, Depends(get_alert_pref_repo)]
 ApiKeyRepoDep = Annotated[ApiKeyRepository, Depends(get_api_key_repo)]
+GovContractRepoDep = Annotated[
+    GovernmentContractRepository, Depends(get_gov_contract_repo)
+]

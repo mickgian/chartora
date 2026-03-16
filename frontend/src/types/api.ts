@@ -117,6 +117,72 @@ export interface CompanyDetailResponse {
   score: ScoreResponse | null;
 }
 
+export interface GovernmentContractResponse {
+  award_id: string;
+  title: string;
+  amount: number;
+  awarding_agency: string;
+  start_date: string;
+  end_date: string | null;
+  description: string | null;
+}
+
+export interface GovernmentContractListResponse {
+  company_slug: string;
+  company_name: string;
+  contracts: GovernmentContractResponse[];
+  total_value: number;
+  count: number;
+}
+
+export interface RdSpendingResponse {
+  company_slug: string;
+  company_name: string;
+  rd_expense: number | null;
+  total_revenue: number | null;
+  rd_ratio: number | null;
+}
+
+export interface HistoricalScoreEntry {
+  date: string;
+  total_score: number;
+  stock_momentum: number;
+  patent_velocity: number;
+  qubit_progress: number;
+  funding_strength: number;
+  news_sentiment: number;
+  rank: number | null;
+}
+
+export interface HistoricalScoresResponse {
+  company_slug: string;
+  company_name: string;
+  period_days: number;
+  scores: HistoricalScoreEntry[];
+  count: number;
+}
+
+export interface InsiderTradeEntry {
+  filing_date: string;
+  description: string | null;
+  url: string | null;
+  data: Record<string, unknown> | null;
+}
+
+export interface InsiderTradingResponse {
+  company_slug: string;
+  company_name: string;
+  insider_trades: InsiderTradeEntry[];
+  count: number;
+}
+
+export interface InstitutionalOwnershipResponse {
+  company_slug: string;
+  company_name: string;
+  institutional_filings: InsiderTradeEntry[];
+  count: number;
+}
+
 export interface ErrorResponse {
   detail: string;
 }

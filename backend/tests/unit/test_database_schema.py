@@ -4,6 +4,7 @@ from src.infrastructure.database import (
     Base,
     CompanyTable,
     FilingTable,
+    GovernmentContractTable,
     NewsArticleTable,
     PatentTable,
     ScoreTable,
@@ -20,6 +21,7 @@ def test_all_tables_registered():
         "scores",
         "news_articles",
         "filings",
+        "government_contracts",
         "users",
         "alert_preferences",
         "api_keys",
@@ -75,3 +77,19 @@ def test_filings_table_columns():
     assert "filing_type" in columns
     assert "filing_date" in columns
     assert "data_json" in columns
+
+
+def test_government_contracts_table_columns():
+    columns = {c.name for c in GovernmentContractTable.__table__.columns}
+    assert "award_id" in columns
+    assert "amount" in columns
+    assert "awarding_agency" in columns
+    assert "start_date" in columns
+
+
+def test_government_contracts_table_has_unique_constraint():
+    constraints = GovernmentContractTable.__table__.constraints
+    unique_names = {
+        c.name for c in constraints if hasattr(c, "name") and c.name is not None
+    }
+    assert "uq_contract_company_award" in unique_names

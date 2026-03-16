@@ -6,6 +6,7 @@ from fastapi import APIRouter
 
 from src.adapters.api.dependencies import (  # noqa: TC001
     CompanyRepoDep,
+    GovContractRepoDep,
     ScoreRepoDep,
 )
 from src.adapters.api.schemas import (
@@ -117,3 +118,46 @@ async def get_sentiment_rankings(
         company_repo,
         score_repo,
     )
+
+
+@router.get("/government-contracts")
+async def get_government_contract_rankings(
+    company_repo: CompanyRepoDep,
+    gov_contract_repo: GovContractRepoDep,
+) -> dict:
+    """Companies ranked by total government contract value."""
+    companies = await company_repo.get_all()
+
+    entries = []
+    for company in companies:
+        company_id = company.id or 0
+        total_value = await gov_contract_repo.get_total_value(company_id)
+        entries.append(
+            {
+                "rank": 0,
+                "company": {
+                    "id": company_id,
+                    "name": company.name,
+                    "slug": company.slug,
+                    "sector": company.sector.value,
+                    "ticker": company.ticker.symbol if company.ticker else None,
+                    "description": company.description,
+                    "is_etf": company.is_etf,
+                    "website": company.website,
+                    "logo_url": company.logo_url,
+                },
+                "metric_value": total_value,
+                "trend": "flat",
+            }
+        )
+
+    # Sort by contract value descending and assign ranks
+    entries.sort(key=lambda e: e["metric_value"], reverse=True)
+    for i, entry in enumerate(entries, 1):
+        entry["rank"] = i
+
+    return {
+        "metric": "government_contracts",
+        "entries": entries,
+        "count": len(entries),
+    }

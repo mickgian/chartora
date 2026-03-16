@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from src.domain.models.entities import (
         Filing,
+        GovernmentContract,
         NewsArticle,
         Patent,
         StockPrice,
@@ -82,6 +83,36 @@ class FilingDataSource(ABC):
     @abstractmethod
     async def fetch_institutional_holdings(self, ticker: str) -> list[Filing]:
         """Fetch 13F institutional ownership filings."""
+
+
+class GovernmentContractDataSource(ABC):
+    """Port for fetching government contract data."""
+
+    @abstractmethod
+    async def search_contracts(
+        self, company_name: str, limit: int = 50
+    ) -> list[GovernmentContract]:
+        """Search for government contracts awarded to a company."""
+
+    @abstractmethod
+    async def get_total_contract_value(self, company_name: str) -> float:
+        """Get total value of government contracts for a company."""
+
+
+class FundingDataSource(ABC):
+    """Port for fetching funding and financial data from SEC EDGAR XBRL."""
+
+    @abstractmethod
+    async def fetch_total_funding(self, ticker: str) -> float | None:
+        """Fetch total assets or equity as a proxy for funding strength."""
+
+    @abstractmethod
+    async def fetch_rd_spending(self, ticker: str) -> dict[str, float | None]:
+        """Fetch R&D spending data.
+
+        Returns:
+            A dict with keys 'rd_expense', 'total_revenue', 'rd_ratio'.
+        """
 
 
 class SentimentAnalyzer(ABC):
