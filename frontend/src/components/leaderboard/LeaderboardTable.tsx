@@ -38,6 +38,8 @@ export function LeaderboardTable() {
   if (error) return <ErrorMessage message={error.message} onRetry={refetch} />;
   if (!data) return null;
 
+  const isEmpty = data.entries.length === 0;
+
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -49,6 +51,17 @@ export function LeaderboardTable() {
         )}
       </div>
 
+      {isEmpty ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-700/50 dark:bg-amber-900/20">
+          <p className="text-lg font-medium text-amber-800 dark:text-amber-200">
+            No ranking data available yet
+          </p>
+          <p className="mt-2 text-sm text-amber-600 dark:text-amber-300/80">
+            The data refresh pipeline has not been run yet. Run the refresh script to populate
+            company scores: <code className="rounded bg-amber-100 px-1.5 py-0.5 text-xs dark:bg-amber-800/40">python -m scripts.refresh_data</code>
+          </p>
+        </div>
+      ) : (
       <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700">
         <table className="w-full text-left text-sm">
           <thead>
@@ -119,9 +132,10 @@ export function LeaderboardTable() {
           </tbody>
         </table>
       </div>
+      )}
 
       <p className="mt-3 text-xs text-gray-400 dark:text-slate-400">
-        {data.count} companies tracked. Click column headers to sort.
+        {data.count} companies tracked.{!isEmpty && " Click column headers to sort."}
       </p>
     </div>
   );

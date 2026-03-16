@@ -49,8 +49,12 @@ async def get_historical_scores(
     days: int = Query(default=365, ge=7, le=3650),
 ) -> dict[str, Any]:
     """Get historical Quantum Power Score for a company."""
+    logger.info(
+        "[PREMIUM] historical-scores slug=%s days=%d", slug, days
+    )
     company = await company_repo.get_by_slug(slug)
     if company is None:
+        logger.warning("[PREMIUM] Company not found slug=%s", slug)
         raise HTTPException(status_code=404, detail="Company not found")
 
     end = date.today()
@@ -58,6 +62,11 @@ async def get_historical_scores(
     date_range = DateRange(start=start, end=end)
 
     scores = await score_repo.get_by_date_range(company.id, date_range)  # type: ignore[arg-type]
+    logger.info(
+        "[PREMIUM] historical-scores slug=%s returned %d scores",
+        slug,
+        len(scores),
+    )
     return {
         "company_slug": slug,
         "company_name": company.name,
@@ -178,12 +187,21 @@ async def get_government_contracts(
     gov_contract_repo: GovContractRepoDep,
 ) -> dict[str, Any]:
     """Get government contracts for a company (premium-only)."""
+    logger.info("[PREMIUM] government-contracts slug=%s", slug)
     company = await company_repo.get_by_slug(slug)
     if company is None:
+        logger.warning("[PREMIUM] Company not found slug=%s", slug)
         raise HTTPException(status_code=404, detail="Company not found")
 
     contracts = await gov_contract_repo.get_by_company(company.id or 0)
     total_value = await gov_contract_repo.get_total_value(company.id or 0)
+    logger.info(
+        "[PREMIUM] government-contracts slug=%s "
+        "contracts=%d total_value=%.2f",
+        slug,
+        len(contracts),
+        total_value,
+    )
 
     return {
         "company_slug": slug,
@@ -211,8 +229,10 @@ async def get_rd_spending(
     company_repo: CompanyRepoDep,
 ) -> dict[str, Any]:
     """Get R&D spending ratio for a company (premium-only)."""
+    logger.info("[PREMIUM] rd-spending slug=%s", slug)
     company = await company_repo.get_by_slug(slug)
     if company is None:
+        logger.warning("[PREMIUM] Company not found slug=%s", slug)
         raise HTTPException(status_code=404, detail="Company not found")
 
     if company.ticker is None:

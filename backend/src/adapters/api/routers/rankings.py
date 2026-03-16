@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter
 
 from src.adapters.api.dependencies import (  # noqa: TC001
@@ -19,6 +21,8 @@ from src.usecases.rank_companies import (
     rank_companies,
 )
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/v1/rankings", tags=["rankings"])
 
 
@@ -28,13 +32,27 @@ async def _build_ranking(
     score_repo: ScoreRepoDep,
 ) -> RankingResponse:
     """Shared logic for all ranking endpoints."""
+    logger.info("[RANKING] Building ranking for metric=%s", metric.value)
+
     scores = await score_repo.get_latest_all()
     if not scores:
+        logger.warning(
+            "[RANKING] No scores found for metric=%s — "
+            "returning empty ranking. "
+            "Has the data refresh pipeline been run?",
+            metric.value,
+        )
         return RankingResponse(metric=metric.value, entries=[], count=0)
 
     result = rank_companies(scores, metric=metric)
 
     companies = await company_repo.get_all()
+    logger.info(
+        "[RANKING] metric=%s scores=%d companies=%d",
+        metric.value,
+        len(scores),
+        len(companies),
+    )
     company_map = {c.id: c for c in companies}
 
     entries: list[RankingEntry] = []
@@ -61,6 +79,11 @@ async def _build_ranking(
             )
         )
 
+    logger.info(
+        "[RANKING] Returning %d entries for metric=%s",
+        len(entries),
+        metric.value,
+    )
     return RankingResponse(
         metric=metric.value,
         entries=entries,
@@ -126,7 +149,12 @@ async def get_government_contract_rankings(
     gov_contract_repo: GovContractRepoDep,
 ) -> dict:
     """Companies ranked by total government contract value."""
+    logger.info("[RANKING] Building government contract rankings")
     companies = await company_repo.get_all()
+    logger.info(
+        "[RANKING] government_contracts: %d companies to query",
+        len(companies),
+    )
 
     entries = []
     for company in companies:

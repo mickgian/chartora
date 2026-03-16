@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 import time
 from typing import Any
 
@@ -24,6 +25,15 @@ from src.adapters.api.routers import (
 )
 from src.config.settings import Settings
 from src.infrastructure.cache import cache
+
+# Configure structured logging on module load
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)-7s | %(name)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    stream=sys.stdout,
+    force=True,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -126,8 +136,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.on_event("startup")
     async def _startup_cache() -> None:
         logger.info(
-            "In-memory cache initialised (default TTL=%ds)",
+            "[STARTUP] Chartora API starting — "
+            "cache_ttl=%ds, debug=%s",
             settings.cache_ttl_seconds,
+            settings.debug,
+        )
+        logger.info(
+            "[STARTUP] Database URL: %s",
+            settings.database_url.split("@")[-1]
+            if "@" in settings.database_url
+            else "(not configured)",
+        )
+        logger.info(
+            "[STARTUP] NewsAPI key configured: %s",
+            bool(settings.news_api_key),
+        )
+        logger.info(
+            "[STARTUP] Claude API key configured: %s",
+            bool(settings.claude_api_key),
         )
 
     @app.get("/api/v1/cache/stats")

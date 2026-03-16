@@ -47,6 +47,8 @@ export function MetricDeepDive({ metric }: MetricDeepDiveProps) {
   if (error) return <ErrorMessage message={error.message} onRetry={refetch} />;
   if (!data) return null;
 
+  const isEmpty = data.entries.length === 0;
+
   return (
     <div>
       <nav className="mb-4 text-sm text-gray-500 dark:text-slate-400">
@@ -62,6 +64,18 @@ export function MetricDeepDive({ metric }: MetricDeepDiveProps) {
         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{details.description}</p>
       </div>
 
+      {isEmpty ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-700/50 dark:bg-amber-900/20">
+          <p className="text-lg font-medium text-amber-800 dark:text-amber-200">
+            No {details.label.toLowerCase()} data available yet
+          </p>
+          <p className="mt-2 text-sm text-amber-600 dark:text-amber-300/80">
+            The data refresh pipeline has not been run yet. Run the refresh script to populate
+            ranking data.
+          </p>
+        </div>
+      ) : (
+      <>
       <div className="mb-8 rounded-lg border border-gray-200 p-6 dark:border-gray-700">
         <MetricChart entries={data.entries} metricLabel={details.label} />
       </div>
@@ -109,6 +123,8 @@ export function MetricDeepDive({ metric }: MetricDeepDiveProps) {
           </tbody>
         </table>
       </div>
+      </>
+      )}
 
       <p className="mt-3 text-xs text-gray-400 dark:text-slate-400">
         {data.count} companies ranked by {details.label.toLowerCase()}.
