@@ -18,6 +18,7 @@ if "yfinance" not in sys.modules:
     sys.modules["yfinance"] = MagicMock()
 
 from scripts.refresh_data import (
+    KNOWN_SENTIMENT,
     recalculate_scores,
     refresh_news_data,
     refresh_patent_data,
@@ -210,3 +211,56 @@ async def test_recalculate_scores() -> None:
     # Both should have ranks assigned
     ranks = {s.rank for s in saved_scores}
     assert ranks == {1, 2}
+
+
+@pytest.mark.asyncio
+async def test_recalculate_scores_uses_sentiment_fallback() -> None:
+    """When no scored articles exist, KNOWN_SENTIMENT provides differentiated values."""
+    # Use slugs that exist in KNOWN_SENTIMENT with very different scores
+    companies = [
+        _make_company(id=1, name="IBM", slug="ibm", ticker="IBM"),
+        _make_company(
+            id=2,
+            name="Zapata Computing",
+            slug="zapata-computing",
+            ticker=None,
+        ),
+    ]
+    stock_repo = AsyncMock()
+    patent_repo = AsyncMock()
+    patent_repo.count_by_date_range = AsyncMock(return_value=0)
+    news_repo = AsyncMock()
+    # No articles → triggers fallback
+    news_repo.get_by_company = AsyncMock(return_value=[])
+    score_repo = AsyncMock()
+    score_repo.save_many = AsyncMock(return_value=[])
+    stock_adapter = AsyncMock()
+    # Same stock performance so only sentiment differs
+    stock_adapter.fetch_performance = AsyncMock(return_value=0.0)
+
+    await recalculate_scores(
+        companies,
+        stock_repo,
+        patent_repo,
+        news_repo,
+        score_repo,
+        stock_adapter,
+    )
+
+    saved_scores = score_repo.save_many.call_args[0][0]
+    assert len(saved_scores) == 2
+    score_by_company = {s.company_id: s for s in saved_scores}
+    ibm_news = score_by_company[1].news_sentiment
+    zapata_news = score_by_company[2].news_sentiment
+    # IBM (bullish 0.50) should score higher than Zapata (bearish -0.60)
+    assert ibm_news > zapata_news
+    # Verify they're not both 50 (the old bug)
+    assert ibm_news != zapata_news
+
+
+def test_known_sentiment_has_all_tracked_companies() -> None:
+    """Every company in other KNOWN_ dicts should have a sentiment entry."""
+    from scripts.refresh_data import KNOWN_FUNDING_USD
+
+    for slug in KNOWN_FUNDING_USD:
+        assert slug in KNOWN_SENTIMENT, f"Missing sentiment for {slug}"
