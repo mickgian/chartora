@@ -1,4 +1,9 @@
+import os
 from dataclasses import dataclass, field
+
+
+def _env(key: str, default: str = "") -> str:
+    return os.environ.get(key, default)
 
 
 @dataclass
@@ -9,26 +14,39 @@ class Settings:
     debug: bool = False
 
     # Database
-    database_url: str = "postgresql+asyncpg://chartora:chartora@localhost:5432/chartora"
+    database_url: str = field(
+        default_factory=lambda: _env(
+            "CHARTORA_DATABASE_URL",
+            "postgresql+asyncpg://chartora:chartora@localhost:5432/chartora",
+        )
+    )
 
     # External APIs
-    news_api_key: str = ""
-    claude_api_key: str = ""
+    news_api_key: str = field(default_factory=lambda: _env("CHARTORA_NEWS_API_KEY"))
+    claude_api_key: str = field(default_factory=lambda: _env("CHARTORA_CLAUDE_API_KEY"))
 
     # Stripe
-    stripe_secret_key: str = ""
-    stripe_webhook_secret: str = ""
-    stripe_price_id: str = ""
-    frontend_url: str = "http://localhost:3000"
+    stripe_secret_key: str = field(default_factory=lambda: _env("STRIPE_SECRET_KEY"))
+    stripe_webhook_secret: str = field(
+        default_factory=lambda: _env("STRIPE_WEBHOOK_SECRET")
+    )
+    stripe_price_id: str = field(default_factory=lambda: _env("STRIPE_PRICE_ID"))
+    frontend_url: str = field(
+        default_factory=lambda: _env("CHARTORA_FRONTEND_URL", "http://localhost:3000")
+    )
 
     # Auth / JWT
-    jwt_secret_key: str = "change-me-in-production"
+    jwt_secret_key: str = field(
+        default_factory=lambda: _env(
+            "CHARTORA_JWT_SECRET_KEY", "change-me-in-production"
+        )
+    )
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 60
     jwt_refresh_token_expire_days: int = 30
 
     # Email (Resend.com)
-    resend_api_key: str = ""
+    resend_api_key: str = field(default_factory=lambda: _env("RESEND_API_KEY"))
     email_from: str = "noreply@chartora.com"
 
     # Cache
