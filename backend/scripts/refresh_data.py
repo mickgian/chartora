@@ -255,7 +255,7 @@ KNOWN_QUBIT_COUNTS: dict[str, int] = {
 #   IBM: 191 quantum patents granted in 2024 (GreyB, Benzinga)
 #   Google: 168 quantum patents granted in 2024 (Benzinga)
 #   Microsoft: ~546 total / 178 families; ~94 in last 5 yrs (GreyB)
-#   D-Wave: 1,338 publications / 262 families over 26 yrs (PatentVest)
+#   D-Wave: 313 total patents, 210+ issued US patents (CB Insights, PatentVest)
 #   IonQ: 1,060 total IP assets as of Aug 2025 (IonQ press release)
 #   Rigetti: 252 issued+pending as of Aug 2025 (investor presentation)
 #   Quantinuum: 410 publications / 188 families (PatentVest)
