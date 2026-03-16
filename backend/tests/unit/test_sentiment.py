@@ -99,7 +99,7 @@ class TestAnalyze:
         assert confidence == 0.88
 
     @pytest.mark.asyncio
-    async def test_analyze_api_error_returns_neutral(self):
+    async def test_analyze_api_error_returns_none(self):
         mock_response = httpx.Response(
             500,
             json={"error": "Internal Server Error"},
@@ -110,21 +110,19 @@ class TestAnalyze:
         )
         analyzer = ClaudeSentimentAnalyzer(api_key="test-key", http_client=mock_client)
 
-        sentiment, confidence = await analyzer.analyze("Some text")
-        assert sentiment == "neutral"
-        assert confidence == 0.5
+        result = await analyzer.analyze("Some text")
+        assert result is None
 
     @pytest.mark.asyncio
-    async def test_analyze_network_error_returns_neutral(self):
+    async def test_analyze_network_error_returns_none(self):
         async def raise_error(request: httpx.Request) -> httpx.Response:
             raise httpx.ConnectError("Connection failed")
 
         mock_client = httpx.AsyncClient(transport=httpx.MockTransport(raise_error))
         analyzer = ClaudeSentimentAnalyzer(api_key="test-key", http_client=mock_client)
 
-        sentiment, confidence = await analyzer.analyze("Some text")
-        assert sentiment == "neutral"
-        assert confidence == 0.5
+        result = await analyzer.analyze("Some text")
+        assert result is None
 
 
 class TestAnalyzeBatch:

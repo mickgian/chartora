@@ -143,24 +143,45 @@ async def refresh_news_data(
         return
 
     # Score sentiment if we have a Claude API key
-    if sentiment_analyzer._api_key:
+    if not sentiment_analyzer._api_key:
+        logger.warning(
+            "No Claude API key — skipping sentiment for %s",
+            company.name,
+        )
+    else:
         logger.info(
             "Analyzing sentiment for %d articles (%s)",
             len(articles),
             company.name,
         )
+        scored_count = 0
         for article in articles:
-            label, confidence = await sentiment_analyzer.analyze(article.title)
-            object.__setattr__(
-                article,
-                "sentiment",
-                SentimentLabel(label),
-            )
-            object.__setattr__(
-                article,
-                "sentiment_score",
-                Decimal(str(round(confidence, 2))),
-            )
+            result = await sentiment_analyzer.analyze(article.title)
+            if result is not None:
+                label, confidence = result
+                scored_count += 1
+                logger.debug(
+                    "Sentiment for '%s': %s (%.2f)",
+                    article.title[:60],
+                    label,
+                    confidence,
+                )
+                object.__setattr__(
+                    article,
+                    "sentiment",
+                    SentimentLabel(label),
+                )
+                object.__setattr__(
+                    article,
+                    "sentiment_score",
+                    Decimal(str(round(confidence, 2))),
+                )
+        logger.info(
+            "Scored %d/%d articles for %s",
+            scored_count,
+            len(articles),
+            company.name,
+        )
 
     for a in articles:
         object.__setattr__(a, "company_id", company.id)
@@ -281,29 +302,6 @@ KNOWN_PATENT_COUNTS: dict[str, int] = {
     "ark-space-exploration-etf": 0,
 }
 
-# Baseline news sentiment when no scored articles are available in the DB.
-# Scale: -1.0 (very bearish) to +1.0 (very bullish).
-# Derived from general media coverage tone as of early 2026.
-# IBM/Google leading in announcements → bullish; pure-play stocks volatile →
-# mixed; ETFs neutral; Zapata bankrupt → bearish.
-KNOWN_SENTIMENT: dict[str, tuple[float, int]] = {
-    # (avg_sentiment, assumed_article_count)
-    "ionq": (0.35, 8),             # Positive: partnerships, AQ progress
-    "d-wave-quantum": (0.25, 8),   # Moderately positive: commercial traction
-    "rigetti-computing": (0.10, 6),  # Mixed: tech progress but financial pressure
-    "quantum-computing-inc": (-0.15, 5),  # Slightly negative: dilution concerns
-    "arqit-quantum": (-0.20, 4),   # Negative: skepticism about claims
-    "zapata-computing": (-0.60, 4),  # Very negative: filed for bankruptcy
-    "ibm": (0.50, 10),             # Bullish: 1121-qubit milestone, roadmap
-    "alphabet-google": (0.55, 10),  # Bullish: Willow chip, error correction
-    "microsoft": (0.40, 8),        # Positive: topological qubit breakthrough
-    "amazon-aws": (0.15, 5),       # Slightly positive: Braket, Ocelot chip
-    "intel": (-0.10, 5),           # Slightly negative: lagging behind peers
-    "honeywell-quantinuum": (0.30, 7),  # Positive: H2 processor, enterprise deals
-    "defiance-quantum-etf": (0.10, 3),  # Mildly positive: sector momentum
-    "ark-space-exploration-etf": (0.05, 3),  # Neutral: broad exposure
-}
-
 KNOWN_FUNDING_USD: dict[str, float] = {
     "ionq": 634_000_000.0,
     "d-wave-quantum": 340_000_000.0,
@@ -373,16 +371,14 @@ async def recalculate_scores(
             gov_value = await gov_contract_repo.get_total_value(company_id)
             total_funding += gov_value
 
-        # News sentiment average (live articles → fallback to KNOWN_SENTIMENT)
+        # News sentiment average
         recent_news = await news_repo.get_by_company(company_id, limit=20)
         avg_sentiment = 0.0
         article_count = 0
-        scored_from_db = False
         if recent_news:
             scored = [a for a in recent_news if a.sentiment_score is not None]
             if scored:
-                scored_from_db = True
-                article_count = len(recent_news)
+                article_count = len(scored)
                 sentiment_values = []
                 for a in scored:
                     label = a.sentiment
@@ -394,17 +390,6 @@ async def recalculate_scores(
                     else:
                         sentiment_values.append(0.0)
                 avg_sentiment = sum(sentiment_values) / len(sentiment_values)
-
-        if not scored_from_db:
-            fallback = KNOWN_SENTIMENT.get(company.slug)
-            if fallback:
-                avg_sentiment, article_count = fallback
-                logger.info(
-                    "Using fallback sentiment for %s: %.2f (%d articles)",
-                    company.name,
-                    avg_sentiment,
-                    article_count,
-                )
 
         score_input = ScoreInput(
             company_id=company_id,

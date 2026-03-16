@@ -119,15 +119,18 @@ class SentimentAnalyzer(ABC):
     """Port for analyzing sentiment of news articles."""
 
     @abstractmethod
-    async def analyze(self, text: str) -> tuple[str, float]:
+    async def analyze(self, text: str) -> tuple[str, float] | None:
         """Analyze sentiment of text.
 
         Returns:
             A tuple of (sentiment_label, confidence_score) where
             sentiment_label is one of 'bullish', 'bearish', 'neutral'
             and confidence_score is between 0.0 and 1.0.
+            Returns None if analysis fails.
         """
 
     @abstractmethod
-    async def analyze_batch(self, texts: list[str]) -> list[tuple[str, float]]:
+    async def analyze_batch(
+        self, texts: list[str]
+    ) -> list[tuple[str, float] | None]:
         """Analyze sentiment of multiple texts."""

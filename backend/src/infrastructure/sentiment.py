@@ -55,11 +55,11 @@ class ClaudeSentimentAnalyzer(SentimentAnalyzer):
             self._client = httpx.AsyncClient(timeout=self._timeout)
         return self._client
 
-    async def analyze(self, text: str) -> tuple[str, float]:
+    async def analyze(self, text: str) -> tuple[str, float] | None:
         """Analyze sentiment of a single text.
 
         Returns:
-            A tuple of (sentiment_label, confidence_score).
+            A tuple of (sentiment_label, confidence_score), or None on error.
         """
         try:
             client = await self._get_client()
@@ -85,12 +85,14 @@ class ClaudeSentimentAnalyzer(SentimentAnalyzer):
             data = response.json()
             return self._parse_response(data)
         except Exception:
-            logger.exception("Error analyzing sentiment")
-            return ("neutral", 0.5)
+            logger.exception("Error analyzing sentiment for: %s", text[:80])
+            return None
 
-    async def analyze_batch(self, texts: list[str]) -> list[tuple[str, float]]:
+    async def analyze_batch(
+        self, texts: list[str]
+    ) -> list[tuple[str, float] | None]:
         """Analyze sentiment of multiple texts sequentially."""
-        results: list[tuple[str, float]] = []
+        results: list[tuple[str, float] | None] = []
         for text in texts:
             result = await self.analyze(text)
             results.append(result)

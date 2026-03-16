@@ -18,7 +18,6 @@ if "yfinance" not in sys.modules:
     sys.modules["yfinance"] = MagicMock()
 
 from scripts.refresh_data import (
-    KNOWN_SENTIMENT,
     recalculate_scores,
     refresh_news_data,
     refresh_patent_data,
@@ -214,28 +213,116 @@ async def test_recalculate_scores() -> None:
 
 
 @pytest.mark.asyncio
-async def test_recalculate_scores_uses_sentiment_fallback() -> None:
-    """When no scored articles exist, KNOWN_SENTIMENT provides differentiated values."""
-    # Use slugs that exist in KNOWN_SENTIMENT with very different scores
+async def test_refresh_news_data_with_sentiment() -> None:
+    """Articles get sentiment scores when Claude API key is set."""
+    company = _make_company()
+    news_adapter = AsyncMock()
+    news_adapter._api_key = "test-key"
+    news_adapter.fetch_articles = AsyncMock(
+        return_value=[
+            NewsArticle(
+                company_id=0,
+                title="IonQ announces major quantum breakthrough",
+                url="https://example.com/1",
+                published_at=datetime(2026, 3, 14, tzinfo=UTC),
+            ),
+        ]
+    )
+    sentiment = AsyncMock()
+    sentiment._api_key = "test-claude-key"
+    sentiment.analyze = AsyncMock(return_value=("bullish", 0.85))
+    news_repo = AsyncMock()
+    news_repo.save_many = AsyncMock(return_value=[])
+
+    await refresh_news_data(company, news_adapter, sentiment, news_repo)
+
+    sentiment.analyze.assert_called_once()
+    saved = news_repo.save_many.call_args[0][0]
+    assert saved[0].sentiment is not None
+    assert saved[0].sentiment_score is not None
+
+
+@pytest.mark.asyncio
+async def test_refresh_news_data_skips_failed_sentiment() -> None:
+    """Articles without successful sentiment analysis have no score."""
+    company = _make_company()
+    news_adapter = AsyncMock()
+    news_adapter._api_key = "test-key"
+    news_adapter.fetch_articles = AsyncMock(
+        return_value=[
+            NewsArticle(
+                company_id=0,
+                title="Some article",
+                url="https://example.com/1",
+                published_at=datetime(2026, 3, 14, tzinfo=UTC),
+            ),
+        ]
+    )
+    sentiment = AsyncMock()
+    sentiment._api_key = "test-claude-key"
+    sentiment.analyze = AsyncMock(return_value=None)  # API error
+    news_repo = AsyncMock()
+    news_repo.save_many = AsyncMock(return_value=[])
+
+    await refresh_news_data(company, news_adapter, sentiment, news_repo)
+
+    saved = news_repo.save_many.call_args[0][0]
+    # Article saved but without sentiment
+    assert saved[0].sentiment is None
+    assert saved[0].sentiment_score is None
+
+
+@pytest.mark.asyncio
+async def test_recalculate_scores_with_sentiment() -> None:
+    """Scored articles produce differentiated sentiment values."""
+    from src.domain.models.value_objects import SentimentLabel
+
     companies = [
         _make_company(id=1, name="IBM", slug="ibm", ticker="IBM"),
-        _make_company(
-            id=2,
-            name="Zapata Computing",
-            slug="zapata-computing",
-            ticker=None,
-        ),
+        _make_company(id=2, name="Arqit", slug="arqit-quantum", ticker="ARQQ"),
     ]
     stock_repo = AsyncMock()
     patent_repo = AsyncMock()
     patent_repo.count_by_date_range = AsyncMock(return_value=0)
+
+    # IBM: bullish articles; Arqit: bearish articles
+    ibm_articles = [
+        NewsArticle(
+            id=i,
+            company_id=1,
+            title=f"IBM bullish news {i}",
+            url=f"https://example.com/{i}",
+            published_at=datetime(2026, 3, 14, tzinfo=UTC),
+            sentiment=SentimentLabel.BULLISH,
+            sentiment_score=Decimal("0.80"),
+        )
+        for i in range(10)
+    ]
+    arqit_articles = [
+        NewsArticle(
+            id=i + 100,
+            company_id=2,
+            title=f"Arqit bearish news {i}",
+            url=f"https://example.com/{i + 100}",
+            published_at=datetime(2026, 3, 14, tzinfo=UTC),
+            sentiment=SentimentLabel.BEARISH,
+            sentiment_score=Decimal("0.70"),
+        )
+        for i in range(10)
+    ]
+
+    async def mock_get_by_company(
+        company_id: int, limit: int = 20
+    ) -> list[NewsArticle]:
+        if company_id == 1:
+            return ibm_articles
+        return arqit_articles
+
     news_repo = AsyncMock()
-    # No articles → triggers fallback
-    news_repo.get_by_company = AsyncMock(return_value=[])
+    news_repo.get_by_company = AsyncMock(side_effect=mock_get_by_company)
     score_repo = AsyncMock()
     score_repo.save_many = AsyncMock(return_value=[])
     stock_adapter = AsyncMock()
-    # Same stock performance so only sentiment differs
     stock_adapter.fetch_performance = AsyncMock(return_value=0.0)
 
     await recalculate_scores(
@@ -248,19 +335,10 @@ async def test_recalculate_scores_uses_sentiment_fallback() -> None:
     )
 
     saved_scores = score_repo.save_many.call_args[0][0]
-    assert len(saved_scores) == 2
     score_by_company = {s.company_id: s for s in saved_scores}
     ibm_news = score_by_company[1].news_sentiment
-    zapata_news = score_by_company[2].news_sentiment
-    # IBM (bullish 0.50) should score higher than Zapata (bearish -0.60)
-    assert ibm_news > zapata_news
-    # Verify they're not both 50 (the old bug)
-    assert ibm_news != zapata_news
-
-
-def test_known_sentiment_has_all_tracked_companies() -> None:
-    """Every company in other KNOWN_ dicts should have a sentiment entry."""
-    from scripts.refresh_data import KNOWN_FUNDING_USD
-
-    for slug in KNOWN_FUNDING_USD:
-        assert slug in KNOWN_SENTIMENT, f"Missing sentiment for {slug}"
+    arqit_news = score_by_company[2].news_sentiment
+    # IBM (bullish) should score much higher than Arqit (bearish)
+    assert ibm_news > 50.0
+    assert arqit_news < 50.0
+    assert ibm_news > arqit_news
