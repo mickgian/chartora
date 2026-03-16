@@ -27,7 +27,9 @@ class Settings:
 
     # Stripe
     stripe_secret_key: str = field(default_factory=lambda: _env("STRIPE_SECRET_KEY"))
-    stripe_webhook_secret: str = field(default_factory=lambda: _env("STRIPE_WEBHOOK_SECRET"))
+    stripe_webhook_secret: str = field(
+        default_factory=lambda: _env("STRIPE_WEBHOOK_SECRET")
+    )
     stripe_price_id: str = field(default_factory=lambda: _env("STRIPE_PRICE_ID"))
     frontend_url: str = field(
         default_factory=lambda: _env("CHARTORA_FRONTEND_URL", "http://localhost:3000")
@@ -35,7 +37,9 @@ class Settings:
 
     # Auth / JWT
     jwt_secret_key: str = field(
-        default_factory=lambda: _env("CHARTORA_JWT_SECRET_KEY", "change-me-in-production")
+        default_factory=lambda: _env(
+            "CHARTORA_JWT_SECRET_KEY", "change-me-in-production"
+        )
     )
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 60
