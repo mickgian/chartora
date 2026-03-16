@@ -147,7 +147,7 @@ async def get_sentiment_rankings(
 async def get_government_contract_rankings(
     company_repo: CompanyRepoDep,
     gov_contract_repo: GovContractRepoDep,
-) -> dict:
+) -> dict[str, object]:
     """Companies ranked by total government contract value."""
     logger.info("[RANKING] Building government contract rankings")
     companies = await company_repo.get_all()
@@ -180,7 +180,11 @@ async def get_government_contract_rankings(
         )
 
     # Sort by contract value descending and assign ranks
-    entries.sort(key=lambda e: e["metric_value"], reverse=True)
+    def _sort_key(e: dict[str, object]) -> float:
+        val = e.get("metric_value", 0)
+        return float(val) if isinstance(val, (int, float)) else 0.0
+
+    entries.sort(key=_sort_key, reverse=True)
     for i, entry in enumerate(entries, 1):
         entry["rank"] = i
 
