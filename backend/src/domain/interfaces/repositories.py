@@ -16,6 +16,7 @@ if TYPE_CHECKING:
         ApiKey,
         Company,
         Filing,
+        GovernmentContract,
         NewsArticle,
         Patent,
         QuantumPowerScore,
@@ -167,6 +168,28 @@ class FilingRepository(ABC):
     @abstractmethod
     async def save_many(self, filings: list[Filing]) -> list[Filing]:
         """Persist multiple filing records."""
+
+
+class GovernmentContractRepository(ABC):
+    """Port for persisting and retrieving government contracts."""
+
+    @abstractmethod
+    async def get_by_company(self, company_id: int) -> list[GovernmentContract]:
+        """Get all government contracts for a company."""
+
+    @abstractmethod
+    async def get_total_value(self, company_id: int) -> float:
+        """Get total contract value for a company."""
+
+    @abstractmethod
+    async def save(self, contract: GovernmentContract) -> GovernmentContract:
+        """Persist a government contract."""
+
+    @abstractmethod
+    async def save_many(
+        self, contracts: list[GovernmentContract]
+    ) -> list[GovernmentContract]:
+        """Persist multiple government contracts."""
 
 
 class UserRepository(ABC):

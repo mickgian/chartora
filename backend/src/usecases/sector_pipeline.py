@@ -135,7 +135,10 @@ class SectorPipeline:
             analysed = await self._sentiment_analyzer.analyze_batch(
                 [a.title for a in articles],
             )
-            for article, (label, confidence) in zip(articles, analysed, strict=True):
+            for article, result in zip(articles, analysed, strict=True):
+                if result is None:
+                    continue
+                label, confidence = result
                 object.__setattr__(article, "sentiment", SentimentLabel(label))
                 object.__setattr__(
                     article,

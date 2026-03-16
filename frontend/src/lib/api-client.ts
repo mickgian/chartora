@@ -9,11 +9,16 @@
 import type {
   CompanyDetailResponse,
   FilingListResponse,
+  GovernmentContractListResponse,
+  HistoricalScoresResponse,
+  InsiderTradingResponse,
+  InstitutionalOwnershipResponse,
   LeaderboardResponse,
   NewsListResponse,
   PatentListResponse,
   RankingMetric,
   RankingResponse,
+  RdSpendingResponse,
   SortableMetric,
   StockHistoryResponse,
 } from "@/types/api";
@@ -36,6 +41,17 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1000;
 
+const log = {
+  info: (...args: unknown[]) => console.log("[Chartora API]", ...args), // eslint-disable-line no-console
+  warn: (...args: unknown[]) => console.warn("[Chartora API]", ...args), // eslint-disable-line no-console
+  error: (...args: unknown[]) => console.error("[Chartora API]", ...args), // eslint-disable-line no-console
+};
+
+// Log config on first load
+log.info(
+  `Initialized — BASE_URL=${BASE_URL}, DEMO_MODE=${IS_DEMO}`,
+);
+
 async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -43,11 +59,24 @@ async function sleep(ms: number): Promise<void> {
 async function fetchWithRetry(url: string, retries = MAX_RETRIES): Promise<Response> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
+      log.info(`[FETCH] ${url} (attempt ${attempt + 1}/${retries + 1})`);
       const response = await fetch(url);
 
-      if (response.ok) return response;
+      if (response.ok) {
+        log.info(
+          `[FETCH] ${url} -> ${response.status} (${response.headers.get("content-length") ?? "?"} bytes)`,
+        );
+        return response;
+      }
+
+      log.warn(
+        `[FETCH] ${url} -> ${response.status} ${response.statusText}`,
+      );
 
       if (response.status >= 500 && attempt < retries) {
+        log.warn(
+          `[FETCH] Server error, retrying in ${RETRY_DELAY_MS * (attempt + 1)}ms...`,
+        );
         await sleep(RETRY_DELAY_MS * (attempt + 1));
         continue;
       }
@@ -63,7 +92,15 @@ async function fetchWithRetry(url: string, retries = MAX_RETRIES): Promise<Respo
     } catch (error) {
       if (error instanceof ApiError) throw error;
 
+      log.error(
+        `[FETCH] Network error for ${url}:`,
+        error instanceof Error ? error.message : error,
+      );
+
       if (attempt < retries) {
+        log.warn(
+          `[FETCH] Retrying in ${RETRY_DELAY_MS * (attempt + 1)}ms...`,
+        );
         await sleep(RETRY_DELAY_MS * (attempt + 1));
         continue;
       }
@@ -76,7 +113,33 @@ async function fetchWithRetry(url: string, retries = MAX_RETRIES): Promise<Respo
 
 async function get<T>(path: string): Promise<T> {
   const response = await fetchWithRetry(`${BASE_URL}${path}`);
-  return response.json() as Promise<T>;
+  const data = (await response.json()) as T;
+
+  // Log response shape for debugging
+  if (data && typeof data === "object") {
+    const obj = data as Record<string, unknown>;
+    if ("entries" in obj && Array.isArray(obj.entries)) {
+      log.info(
+        `[DATA] ${path} -> ${(obj.entries as unknown[]).length} entries`,
+      );
+      if ((obj.entries as unknown[]).length === 0) {
+        log.warn(
+          `[DATA] ${path} -> EMPTY response (0 entries). ` +
+            "Backend may have no data in database.",
+        );
+      }
+    } else if ("count" in obj) {
+      log.info(`[DATA] ${path} -> count=${obj.count}`);
+      if (obj.count === 0) {
+        log.warn(
+          `[DATA] ${path} -> EMPTY response (count=0). ` +
+            "Backend may have no data in database.",
+        );
+      }
+    }
+  }
+
+  return data;
 }
 
 export const apiClient = {
@@ -120,5 +183,34 @@ export const apiClient = {
   getRanking(metric: RankingMetric): Promise<RankingResponse> {
     if (IS_DEMO) return Promise.resolve(mockApi.getRanking(metric));
     return get(`/api/v1/rankings/${encodeURIComponent(metric)}`);
+  },
+
+  // Premium endpoints (require auth token)
+  getHistoricalScores(slug: string, days = 365): Promise<HistoricalScoresResponse> {
+    return get(`/api/v1/pro/historical-scores/${encodeURIComponent(slug)}?days=${days}`);
+  },
+
+  getFullPatentHistory(slug: string): Promise<{ company_slug: string; company_name: string; patents: unknown[]; count: number }> {
+    return get(`/api/v1/pro/patents/${encodeURIComponent(slug)}/full-history`);
+  },
+
+  getInsiderTrading(slug: string): Promise<InsiderTradingResponse> {
+    return get(`/api/v1/pro/insider-trading/${encodeURIComponent(slug)}`);
+  },
+
+  getInstitutionalOwnership(slug: string): Promise<InstitutionalOwnershipResponse> {
+    return get(`/api/v1/pro/institutional-ownership/${encodeURIComponent(slug)}`);
+  },
+
+  getRdSpending(slug: string): Promise<RdSpendingResponse> {
+    return get(`/api/v1/pro/rd-spending/${encodeURIComponent(slug)}`);
+  },
+
+  getGovernmentContracts(slug: string): Promise<GovernmentContractListResponse> {
+    return get(`/api/v1/pro/government-contracts/${encodeURIComponent(slug)}`);
+  },
+
+  getGovernmentContractRankings(): Promise<RankingResponse> {
+    return get("/api/v1/rankings/government-contracts");
   },
 };

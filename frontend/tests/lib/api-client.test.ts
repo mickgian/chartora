@@ -10,6 +10,7 @@ function jsonResponse(data: unknown, status = 200) {
     status,
     statusText: status === 200 ? "OK" : "Error",
     json: () => Promise.resolve(data),
+    headers: new Headers({ "content-length": "100" }),
   };
 }
 
@@ -136,36 +137,16 @@ describe("apiClient", () => {
 
   describe("error handling", () => {
     it("throws ApiError on 404", async () => {
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 404,
-        statusText: "Not Found",
-        json: () => Promise.resolve({ detail: "Company not found" }),
-      });
+      mockFetch.mockResolvedValue(jsonResponse({ detail: "Company not found" }, 404));
 
       await expect(apiClient.getCompany("nonexistent")).rejects.toThrow(ApiError);
     });
 
     it("retries on 500 errors", async () => {
       mockFetch
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 500,
-          statusText: "Internal Server Error",
-          json: () => Promise.resolve({ detail: "Server error" }),
-        })
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 500,
-          statusText: "Internal Server Error",
-          json: () => Promise.resolve({ detail: "Server error" }),
-        })
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 500,
-          statusText: "Internal Server Error",
-          json: () => Promise.resolve({ detail: "Server error" }),
-        });
+        .mockResolvedValueOnce(jsonResponse({ detail: "Server error" }, 500))
+        .mockResolvedValueOnce(jsonResponse({ detail: "Server error" }, 500))
+        .mockResolvedValueOnce(jsonResponse({ detail: "Server error" }, 500));
 
       await expect(apiClient.getCompany("ionq")).rejects.toThrow(ApiError);
       expect(mockFetch).toHaveBeenCalledTimes(3);

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
@@ -33,6 +34,8 @@ from src.domain.models.value_objects import DateRange
 if TYPE_CHECKING:
     from src.domain.models.entities import Company
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/v1/companies", tags=["companies"])
 
 
@@ -57,8 +60,10 @@ async def get_company(
     score_repo: ScoreRepoDep,
 ) -> CompanyDetailResponse:
     """Get full company profile."""
+    logger.info("[COMPANY] Fetching company slug=%s", slug)
     company = await company_repo.get_by_slug(slug)
     if company is None:
+        logger.warning("[COMPANY] Company not found slug=%s", slug)
         raise HTTPException(
             status_code=404,
             detail=f"Company '{slug}' not found",
@@ -79,6 +84,12 @@ async def get_company(
             rank_change=score.rank_change,
         )
 
+    logger.info(
+        "[COMPANY] slug=%s company_id=%s has_score=%s",
+        slug,
+        company.id,
+        score_resp is not None,
+    )
     return CompanyDetailResponse(
         company=_company_to_response(company),
         score=score_resp,
@@ -98,8 +109,10 @@ async def get_company_stock(
     ),
 ) -> StockHistoryResponse:
     """Get stock price history for a company."""
+    logger.info("[STOCK] Fetching stock history slug=%s days=%d", slug, days)
     company = await company_repo.get_by_slug(slug)
     if company is None:
+        logger.warning("[STOCK] Company not found slug=%s", slug)
         raise HTTPException(
             status_code=404,
             detail=f"Company '{slug}' not found",
@@ -110,6 +123,13 @@ async def get_company_stock(
     date_range = DateRange(start=start, end=end)
 
     prices = await stock_repo.get_by_date_range(company.id or 0, date_range)
+    logger.info(
+        "[STOCK] slug=%s returned %d prices for range %s to %s",
+        slug,
+        len(prices),
+        start,
+        end,
+    )
 
     return StockHistoryResponse(
         company_slug=slug,
@@ -136,14 +156,17 @@ async def get_company_patents(
     patent_repo: PatentRepoDep,
 ) -> PatentListResponse:
     """Get patent timeline for a company."""
+    logger.info("[PATENTS] Fetching patents for slug=%s", slug)
     company = await company_repo.get_by_slug(slug)
     if company is None:
+        logger.warning("[PATENTS] Company not found slug=%s", slug)
         raise HTTPException(
             status_code=404,
             detail=f"Company '{slug}' not found",
         )
 
     patents = await patent_repo.get_by_company(company.id or 0)
+    logger.info("[PATENTS] slug=%s returned %d patents", slug, len(patents))
 
     return PatentListResponse(
         company_slug=slug,
@@ -176,14 +199,17 @@ async def get_company_news(
     ),
 ) -> NewsListResponse:
     """Get recent news with sentiment for a company."""
+    logger.info("[NEWS] Fetching news for slug=%s limit=%d", slug, limit)
     company = await company_repo.get_by_slug(slug)
     if company is None:
+        logger.warning("[NEWS] Company not found slug=%s", slug)
         raise HTTPException(
             status_code=404,
             detail=f"Company '{slug}' not found",
         )
 
     articles = await news_repo.get_by_company(company.id or 0, limit=limit)
+    logger.info("[NEWS] slug=%s returned %d articles", slug, len(articles))
 
     return NewsListResponse(
         company_slug=slug,
@@ -211,14 +237,17 @@ async def get_company_filings(
     filing_repo: FilingRepoDep,
 ) -> FilingListResponse:
     """Get SEC filings summary for a company."""
+    logger.info("[FILINGS] Fetching filings for slug=%s", slug)
     company = await company_repo.get_by_slug(slug)
     if company is None:
+        logger.warning("[FILINGS] Company not found slug=%s", slug)
         raise HTTPException(
             status_code=404,
             detail=f"Company '{slug}' not found",
         )
 
     filings = await filing_repo.get_by_company(company.id or 0)
+    logger.info("[FILINGS] slug=%s returned %d filings", slug, len(filings))
 
     return FilingListResponse(
         company_slug=slug,

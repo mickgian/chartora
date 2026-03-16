@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from src.domain.interfaces.repositories import StockRepository
 from src.domain.models.entities import StockPrice
@@ -65,22 +66,38 @@ class PgStockRepository(StockRepository):
         return self._to_entity(row)
 
     async def save_many(self, stock_prices: list[StockPrice]) -> list[StockPrice]:
-        rows = []
-        for sp in stock_prices:
-            row = StockPriceTable(
-                company_id=sp.company_id,
-                price_date=sp.price_date,
-                close_price=sp.close_price,
-                open_price=sp.open_price,
-                high_price=sp.high_price,
-                low_price=sp.low_price,
-                volume=sp.volume,
-                market_cap=sp.market_cap,
-            )
-            self._session.add(row)
-            rows.append(row)
+        if not stock_prices:
+            return []
+
+        values = [
+            {
+                "company_id": sp.company_id,
+                "price_date": sp.price_date,
+                "close_price": sp.close_price,
+                "open_price": sp.open_price,
+                "high_price": sp.high_price,
+                "low_price": sp.low_price,
+                "volume": sp.volume,
+                "market_cap": sp.market_cap,
+            }
+            for sp in stock_prices
+        ]
+
+        stmt = pg_insert(StockPriceTable).values(values)
+        stmt = stmt.on_conflict_do_update(
+            constraint="uq_stock_company_date",
+            set_={
+                "close_price": stmt.excluded.close_price,
+                "open_price": stmt.excluded.open_price,
+                "high_price": stmt.excluded.high_price,
+                "low_price": stmt.excluded.low_price,
+                "volume": stmt.excluded.volume,
+                "market_cap": stmt.excluded.market_cap,
+            },
+        )
+        await self._session.execute(stmt)
         await self._session.flush()
-        return [self._to_entity(r) for r in rows]
+        return stock_prices
 
     @staticmethod
     def _to_entity(row: StockPriceTable) -> StockPrice:

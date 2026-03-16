@@ -1,4 +1,4 @@
-"""Middleware for API response time logging and monitoring."""
+"""Middleware for API request/response logging and monitoring."""
 
 from __future__ import annotations
 
@@ -17,21 +17,32 @@ logger = logging.getLogger(__name__)
 
 
 class RequestTimingMiddleware(BaseHTTPMiddleware):
-    """Logs response time for every request."""
+    """Logs response time, query params, and content length for every request."""
 
     def __init__(self, app: ASGIApp) -> None:
         super().__init__(app)
 
     async def dispatch(self, request: Request, call_next: Any) -> Response:
         start = time.perf_counter()
+        query = str(request.query_params) if request.query_params else ""
+
+        logger.info(
+            "[REQUEST] %s %s%s",
+            request.method,
+            request.url.path,
+            f"?{query}" if query else "",
+        )
+
         response: Response = await call_next(request)
         duration_ms = (time.perf_counter() - start) * 1000
 
+        content_length = response.headers.get("content-length", "unknown")
         logger.info(
-            "method=%s path=%s status=%d duration_ms=%.1f",
+            "[RESPONSE] %s %s -> status=%d content_length=%s duration_ms=%.1f",
             request.method,
             request.url.path,
             response.status_code,
+            content_length,
             duration_ms,
         )
 

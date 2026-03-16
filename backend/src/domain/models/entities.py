@@ -219,6 +219,27 @@ class AlertPreference:
 
 
 @dataclass
+class GovernmentContract:
+    """A government contract awarded to a company."""
+
+    company_id: int
+    award_id: str
+    title: str
+    amount: Decimal
+    awarding_agency: str
+    start_date: date
+    end_date: date | None = None
+    description: str | None = None
+    id: int | None = None
+
+    def __post_init__(self) -> None:
+        if not self.award_id:
+            raise ValueError("Award ID cannot be empty")
+        if self.amount < 0:
+            raise ValueError("Contract amount cannot be negative")
+
+
+@dataclass
 class ApiKey:
     """An API key for programmatic access to premium endpoints."""
 

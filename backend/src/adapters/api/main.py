@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import sys
 import time
 from typing import Any
 
@@ -24,6 +26,15 @@ from src.adapters.api.routers import (
 )
 from src.config.settings import Settings
 from src.infrastructure.cache import cache
+
+# Configure structured logging on module load
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)-7s | %(name)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    stream=sys.stdout,
+    force=True,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -126,9 +137,67 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.on_event("startup")
     async def _startup_cache() -> None:
         logger.info(
-            "In-memory cache initialised (default TTL=%ds)",
+            "[STARTUP] Chartora API starting — cache_ttl=%ds, debug=%s",
             settings.cache_ttl_seconds,
+            settings.debug,
         )
+        logger.info(
+            "[STARTUP] Database URL: %s",
+            settings.database_url.split("@")[-1]
+            if "@" in settings.database_url
+            else "(not configured)",
+        )
+        logger.info(
+            "[STARTUP] NewsAPI key configured: %s",
+            bool(settings.news_api_key),
+        )
+        logger.info(
+            "[STARTUP] Claude API key configured: %s",
+            bool(settings.claude_api_key),
+        )
+
+        # Auto-refresh data in background if no scores exist yet
+        app.state.refresh_task = asyncio.create_task(_initial_data_refresh(settings))
+
+    async def _initial_data_refresh(settings: Settings) -> None:
+        """Run data refresh if the scores table is empty (first deploy)."""
+        try:
+            from sqlalchemy import text as sa_text
+            from sqlalchemy.ext.asyncio import (
+                async_sessionmaker,
+                create_async_engine,
+            )
+
+            engine = create_async_engine(settings.database_url)
+            factory = async_sessionmaker(engine, expire_on_commit=False)
+
+            async with factory() as session:
+                result = await session.execute(sa_text("SELECT COUNT(*) FROM scores"))
+                count = result.scalar() or 0
+
+            await engine.dispose()
+
+            if count > 0 and not settings.force_refresh:
+                logger.info(
+                    "[STARTUP] Scores table has %d rows — "
+                    "skipping initial refresh "
+                    "(set CHARTORA_FORCE_REFRESH=true to override)",
+                    count,
+                )
+                return
+
+            logger.info(
+                "[STARTUP] No scores found — running initial data refresh "
+                "in background..."
+            )
+            from scripts.refresh_data import run_refresh
+
+            await run_refresh(settings)
+            logger.info("[STARTUP] Initial data refresh complete")
+        except Exception:
+            logger.exception(
+                "[STARTUP] Initial data refresh failed — will retry on next cron run"
+            )
 
     @app.get("/api/v1/cache/stats")
     async def cache_stats() -> dict[str, Any]:

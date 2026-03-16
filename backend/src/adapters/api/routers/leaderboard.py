@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Query
@@ -17,6 +18,8 @@ from src.adapters.api.schemas import (
     ScoreResponse,
 )
 from src.usecases.rank_companies import RankingMetric, rank_companies
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/leaderboard", tags=["leaderboard"])
 
@@ -42,9 +45,20 @@ async def get_leaderboard(
     ),
 ) -> LeaderboardResponse:
     """Get the full leaderboard ranked by Quantum Power Score."""
+    logger.info(
+        "[LEADERBOARD] Fetching leaderboard sort_by=%s limit=%s",
+        sort_by,
+        limit,
+    )
+
     # Fetch all latest scores
     scores = await score_repo.get_latest_all()
     if not scores:
+        logger.warning(
+            "[LEADERBOARD] No scores found in database — "
+            "returning empty leaderboard. "
+            "Has the data refresh pipeline been run?"
+        )
         return LeaderboardResponse(
             metric=sort_by,
             entries=[],
@@ -104,9 +118,24 @@ async def get_leaderboard(
     latest_date = max(s.score_date for s in scores)
     updated_at = datetime.combine(latest_date, datetime.min.time(), tzinfo=UTC)
 
+    logger.info(
+        "[LEADERBOARD] Returning %d entries, latest_date=%s, sort_by=%s",
+        len(entries),
+        latest_date,
+        sort_by,
+    )
+
+    # Metrics that currently use hardcoded/estimated data rather than live APIs
+    # - patent_velocity: USPTO API domain migration, needs key after March 20
+    # Funding now uses SEC EDGAR XBRL; qubits extracted from news via Claude
+    hardcoded_metrics = [
+        "patent_velocity",
+    ]
+
     return LeaderboardResponse(
         metric=sort_by,
         entries=entries,
         count=len(entries),
         updated_at=updated_at,
+        hardcoded_metrics=hardcoded_metrics,
     )

@@ -49,6 +49,9 @@ class CompanyTable(Base):
         back_populates="company"
     )
     filings: Mapped[list["FilingTable"]] = relationship(back_populates="company")
+    government_contracts: Mapped[list["GovernmentContractTable"]] = relationship(
+        back_populates="company"
+    )
 
 
 class StockPriceTable(Base):
@@ -161,6 +164,32 @@ class FilingTable(Base):
     )
 
     company: Mapped["CompanyTable"] = relationship(back_populates="filings")
+
+
+class GovernmentContractTable(Base):
+    __tablename__ = "government_contracts"
+    __table_args__ = (
+        UniqueConstraint("company_id", "award_id", name="uq_contract_company_award"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    company_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False
+    )
+    award_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    amount: Mapped[Decimal] = mapped_column(Numeric(16, 2), nullable=False)
+    awarding_agency: Mapped[str] = mapped_column(String(500), nullable=False)
+    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), nullable=False
+    )
+
+    company: Mapped["CompanyTable"] = relationship(
+        back_populates="government_contracts"
+    )
 
 
 class UserTable(Base):

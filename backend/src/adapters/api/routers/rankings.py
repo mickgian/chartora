@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter
 
 from src.adapters.api.dependencies import (  # noqa: TC001
     CompanyRepoDep,
+    GovContractRepoDep,
     ScoreRepoDep,
 )
 from src.adapters.api.schemas import (
@@ -18,6 +21,8 @@ from src.usecases.rank_companies import (
     rank_companies,
 )
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/v1/rankings", tags=["rankings"])
 
 
@@ -27,13 +32,27 @@ async def _build_ranking(
     score_repo: ScoreRepoDep,
 ) -> RankingResponse:
     """Shared logic for all ranking endpoints."""
+    logger.info("[RANKING] Building ranking for metric=%s", metric.value)
+
     scores = await score_repo.get_latest_all()
     if not scores:
+        logger.warning(
+            "[RANKING] No scores found for metric=%s — "
+            "returning empty ranking. "
+            "Has the data refresh pipeline been run?",
+            metric.value,
+        )
         return RankingResponse(metric=metric.value, entries=[], count=0)
 
     result = rank_companies(scores, metric=metric)
 
     companies = await company_repo.get_all()
+    logger.info(
+        "[RANKING] metric=%s scores=%d companies=%d",
+        metric.value,
+        len(scores),
+        len(companies),
+    )
     company_map = {c.id: c for c in companies}
 
     entries: list[RankingEntry] = []
@@ -60,6 +79,11 @@ async def _build_ranking(
             )
         )
 
+    logger.info(
+        "[RANKING] Returning %d entries for metric=%s",
+        len(entries),
+        metric.value,
+    )
     return RankingResponse(
         metric=metric.value,
         entries=entries,
@@ -117,3 +141,55 @@ async def get_sentiment_rankings(
         company_repo,
         score_repo,
     )
+
+
+@router.get("/government-contracts")
+async def get_government_contract_rankings(
+    company_repo: CompanyRepoDep,
+    gov_contract_repo: GovContractRepoDep,
+) -> dict[str, object]:
+    """Companies ranked by total government contract value."""
+    logger.info("[RANKING] Building government contract rankings")
+    companies = await company_repo.get_all()
+    logger.info(
+        "[RANKING] government_contracts: %d companies to query",
+        len(companies),
+    )
+
+    entries = []
+    for company in companies:
+        company_id = company.id or 0
+        total_value = await gov_contract_repo.get_total_value(company_id)
+        entries.append(
+            {
+                "rank": 0,
+                "company": {
+                    "id": company_id,
+                    "name": company.name,
+                    "slug": company.slug,
+                    "sector": company.sector.value,
+                    "ticker": company.ticker.symbol if company.ticker else None,
+                    "description": company.description,
+                    "is_etf": company.is_etf,
+                    "website": company.website,
+                    "logo_url": company.logo_url,
+                },
+                "metric_value": total_value,
+                "trend": "flat",
+            }
+        )
+
+    # Sort by contract value descending and assign ranks
+    def _sort_key(e: dict[str, object]) -> float:
+        val = e.get("metric_value", 0)
+        return float(val) if isinstance(val, (int, float)) else 0.0
+
+    entries.sort(key=_sort_key, reverse=True)
+    for i, entry in enumerate(entries, 1):
+        entry["rank"] = i
+
+    return {
+        "metric": "government_contracts",
+        "entries": entries,
+        "count": len(entries),
+    }

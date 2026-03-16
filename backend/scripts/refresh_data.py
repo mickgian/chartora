@@ -22,6 +22,8 @@ from sqlalchemy.ext.asyncio import (
 
 from src.adapters.repositories import (
     PgCompanyRepository,
+    PgFilingRepository,
+    PgGovernmentContractRepository,
     PgNewsRepository,
     PgPatentRepository,
     PgScoreRepository,
@@ -30,7 +32,10 @@ from src.adapters.repositories import (
 from src.config.settings import Settings
 from src.domain.models.value_objects import DateRange, SentimentLabel
 from src.infrastructure.news_client import NewsApiAdapter
+from src.infrastructure.sec_edgar import SecEdgarAdapter
+from src.infrastructure.sec_edgar_xbrl import SecEdgarXbrlAdapter
 from src.infrastructure.sentiment import ClaudeSentimentAnalyzer
+from src.infrastructure.usaspending_client import UsaSpendingAdapter
 from src.infrastructure.uspto_client import UsptoPatentAdapter
 from src.infrastructure.yahoo_finance import YahooFinanceAdapter
 from src.usecases.calculate_score import ScoreInput, calculate_score
@@ -139,24 +144,45 @@ async def refresh_news_data(
         return
 
     # Score sentiment if we have a Claude API key
-    if sentiment_analyzer._api_key:
+    if not sentiment_analyzer._api_key:
+        logger.warning(
+            "No Claude API key — skipping sentiment for %s",
+            company.name,
+        )
+    else:
         logger.info(
             "Analyzing sentiment for %d articles (%s)",
             len(articles),
             company.name,
         )
+        scored_count = 0
         for article in articles:
-            label, confidence = await sentiment_analyzer.analyze(article.title)
-            object.__setattr__(
-                article,
-                "sentiment",
-                SentimentLabel(label),
-            )
-            object.__setattr__(
-                article,
-                "sentiment_score",
-                Decimal(str(round(confidence, 2))),
-            )
+            result = await sentiment_analyzer.analyze(article.title)
+            if result is not None:
+                label, confidence = result
+                scored_count += 1
+                logger.debug(
+                    "Sentiment for '%s': %s (%.2f)",
+                    article.title[:60],
+                    label,
+                    confidence,
+                )
+                object.__setattr__(
+                    article,
+                    "sentiment",
+                    SentimentLabel(label),
+                )
+                object.__setattr__(
+                    article,
+                    "sentiment_score",
+                    Decimal(str(round(confidence, 2))),
+                )
+        logger.info(
+            "Scored %d/%d articles for %s",
+            scored_count,
+            len(articles),
+            company.name,
+        )
 
     for a in articles:
         object.__setattr__(a, "company_id", company.id)
@@ -169,6 +195,132 @@ async def refresh_news_data(
     )
 
 
+async def refresh_filing_data(
+    company: Company,
+    filing_adapter: SecEdgarAdapter,
+    filing_repo: PgFilingRepository,
+) -> None:
+    """Pull SEC filings for a single company."""
+    if company.ticker is None:
+        logger.info(
+            "Skipping filings for %s (no ticker)",
+            company.name,
+        )
+        return
+
+    ticker = company.ticker.symbol
+    logger.info("Fetching SEC filings for %s (%s)", company.name, ticker)
+
+    filings = await filing_adapter.fetch_filings(ticker)
+    if not filings:
+        logger.info("No filings returned for %s", ticker)
+        return
+
+    for f in filings:
+        object.__setattr__(f, "company_id", company.id)
+
+    await filing_repo.save_many(filings)
+    logger.info(
+        "Saved %d filings for %s",
+        len(filings),
+        company.name,
+    )
+
+
+async def refresh_government_contracts(
+    company: Company,
+    usaspending_adapter: UsaSpendingAdapter,
+    gov_contract_repo: PgGovernmentContractRepository,
+) -> None:
+    """Pull government contracts for a single company."""
+    logger.info(
+        "Fetching government contracts for %s",
+        company.name,
+    )
+
+    contracts = await usaspending_adapter.search_contracts(company.name)
+    if not contracts:
+        logger.info("No government contracts found for %s", company.name)
+        return
+
+    for c in contracts:
+        object.__setattr__(c, "company_id", company.id)
+
+    await gov_contract_repo.save_many(contracts)
+    logger.info(
+        "Saved %d government contracts for %s",
+        len(contracts),
+        company.name,
+    )
+
+
+KNOWN_QUBIT_COUNTS: dict[str, int] = {
+    "ionq": 36,
+    "d-wave-quantum": 5000,
+    "rigetti-computing": 84,
+    "quantum-computing-inc": 0,
+    "arqit-quantum": 0,
+    "zapata-computing": 0,
+    "ibm": 1121,
+    "alphabet-google": 105,
+    "microsoft": 0,
+    "amazon-aws": 0,
+    "intel": 12,
+    "honeywell-quantinuum": 56,
+    "defiance-quantum-etf": 0,
+    "ark-space-exploration-etf": 0,
+}
+
+# Estimated quantum-computing patents filed in the last 12 months, derived from
+# publicly available data (press releases, SEC filings, patent databases).
+# Sources (as of early 2026):
+#   IBM: 191 quantum patents granted in 2024 (GreyB, Benzinga)
+#   Google: 168 quantum patents granted in 2024 (Benzinga)
+#   Microsoft: ~546 total / 178 families; ~94 in last 5 yrs (GreyB)
+#   D-Wave: 313 total patents, 210+ issued US patents (CB Insights, PatentVest)
+#   IonQ: 1,060 total IP assets as of Aug 2025 (IonQ press release)
+#   Rigetti: 252 issued+pending as of Aug 2025 (investor presentation)
+#   Quantinuum: 410 publications / 188 families (PatentVest)
+#   Arqit: ~52 registered patents (IPqwery/GreyB)
+#   QUBT: 100+ patents from LSI acquisition + organic (SEC filings)
+#   Zapata: 60+ patents granted+pending (GlobeNewswire Oct 2025)
+#   Amazon/AWS: undisclosed, estimated from Ocelot + Braket activity
+#   Intel: top-10 holder but second tier ~35/yr (QED-C, MIT QIR)
+KNOWN_PATENT_COUNTS: dict[str, int] = {
+    "ionq": 80,
+    "d-wave-quantum": 40,
+    "rigetti-computing": 45,
+    "quantum-computing-inc": 15,
+    "arqit-quantum": 12,
+    "zapata-computing": 10,
+    "ibm": 190,
+    "alphabet-google": 170,
+    "microsoft": 50,
+    "amazon-aws": 30,
+    "intel": 35,
+    "honeywell-quantinuum": 45,
+    "defiance-quantum-etf": 0,
+    "ark-space-exploration-etf": 0,
+}
+
+KNOWN_FUNDING_USD: dict[str, float] = {
+    "ionq": 634_000_000.0,
+    "d-wave-quantum": 340_000_000.0,
+    "rigetti-computing": 294_000_000.0,
+    "quantum-computing-inc": 70_000_000.0,
+    "arqit-quantum": 100_000_000.0,
+    "zapata-computing": 64_000_000.0,
+    "ibm": 0.0,
+    "alphabet-google": 0.0,
+    "microsoft": 0.0,
+    "amazon-aws": 0.0,
+    "intel": 0.0,
+    "honeywell-quantinuum": 300_000_000.0,
+    "defiance-quantum-etf": 0.0,
+    "ark-space-exploration-etf": 0.0,
+}
+
+
 async def recalculate_scores(
     companies: list[Company],
     stock_repo: PgStockRepository,
@@ -176,6 +328,9 @@ async def recalculate_scores(
     news_repo: PgNewsRepository,
     score_repo: PgScoreRepository,
     stock_adapter: YahooFinanceAdapter,
+    gov_contract_repo: PgGovernmentContractRepository | None = None,
+    xbrl_adapter: SecEdgarXbrlAdapter | None = None,
+    sentiment_analyzer: ClaudeSentimentAnalyzer | None = None,
 ) -> None:
     """Recalculate Quantum Power Scores for all companies."""
     logger.info(
@@ -197,18 +352,79 @@ async def recalculate_scores(
             r60 = await stock_adapter.fetch_performance(ticker, 60)
             r90 = await stock_adapter.fetch_performance(ticker, 90)
 
-        # Patent count (last 12 months)
+        # Patent count (last 12 months) — fall back to known data if API unavailable
         patent_count = await patent_repo.count_by_date_range(
             company_id, twelve_months_ago
         )
+        if patent_count == 0:
+            patent_count = KNOWN_PATENT_COUNTS.get(company.slug, 0)
+            if patent_count > 0:
+                logger.info(
+                    "Using known patent count %d for %s",
+                    patent_count,
+                    company.name,
+                )
+
+        # Qubit count: extract from recent news via Claude, fall back
+        qubit_count = None
+        if sentiment_analyzer and sentiment_analyzer._api_key:
+            recent_articles = await news_repo.get_by_company(
+                company_id, limit=20
+            )
+            titles = [a.title for a in recent_articles if a.title]
+            if titles:
+                qubit_count = await sentiment_analyzer.extract_qubit_count(
+                    company.name, titles
+                )
+                if qubit_count is not None:
+                    logger.info(
+                        "Extracted qubit count %d for %s from news",
+                        qubit_count,
+                        company.name,
+                    )
+        if qubit_count is None:
+            fallback = KNOWN_QUBIT_COUNTS.get(company.slug, 0)
+            if fallback > 0:
+                qubit_count = fallback
+                logger.info(
+                    "Using fallback qubit count %d for %s",
+                    qubit_count,
+                    company.name,
+                )
+
+        # Funding: try SEC EDGAR XBRL, fall back to known estimates
+        total_funding = 0.0
+        if xbrl_adapter and ticker:
+            try:
+                xbrl_funding = await xbrl_adapter.fetch_total_funding(
+                    ticker
+                )
+                if xbrl_funding is not None and xbrl_funding > 0:
+                    total_funding = xbrl_funding
+                    logger.info(
+                        "SEC EDGAR XBRL funding for %s: $%.0f",
+                        company.name,
+                        total_funding,
+                    )
+            except Exception:
+                logger.warning(
+                    "XBRL funding fetch failed for %s, using fallback",
+                    company.name,
+                )
+        if total_funding == 0.0:
+            total_funding = KNOWN_FUNDING_USD.get(company.slug, 0.0)
+        if gov_contract_repo:
+            gov_value = await gov_contract_repo.get_total_value(company_id)
+            total_funding += gov_value
 
         # News sentiment average
         recent_news = await news_repo.get_by_company(company_id, limit=20)
         avg_sentiment = 0.0
-        article_count = len(recent_news)
+        article_count = 0
         if recent_news:
             scored = [a for a in recent_news if a.sentiment_score is not None]
             if scored:
+                article_count = len(scored)
                 sentiment_values = []
                 for a in scored:
                     label = a.sentiment
@@ -228,10 +444,27 @@ async def recalculate_scores(
             stock_return_60d=r60,
             stock_return_90d=r90,
             patents_filed_12m=patent_count,
+            qubit_count=qubit_count,
+            total_funding_usd=total_funding if total_funding > 0 else None,
             avg_sentiment=avg_sentiment,
             article_count=article_count,
         )
         score = calculate_score(score_input)
+        logger.info(
+            "Score for %s: total=%.2f stock=%.2f patent=%.2f "
+            "qubit=%.2f funding=%.2f news=%.2f "
+            "(patents_filed=%s, qubits=%s, funding=$%s)",
+            company.name,
+            score.total_score,
+            score.stock_momentum,
+            score.patent_velocity,
+            score.qubit_progress,
+            score.funding_strength,
+            score.news_sentiment,
+            patent_count,
+            qubit_count,
+            total_funding,
+        )
         scores.append(score)
 
     # Rank and assign ranks
@@ -266,9 +499,14 @@ async def run_refresh(
 
     # Initialize adapters
     stock_adapter = YahooFinanceAdapter()
-    patent_adapter = UsptoPatentAdapter()
+    patent_adapter = UsptoPatentAdapter(api_key=settings.uspto_api_key or None)
     news_adapter = NewsApiAdapter(api_key=settings.news_api_key)
     sentiment_analyzer = ClaudeSentimentAnalyzer(api_key=settings.claude_api_key)
+    filing_adapter = SecEdgarAdapter()
+    usaspending_adapter = UsaSpendingAdapter()
+    xbrl_adapter = SecEdgarXbrlAdapter(
+        user_agent=settings.sec_edgar_user_agent,
+    )
 
     async with session_factory() as session:
         # Initialize repositories
@@ -277,6 +515,8 @@ async def run_refresh(
         patent_repo = PgPatentRepository(session)
         news_repo = PgNewsRepository(session)
         score_repo = PgScoreRepository(session)
+        filing_repo = PgFilingRepository(session)
+        gov_contract_repo = PgGovernmentContractRepository(session)
 
         # Get all companies
         companies = await company_repo.get_all()
@@ -295,6 +535,7 @@ async def run_refresh(
                     "Error refreshing stock data for %s",
                     company.name,
                 )
+                await session.rollback()
 
         # Step 2: Refresh patent data
         for company in companies:
@@ -305,6 +546,7 @@ async def run_refresh(
                     "Error refreshing patent data for %s",
                     company.name,
                 )
+                await session.rollback()
 
         # Step 3: Refresh news + sentiment
         for company in companies:
@@ -320,8 +562,35 @@ async def run_refresh(
                     "Error refreshing news for %s",
                     company.name,
                 )
+                await session.rollback()
 
-        # Step 4: Recalculate scores
+        # Step 4: Refresh SEC filings
+        for company in companies:
+            try:
+                await refresh_filing_data(
+                    company, filing_adapter, filing_repo
+                )
+            except Exception:
+                logger.exception(
+                    "Error refreshing filings for %s",
+                    company.name,
+                )
+                await session.rollback()
+
+        # Step 5: Refresh government contracts
+        for company in companies:
+            try:
+                await refresh_government_contracts(
+                    company, usaspending_adapter, gov_contract_repo
+                )
+            except Exception:
+                logger.exception(
+                    "Error refreshing gov contracts for %s",
+                    company.name,
+                )
+                await session.rollback()
+
+        # Step 6: Recalculate scores
         try:
             await recalculate_scores(
                 companies,
@@ -330,9 +599,13 @@ async def run_refresh(
                 news_repo,
                 score_repo,
                 stock_adapter,
+                gov_contract_repo,
+                xbrl_adapter,
+                sentiment_analyzer,
             )
         except Exception:
             logger.exception("Error recalculating scores")
+            await session.rollback()
 
         await session.commit()
 

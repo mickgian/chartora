@@ -1,5 +1,12 @@
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load .env from backend/ directory (if it exists)
+_backend_dir = Path(__file__).resolve().parent.parent.parent
+load_dotenv(_backend_dir / ".env")
 
 
 def _env(key: str, default: str = "") -> str:
@@ -24,6 +31,12 @@ class Settings:
     # External APIs
     news_api_key: str = field(default_factory=lambda: _env("CHARTORA_NEWS_API_KEY"))
     claude_api_key: str = field(default_factory=lambda: _env("CHARTORA_CLAUDE_API_KEY"))
+    uspto_api_key: str = field(default_factory=lambda: _env("CHARTORA_USPTO_API_KEY"))
+    sec_edgar_user_agent: str = field(
+        default_factory=lambda: _env(
+            "SEC_EDGAR_USER_AGENT", "Chartora contact@chartora.io"
+        )
+    )
 
     # Stripe
     stripe_secret_key: str = field(default_factory=lambda: _env("STRIPE_SECRET_KEY"))
@@ -48,6 +61,13 @@ class Settings:
     # Email (Resend.com)
     resend_api_key: str = field(default_factory=lambda: _env("RESEND_API_KEY"))
     email_from: str = "noreply@chartora.com"
+
+    # Data refresh
+    force_refresh: bool = field(
+        default_factory=lambda: (
+            _env("CHARTORA_FORCE_REFRESH", "false").lower() in ("true", "1", "yes")
+        )
+    )
 
     # Cache
     cache_ttl_seconds: int = 300

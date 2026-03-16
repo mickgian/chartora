@@ -2,8 +2,13 @@
 
 import os
 import sys
+from pathlib import Path
 
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
+
+# Load .env from backend/ directory
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 COMPANIES = [
     # Pure-play public quantum
@@ -133,6 +138,8 @@ def seed(database_url: str | None = None) -> None:
         "CHARTORA_DATABASE_URL",
         "postgresql://chartora:chartora@localhost:5432/chartora",
     )
+    # Strip async driver — this script uses synchronous SQLAlchemy
+    url = url.replace("postgresql+asyncpg://", "postgresql://")
     engine = create_engine(url)
 
     with engine.begin() as conn:

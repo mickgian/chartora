@@ -50,6 +50,7 @@ class LeaderboardResponse(BaseModel):
     entries: list[LeaderboardEntry]
     count: int
     updated_at: datetime | None
+    hardcoded_metrics: list[str] = []
 
 
 class StockPriceResponse(BaseModel):
@@ -136,6 +137,33 @@ class RankingResponse(BaseModel):
     metric: str
     entries: list[RankingEntry]
     count: int
+
+
+class GovernmentContractResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    award_id: str
+    title: str
+    amount: float
+    awarding_agency: str
+    start_date: date
+    end_date: date | None
+    description: str | None
+
+
+class GovernmentContractListResponse(BaseModel):
+    company_slug: str
+    contracts: list[GovernmentContractResponse]
+    total_value: float
+    count: int
+
+
+class RdSpendingResponse(BaseModel):
+    company_slug: str
+    company_name: str
+    rd_expense: float | None
+    total_revenue: float | None
+    rd_ratio: float | None
 
 
 class CheckoutRequest(BaseModel):
