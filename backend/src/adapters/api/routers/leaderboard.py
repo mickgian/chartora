@@ -126,9 +126,17 @@ async def get_leaderboard(
         sort_by,
     )
 
+    # Metrics that currently use hardcoded/estimated data rather than live APIs
+    hardcoded_metrics = [
+        "qubit_progress",   # KNOWN_QUBIT_COUNTS dictionary
+        "funding_strength", # KNOWN_FUNDING_USD dictionary
+        "patent_velocity",  # Falls back to KNOWN_PATENT_COUNTS when API returns 0
+    ]
+
     return LeaderboardResponse(
         metric=sort_by,
         entries=entries,
         count=len(entries),
         updated_at=updated_at,
+        hardcoded_metrics=hardcoded_metrics,
     )

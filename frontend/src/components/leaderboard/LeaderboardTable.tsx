@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
-import type { LeaderboardResponse, SortableMetric } from "@/types/api";
+import type { LeaderboardEntry, LeaderboardResponse, SortableMetric } from "@/types/api";
 import { apiClient } from "@/lib/api-client";
 import { useApi } from "@/hooks/use-api";
 import { TableSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -28,6 +28,14 @@ const SORTABLE_METRICS: SortableMetric[] = [
   "news_sentiment",
 ];
 
+const METRIC_SCORE_KEYS: Record<Exclude<SortableMetric, "total_score">, keyof LeaderboardEntry["score"]> = {
+  stock_momentum: "stock_momentum",
+  patent_velocity: "patent_velocity",
+  qubit_progress: "qubit_progress",
+  funding_strength: "funding_strength",
+  news_sentiment: "news_sentiment",
+};
+
 export function LeaderboardTable() {
   const [sortBy, setSortBy] = useState<SortableMetric>("total_score");
 
@@ -39,6 +47,7 @@ export function LeaderboardTable() {
   if (!data) return null;
 
   const isEmpty = data.entries.length === 0;
+  const hardcodedSet = new Set(data.hardcoded_metrics ?? []);
 
   return (
     <div>
@@ -109,21 +118,24 @@ export function LeaderboardTable() {
                 <td className="px-4 py-3">
                   <ScoreBadge score={entry.score.total_score} />
                 </td>
-                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-slate-200">
-                  {entry.score.stock_momentum.toFixed(1)}
-                </td>
-                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-slate-200">
-                  {entry.score.patent_velocity.toFixed(1)}
-                </td>
-                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-slate-200">
-                  {entry.score.qubit_progress.toFixed(1)}
-                </td>
-                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-slate-200">
-                  {entry.score.funding_strength.toFixed(1)}
-                </td>
-                <td className="px-4 py-3 tabular-nums text-gray-700 dark:text-slate-200">
-                  {entry.score.news_sentiment.toFixed(1)}
-                </td>
+                {(Object.keys(METRIC_SCORE_KEYS) as Array<keyof typeof METRIC_SCORE_KEYS>).map((metric) => {
+                  const key = METRIC_SCORE_KEYS[metric];
+                  const value = entry.score[key];
+                  const isHardcoded = hardcodedSet.has(metric);
+                  return (
+                    <td
+                      key={metric}
+                      className={`px-4 py-3 tabular-nums ${
+                        isHardcoded
+                          ? "text-red-500 dark:text-red-400"
+                          : "text-gray-700 dark:text-slate-200"
+                      }`}
+                      title={isHardcoded ? "Hardcoded / estimated data" : undefined}
+                    >
+                      {(value as number).toFixed(1)}
+                    </td>
+                  );
+                })}
                 <td className="px-4 py-3">
                   <TrendArrow trend={entry.trend} rankChange={entry.score.rank_change} />
                 </td>

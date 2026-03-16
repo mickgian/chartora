@@ -173,7 +173,7 @@ export const mockApi = {
     const sortBy = params?.sort_by ?? "total_score";
     let entries = buildLeaderboardEntries(sortBy);
     if (params?.limit) entries = entries.slice(0, params.limit);
-    return { metric: sortBy, entries, count: entries.length, updated_at: `${MOCK_DATE}T08:00:00Z` };
+    return { metric: sortBy, entries, count: entries.length, updated_at: `${MOCK_DATE}T08:00:00Z`, hardcoded_metrics: ["qubit_progress", "funding_strength", "patent_velocity"] };
   },
 
   getCompany(slug: string): CompanyDetailResponse {

@@ -37,6 +37,7 @@ export interface LeaderboardResponse {
   entries: LeaderboardEntry[];
   count: number;
   updated_at: string | null;
+  hardcoded_metrics: string[];
 }
 
 export interface StockPriceResponse {

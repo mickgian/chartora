@@ -133,7 +133,8 @@ class ClaudeSentimentAnalyzer(SentimentAnalyzer):
 
             return (sentiment, confidence)
         except (json.JSONDecodeError, KeyError, IndexError, TypeError):
-            raw = data.get("content", [{}])[0].get("text", "") if data.get("content") else ""
+            content = data.get("content")
+            raw = content[0].get("text", "") if content else ""
             logger.warning(
                 "Could not parse sentiment response: %s", raw[:200]
             )

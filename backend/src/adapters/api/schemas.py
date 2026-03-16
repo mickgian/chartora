@@ -50,6 +50,7 @@ class LeaderboardResponse(BaseModel):
     entries: list[LeaderboardEntry]
     count: int
     updated_at: datetime | None
+    hardcoded_metrics: list[str] = []
 
 
 class StockPriceResponse(BaseModel):
