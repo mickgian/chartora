@@ -33,6 +33,7 @@ from src.config.settings import Settings
 from src.domain.models.value_objects import DateRange, SentimentLabel
 from src.infrastructure.news_client import NewsApiAdapter
 from src.infrastructure.sec_edgar import SecEdgarAdapter
+from src.infrastructure.sec_edgar_xbrl import SecEdgarXbrlAdapter
 from src.infrastructure.sentiment import ClaudeSentimentAnalyzer
 from src.infrastructure.usaspending_client import UsaSpendingAdapter
 from src.infrastructure.uspto_client import UsptoPatentAdapter
@@ -328,6 +329,8 @@ async def recalculate_scores(
     score_repo: PgScoreRepository,
     stock_adapter: YahooFinanceAdapter,
     gov_contract_repo: PgGovernmentContractRepository | None = None,
+    xbrl_adapter: SecEdgarXbrlAdapter | None = None,
+    sentiment_analyzer: ClaudeSentimentAnalyzer | None = None,
 ) -> None:
     """Recalculate Quantum Power Scores for all companies."""
     logger.info(
@@ -362,11 +365,54 @@ async def recalculate_scores(
                     company.name,
                 )
 
-        # Qubit count from known data
-        qubit_count = KNOWN_QUBIT_COUNTS.get(company.slug, 0) or None
+        # Qubit count: extract from recent news via Claude, fall back
+        qubit_count = None
+        if sentiment_analyzer and sentiment_analyzer._api_key:
+            recent_articles = await news_repo.get_by_company(
+                company_id, limit=20
+            )
+            titles = [a.title for a in recent_articles if a.title]
+            if titles:
+                qubit_count = await sentiment_analyzer.extract_qubit_count(
+                    company.name, titles
+                )
+                if qubit_count is not None:
+                    logger.info(
+                        "Extracted qubit count %d for %s from news",
+                        qubit_count,
+                        company.name,
+                    )
+        if qubit_count is None:
+            fallback = KNOWN_QUBIT_COUNTS.get(company.slug, 0)
+            if fallback > 0:
+                qubit_count = fallback
+                logger.info(
+                    "Using fallback qubit count %d for %s",
+                    qubit_count,
+                    company.name,
+                )
 
-        # Funding: use known seed funding + government contract values
-        total_funding = KNOWN_FUNDING_USD.get(company.slug, 0.0)
+        # Funding: try SEC EDGAR XBRL, fall back to known estimates
+        total_funding = 0.0
+        if xbrl_adapter and ticker:
+            try:
+                xbrl_funding = await xbrl_adapter.fetch_total_funding(
+                    ticker
+                )
+                if xbrl_funding is not None and xbrl_funding > 0:
+                    total_funding = xbrl_funding
+                    logger.info(
+                        "SEC EDGAR XBRL funding for %s: $%.0f",
+                        company.name,
+                        total_funding,
+                    )
+            except Exception:
+                logger.warning(
+                    "XBRL funding fetch failed for %s, using fallback",
+                    company.name,
+                )
+        if total_funding == 0.0:
+            total_funding = KNOWN_FUNDING_USD.get(company.slug, 0.0)
         if gov_contract_repo:
             gov_value = await gov_contract_repo.get_total_value(company_id)
             total_funding += gov_value
@@ -458,6 +504,9 @@ async def run_refresh(
     sentiment_analyzer = ClaudeSentimentAnalyzer(api_key=settings.claude_api_key)
     filing_adapter = SecEdgarAdapter()
     usaspending_adapter = UsaSpendingAdapter()
+    xbrl_adapter = SecEdgarXbrlAdapter(
+        user_agent=settings.sec_edgar_user_agent,
+    )
 
     async with session_factory() as session:
         # Initialize repositories
@@ -551,6 +600,8 @@ async def run_refresh(
                 score_repo,
                 stock_adapter,
                 gov_contract_repo,
+                xbrl_adapter,
+                sentiment_analyzer,
             )
         except Exception:
             logger.exception("Error recalculating scores")

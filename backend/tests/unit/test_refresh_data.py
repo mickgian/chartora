@@ -213,6 +213,107 @@ async def test_recalculate_scores() -> None:
 
 
 @pytest.mark.asyncio
+async def test_recalculate_scores_with_xbrl_funding() -> None:
+    """SEC EDGAR XBRL funding replaces hardcoded values."""
+    companies = [_make_company(id=1)]
+    stock_repo = AsyncMock()
+    patent_repo = AsyncMock()
+    patent_repo.count_by_date_range = AsyncMock(return_value=5)
+    news_repo = AsyncMock()
+    news_repo.get_by_company = AsyncMock(return_value=[])
+    score_repo = AsyncMock()
+    score_repo.save_many = AsyncMock(return_value=[])
+    stock_adapter = AsyncMock()
+    stock_adapter.fetch_performance = AsyncMock(return_value=10.0)
+    xbrl_adapter = AsyncMock()
+    xbrl_adapter.fetch_total_funding = AsyncMock(return_value=900_000_000.0)
+
+    await recalculate_scores(
+        companies,
+        stock_repo,
+        patent_repo,
+        news_repo,
+        score_repo,
+        stock_adapter,
+        xbrl_adapter=xbrl_adapter,
+    )
+
+    xbrl_adapter.fetch_total_funding.assert_called_once_with("IONQ")
+    score_repo.save_many.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_recalculate_scores_xbrl_fallback() -> None:
+    """Falls back to KNOWN_FUNDING_USD when XBRL returns None."""
+    companies = [_make_company(id=1)]
+    stock_repo = AsyncMock()
+    patent_repo = AsyncMock()
+    patent_repo.count_by_date_range = AsyncMock(return_value=5)
+    news_repo = AsyncMock()
+    news_repo.get_by_company = AsyncMock(return_value=[])
+    score_repo = AsyncMock()
+    score_repo.save_many = AsyncMock(return_value=[])
+    stock_adapter = AsyncMock()
+    stock_adapter.fetch_performance = AsyncMock(return_value=10.0)
+    xbrl_adapter = AsyncMock()
+    xbrl_adapter.fetch_total_funding = AsyncMock(return_value=None)
+
+    await recalculate_scores(
+        companies,
+        stock_repo,
+        patent_repo,
+        news_repo,
+        score_repo,
+        stock_adapter,
+        xbrl_adapter=xbrl_adapter,
+    )
+
+    # Should still produce scores (using fallback funding)
+    score_repo.save_many.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_recalculate_scores_qubit_from_news() -> None:
+    """Qubit count extracted from news via Claude API."""
+    companies = [_make_company(id=1, name="IBM", slug="ibm", ticker="IBM")]
+    stock_repo = AsyncMock()
+    patent_repo = AsyncMock()
+    patent_repo.count_by_date_range = AsyncMock(return_value=5)
+    news_repo = AsyncMock()
+    news_repo.get_by_company = AsyncMock(
+        return_value=[
+            NewsArticle(
+                id=1,
+                company_id=1,
+                title="IBM unveils 1121-qubit Condor processor",
+                url="https://example.com",
+                published_at=datetime(2026, 3, 14, tzinfo=UTC),
+            ),
+        ]
+    )
+    score_repo = AsyncMock()
+    score_repo.save_many = AsyncMock(return_value=[])
+    stock_adapter = AsyncMock()
+    stock_adapter.fetch_performance = AsyncMock(return_value=10.0)
+    sentiment_analyzer = AsyncMock()
+    sentiment_analyzer._api_key = "test-key"
+    sentiment_analyzer.extract_qubit_count = AsyncMock(return_value=1121)
+
+    await recalculate_scores(
+        companies,
+        stock_repo,
+        patent_repo,
+        news_repo,
+        score_repo,
+        stock_adapter,
+        sentiment_analyzer=sentiment_analyzer,
+    )
+
+    sentiment_analyzer.extract_qubit_count.assert_called_once()
+    score_repo.save_many.assert_called_once()
+
+
+@pytest.mark.asyncio
 async def test_refresh_news_data_with_sentiment() -> None:
     """Articles get sentiment scores when Claude API key is set."""
     company = _make_company()

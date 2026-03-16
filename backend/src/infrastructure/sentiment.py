@@ -33,6 +33,25 @@ SENTIMENT_PROMPT = (
     "\n\nText to analyze:\n{text}"
 )
 
+QUBIT_EXTRACTION_PROMPT = (
+    "You are an expert on quantum computing hardware.\n\n"
+    "Given the company name and recent news headlines below,"
+    " determine the latest known qubit count for this"
+    " company's most advanced quantum processor.\n\n"
+    "Rules:\n"
+    "- Only report qubits if a headline explicitly mentions"
+    " a qubit count or processor milestone.\n"
+    "- If no headline mentions qubits, return null.\n"
+    "- For D-Wave, report the number of qubits in their"
+    " latest quantum annealer.\n"
+    "- For gate-based systems, report logical or physical"
+    " qubits as stated.\n\n"
+    "Respond with ONLY a JSON object:\n"
+    '{{"qubit_count": <integer or null>,'
+    ' "source_headline": "<headline or null>"}}'
+    "\n\nCompany: {company}\n\nHeadlines:\n{headlines}"
+)
+
 
 class ClaudeSentimentAnalyzer(SentimentAnalyzer):
     """Analyzes news sentiment using the Claude API."""
@@ -55,12 +74,10 @@ class ClaudeSentimentAnalyzer(SentimentAnalyzer):
             self._client = httpx.AsyncClient(timeout=self._timeout)
         return self._client
 
-    async def analyze(self, text: str) -> tuple[str, float] | None:
-        """Analyze sentiment of a single text.
-
-        Returns:
-            A tuple of (sentiment_label, confidence_score), or None on error.
-        """
+    async def _call_claude(
+        self, prompt: str, max_tokens: int = 150
+    ) -> dict[str, Any] | None:
+        """Send a prompt to the Claude API and return raw response."""
         try:
             client = await self._get_client()
             response = await client.post(
@@ -72,21 +89,33 @@ class ClaudeSentimentAnalyzer(SentimentAnalyzer):
                 },
                 json={
                     "model": self._model,
-                    "max_tokens": 100,
+                    "max_tokens": max_tokens,
                     "messages": [
-                        {
-                            "role": "user",
-                            "content": SENTIMENT_PROMPT.format(text=text),
-                        }
+                        {"role": "user", "content": prompt}
                     ],
                 },
             )
             response.raise_for_status()
-            data = response.json()
-            return self._parse_response(data)
+            result: dict[str, Any] = response.json()
+            return result
         except Exception:
-            logger.exception("Error analyzing sentiment for: %s", text[:80])
+            logger.exception(
+                "Claude API call failed: %s", prompt[:80]
+            )
             return None
+
+    async def analyze(self, text: str) -> tuple[str, float] | None:
+        """Analyze sentiment of a single text.
+
+        Returns:
+            A tuple of (sentiment_label, confidence_score), or None on error.
+        """
+        data = await self._call_claude(
+            SENTIMENT_PROMPT.format(text=text), max_tokens=100
+        )
+        if data is None:
+            return None
+        return self._parse_response(data)
 
     async def analyze_batch(
         self, texts: list[str]
@@ -97,6 +126,60 @@ class ClaudeSentimentAnalyzer(SentimentAnalyzer):
             result = await self.analyze(text)
             results.append(result)
         return results
+
+    async def extract_qubit_count(
+        self,
+        company_name: str,
+        headlines: list[str],
+    ) -> int | None:
+        """Extract qubit count from news headlines via Claude.
+
+        Returns:
+            The qubit count as an integer, or None if not found.
+        """
+        headline_text = "\n".join(
+            f"- {h}" for h in headlines[:20]
+        )
+        prompt = QUBIT_EXTRACTION_PROMPT.format(
+            company=company_name, headlines=headline_text
+        )
+        data = await self._call_claude(prompt, max_tokens=150)
+        if data is None:
+            return None
+        return self._parse_qubit_response(data)
+
+    @staticmethod
+    def _parse_qubit_response(
+        data: dict[str, Any],
+    ) -> int | None:
+        """Parse Claude response for qubit count extraction."""
+        try:
+            content = data.get("content", [])
+            if not content:
+                return None
+            text = content[0].get("text", "").strip()
+            if text.startswith("```"):
+                lines = text.split("\n")
+                text = "\n".join(lines[1:-1])
+            start = text.find("{")
+            end = text.rfind("}")
+            if start != -1 and end != -1:
+                text = text[start : end + 1]
+            parsed = json.loads(text)
+            count = parsed.get("qubit_count")
+            if count is None:
+                return None
+            count = int(count)
+            return count if count > 0 else None
+        except (
+            json.JSONDecodeError,
+            KeyError,
+            IndexError,
+            TypeError,
+            ValueError,
+        ):
+            logger.warning("Could not parse qubit extraction response")
+            return None
 
     @staticmethod
     def _parse_response(data: dict[str, Any]) -> tuple[str, float] | None:
