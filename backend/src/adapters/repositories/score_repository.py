@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from src.domain.interfaces.repositories import ScoreRepository
 from src.domain.models.entities import QuantumPowerScore
@@ -97,24 +98,42 @@ class PgScoreRepository(ScoreRepository):
     async def save_many(
         self, scores: list[QuantumPowerScore]
     ) -> list[QuantumPowerScore]:
-        rows = []
-        for s in scores:
-            row = ScoreTable(
-                company_id=s.company_id,
-                score_date=s.score_date,
-                total_score=s.total_score,
-                stock_momentum=s.stock_momentum,
-                patent_velocity=s.patent_velocity,
-                qubit_progress=s.qubit_progress,
-                funding_strength=s.funding_strength,
-                news_sentiment=s.news_sentiment,
-                rank=s.rank,
-                rank_change=s.rank_change,
-            )
-            self._session.add(row)
-            rows.append(row)
+        if not scores:
+            return []
+
+        values = [
+            {
+                "company_id": s.company_id,
+                "score_date": s.score_date,
+                "total_score": s.total_score,
+                "stock_momentum": s.stock_momentum,
+                "patent_velocity": s.patent_velocity,
+                "qubit_progress": s.qubit_progress,
+                "funding_strength": s.funding_strength,
+                "news_sentiment": s.news_sentiment,
+                "rank": s.rank,
+                "rank_change": s.rank_change,
+            }
+            for s in scores
+        ]
+
+        stmt = pg_insert(ScoreTable).values(values)
+        stmt = stmt.on_conflict_do_update(
+            constraint="uq_score_company_date",
+            set_={
+                "total_score": stmt.excluded.total_score,
+                "stock_momentum": stmt.excluded.stock_momentum,
+                "patent_velocity": stmt.excluded.patent_velocity,
+                "qubit_progress": stmt.excluded.qubit_progress,
+                "funding_strength": stmt.excluded.funding_strength,
+                "news_sentiment": stmt.excluded.news_sentiment,
+                "rank": stmt.excluded.rank,
+                "rank_change": stmt.excluded.rank_change,
+            },
+        )
+        await self._session.execute(stmt)
         await self._session.flush()
-        return [self._to_entity(r) for r in rows]
+        return scores
 
     @staticmethod
     def _to_entity(row: ScoreTable) -> QuantumPowerScore:
