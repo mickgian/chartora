@@ -319,6 +319,12 @@ async def recalculate_scores(
         )
         if patent_count == 0:
             patent_count = KNOWN_PATENT_COUNTS.get(company.slug, 0)
+            if patent_count > 0:
+                logger.info(
+                    "Using known patent count %d for %s",
+                    patent_count,
+                    company.name,
+                )
 
         # Qubit count from known data
         qubit_count = KNOWN_QUBIT_COUNTS.get(company.slug, 0) or None
@@ -361,6 +367,21 @@ async def recalculate_scores(
             article_count=article_count,
         )
         score = calculate_score(score_input)
+        logger.info(
+            "Score for %s: total=%.2f stock=%.2f patent=%.2f "
+            "qubit=%.2f funding=%.2f news=%.2f "
+            "(patents_filed=%s, qubits=%s, funding=$%s)",
+            company.name,
+            score.total_score,
+            score.stock_momentum,
+            score.patent_velocity,
+            score.qubit_progress,
+            score.funding_strength,
+            score.news_sentiment,
+            patent_count,
+            qubit_count,
+            total_funding,
+        )
         scores.append(score)
 
     # Rank and assign ranks
