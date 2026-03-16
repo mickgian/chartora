@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import sys
 import time
@@ -155,6 +156,53 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "[STARTUP] Claude API key configured: %s",
             bool(settings.claude_api_key),
         )
+
+        # Auto-refresh data in background if no scores exist yet
+        app.state.refresh_task = asyncio.create_task(
+            _initial_data_refresh(settings)
+        )
+
+    async def _initial_data_refresh(settings: Settings) -> None:
+        """Run data refresh if the scores table is empty (first deploy)."""
+        try:
+            from sqlalchemy import text as sa_text
+            from sqlalchemy.ext.asyncio import (
+                async_sessionmaker,
+                create_async_engine,
+            )
+
+            engine = create_async_engine(settings.database_url)
+            factory = async_sessionmaker(engine, expire_on_commit=False)
+
+            async with factory() as session:
+                result = await session.execute(
+                    sa_text("SELECT COUNT(*) FROM scores")
+                )
+                count = result.scalar() or 0
+
+            await engine.dispose()
+
+            if count > 0:
+                logger.info(
+                    "[STARTUP] Scores table has %d rows — "
+                    "skipping initial refresh",
+                    count,
+                )
+                return
+
+            logger.info(
+                "[STARTUP] No scores found — running initial data refresh "
+                "in background..."
+            )
+            from scripts.refresh_data import run_refresh
+
+            await run_refresh(settings)
+            logger.info("[STARTUP] Initial data refresh complete")
+        except Exception:
+            logger.exception(
+                "[STARTUP] Initial data refresh failed — "
+                "will retry on next cron run"
+            )
 
     @app.get("/api/v1/cache/stats")
     async def cache_stats() -> dict[str, Any]:
