@@ -133,6 +133,8 @@ def seed(database_url: str | None = None) -> None:
         "CHARTORA_DATABASE_URL",
         "postgresql://chartora:chartora@localhost:5432/chartora",
     )
+    # Strip async driver — this script uses synchronous SQLAlchemy
+    url = url.replace("postgresql+asyncpg://", "postgresql://")
     engine = create_engine(url)
 
     with engine.begin() as conn:
