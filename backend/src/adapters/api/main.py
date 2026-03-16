@@ -137,8 +137,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.on_event("startup")
     async def _startup_cache() -> None:
         logger.info(
-            "[STARTUP] Chartora API starting — "
-            "cache_ttl=%ds, debug=%s",
+            "[STARTUP] Chartora API starting — cache_ttl=%ds, debug=%s",
             settings.cache_ttl_seconds,
             settings.debug,
         )
@@ -158,9 +157,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
 
         # Auto-refresh data in background if no scores exist yet
-        app.state.refresh_task = asyncio.create_task(
-            _initial_data_refresh(settings)
-        )
+        app.state.refresh_task = asyncio.create_task(_initial_data_refresh(settings))
 
     async def _initial_data_refresh(settings: Settings) -> None:
         """Run data refresh if the scores table is empty (first deploy)."""
@@ -175,9 +172,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             factory = async_sessionmaker(engine, expire_on_commit=False)
 
             async with factory() as session:
-                result = await session.execute(
-                    sa_text("SELECT COUNT(*) FROM scores")
-                )
+                result = await session.execute(sa_text("SELECT COUNT(*) FROM scores"))
                 count = result.scalar() or 0
 
             await engine.dispose()
@@ -201,8 +196,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             logger.info("[STARTUP] Initial data refresh complete")
         except Exception:
             logger.exception(
-                "[STARTUP] Initial data refresh failed — "
-                "will retry on next cron run"
+                "[STARTUP] Initial data refresh failed — will retry on next cron run"
             )
 
     @app.get("/api/v1/cache/stats")

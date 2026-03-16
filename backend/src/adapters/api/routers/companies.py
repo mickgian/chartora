@@ -109,9 +109,7 @@ async def get_company_stock(
     ),
 ) -> StockHistoryResponse:
     """Get stock price history for a company."""
-    logger.info(
-        "[STOCK] Fetching stock history slug=%s days=%d", slug, days
-    )
+    logger.info("[STOCK] Fetching stock history slug=%s days=%d", slug, days)
     company = await company_repo.get_by_slug(slug)
     if company is None:
         logger.warning("[STOCK] Company not found slug=%s", slug)
@@ -168,9 +166,7 @@ async def get_company_patents(
         )
 
     patents = await patent_repo.get_by_company(company.id or 0)
-    logger.info(
-        "[PATENTS] slug=%s returned %d patents", slug, len(patents)
-    )
+    logger.info("[PATENTS] slug=%s returned %d patents", slug, len(patents))
 
     return PatentListResponse(
         company_slug=slug,
@@ -203,9 +199,7 @@ async def get_company_news(
     ),
 ) -> NewsListResponse:
     """Get recent news with sentiment for a company."""
-    logger.info(
-        "[NEWS] Fetching news for slug=%s limit=%d", slug, limit
-    )
+    logger.info("[NEWS] Fetching news for slug=%s limit=%d", slug, limit)
     company = await company_repo.get_by_slug(slug)
     if company is None:
         logger.warning("[NEWS] Company not found slug=%s", slug)
@@ -215,9 +209,7 @@ async def get_company_news(
         )
 
     articles = await news_repo.get_by_company(company.id or 0, limit=limit)
-    logger.info(
-        "[NEWS] slug=%s returned %d articles", slug, len(articles)
-    )
+    logger.info("[NEWS] slug=%s returned %d articles", slug, len(articles))
 
     return NewsListResponse(
         company_slug=slug,
@@ -255,9 +247,7 @@ async def get_company_filings(
         )
 
     filings = await filing_repo.get_by_company(company.id or 0)
-    logger.info(
-        "[FILINGS] slug=%s returned %d filings", slug, len(filings)
-    )
+    logger.info("[FILINGS] slug=%s returned %d filings", slug, len(filings))
 
     return FilingListResponse(
         company_slug=slug,

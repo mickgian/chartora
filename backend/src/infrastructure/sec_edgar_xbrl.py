@@ -57,23 +57,17 @@ class SecEdgarXbrlAdapter(FundingDataSource):
             us_gaap = facts.get("facts", {}).get("us-gaap", {})
 
             # Try stockholders' equity first
-            equity = self._get_latest_value(
-                us_gaap, "StockholdersEquity"
-            )
+            equity = self._get_latest_value(us_gaap, "StockholdersEquity")
             if equity is not None:
                 return equity
 
             # Fallback to total assets
             return self._get_latest_value(us_gaap, "Assets")
         except Exception:
-            logger.exception(
-                "Error fetching total funding for %s", ticker
-            )
+            logger.exception("Error fetching total funding for %s", ticker)
             return None
 
-    async def fetch_rd_spending(
-        self, ticker: str
-    ) -> dict[str, float | None]:
+    async def fetch_rd_spending(self, ticker: str) -> dict[str, float | None]:
         """Fetch R&D spending data from XBRL filings.
 
         Returns:
@@ -109,20 +103,14 @@ class SecEdgarXbrlAdapter(FundingDataSource):
 
             return result
         except Exception:
-            logger.exception(
-                "Error fetching R&D spending for %s", ticker
-            )
+            logger.exception("Error fetching R&D spending for %s", ticker)
             return result
 
-    async def _fetch_company_facts(
-        self, ticker: str
-    ) -> dict[str, Any] | None:
+    async def _fetch_company_facts(self, ticker: str) -> dict[str, Any] | None:
         """Fetch XBRL company facts for a ticker."""
         cik = await self._resolve_cik(ticker)
         if not cik:
-            logger.warning(
-                "Could not resolve CIK for ticker %s", ticker
-            )
+            logger.warning("Could not resolve CIK for ticker %s", ticker)
             return None
 
         client = await self._get_client()
@@ -154,9 +142,7 @@ class SecEdgarXbrlAdapter(FundingDataSource):
         return None
 
     @staticmethod
-    def _get_latest_value(
-        us_gaap: dict[str, Any], concept: str
-    ) -> float | None:
+    def _get_latest_value(us_gaap: dict[str, Any], concept: str) -> float | None:
         """Extract the most recent value for an XBRL concept.
 
         Prefers 10-K (annual) filings, falls back to 10-Q.
@@ -171,8 +157,7 @@ class SecEdgarXbrlAdapter(FundingDataSource):
 
         # Filter for 10-K filings (annual), prefer most recent
         annual = [
-            v for v in values
-            if v.get("form") == "10-K" and v.get("val") is not None
+            v for v in values if v.get("form") == "10-K" and v.get("val") is not None
         ]
         if annual:
             latest = max(annual, key=lambda v: v.get("end", ""))
@@ -180,8 +165,7 @@ class SecEdgarXbrlAdapter(FundingDataSource):
 
         # Fallback to 10-Q
         quarterly = [
-            v for v in values
-            if v.get("form") == "10-Q" and v.get("val") is not None
+            v for v in values if v.get("form") == "10-Q" and v.get("val") is not None
         ]
         if quarterly:
             latest = max(quarterly, key=lambda v: v.get("end", ""))

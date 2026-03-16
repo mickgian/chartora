@@ -100,9 +100,7 @@ class NewsApiAdapter(NewsDataSource):
 
             published_str = item.get("publishedAt", "")
             try:
-                dt = datetime.fromisoformat(
-                    published_str.replace("Z", "+00:00")
-                )
+                dt = datetime.fromisoformat(published_str.replace("Z", "+00:00"))
                 # Convert to UTC then strip tzinfo for naive-timestamp DB column
                 published_at = dt.astimezone(UTC).replace(tzinfo=None)
             except (ValueError, TypeError):

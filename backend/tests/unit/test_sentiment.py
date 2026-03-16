@@ -182,23 +182,12 @@ class TestParseQubitResponse:
         assert result == 1121
 
     def test_returns_none_when_null(self):
-        data = {
-            "content": [
-                {
-                    "text": '{"qubit_count": null, '
-                    '"source_headline": null}'
-                }
-            ]
-        }
+        data = {"content": [{"text": '{"qubit_count": null, "source_headline": null}'}]}
         result = ClaudeSentimentAnalyzer._parse_qubit_response(data)
         assert result is None
 
     def test_returns_none_for_zero(self):
-        data = {
-            "content": [
-                {"text": '{"qubit_count": 0, "source_headline": null}'}
-            ]
-        }
+        data = {"content": [{"text": '{"qubit_count": 0, "source_headline": null}'}]}
         result = ClaudeSentimentAnalyzer._parse_qubit_response(data)
         assert result is None
 
@@ -206,7 +195,7 @@ class TestParseQubitResponse:
         data = {
             "content": [
                 {
-                    "text": 'Here is the result: '
+                    "text": "Here is the result: "
                     '{"qubit_count": 84, "source_headline": "Rigetti 84-qubit"}'
                     " based on the headlines."
                 }
@@ -246,22 +235,15 @@ class TestExtractQubitCount:
             200,
             json={
                 "content": [
-                    {
-                        "text": '{"qubit_count": 1121, '
-                        '"source_headline": "IBM Condor"}'
-                    }
+                    {"text": '{"qubit_count": 1121, "source_headline": "IBM Condor"}'}
                 ]
             },
-            request=httpx.Request(
-                "POST", "https://api.anthropic.com/v1/messages"
-            ),
+            request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"),
         )
         mock_client = httpx.AsyncClient(
             transport=httpx.MockTransport(lambda req: mock_response)
         )
-        analyzer = ClaudeSentimentAnalyzer(
-            api_key="test-key", http_client=mock_client
-        )
+        analyzer = ClaudeSentimentAnalyzer(api_key="test-key", http_client=mock_client)
 
         result = await analyzer.extract_qubit_count(
             "IBM", ["IBM unveils 1121-qubit Condor processor"]
@@ -273,23 +255,14 @@ class TestExtractQubitCount:
         mock_response = httpx.Response(
             200,
             json={
-                "content": [
-                    {
-                        "text": '{"qubit_count": null, '
-                        '"source_headline": null}'
-                    }
-                ]
+                "content": [{"text": '{"qubit_count": null, "source_headline": null}'}]
             },
-            request=httpx.Request(
-                "POST", "https://api.anthropic.com/v1/messages"
-            ),
+            request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"),
         )
         mock_client = httpx.AsyncClient(
             transport=httpx.MockTransport(lambda req: mock_response)
         )
-        analyzer = ClaudeSentimentAnalyzer(
-            api_key="test-key", http_client=mock_client
-        )
+        analyzer = ClaudeSentimentAnalyzer(api_key="test-key", http_client=mock_client)
 
         result = await analyzer.extract_qubit_count(
             "IBM", ["IBM reports quarterly earnings"]
@@ -301,18 +274,12 @@ class TestExtractQubitCount:
         mock_response = httpx.Response(
             500,
             json={"error": "Server error"},
-            request=httpx.Request(
-                "POST", "https://api.anthropic.com/v1/messages"
-            ),
+            request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"),
         )
         mock_client = httpx.AsyncClient(
             transport=httpx.MockTransport(lambda req: mock_response)
         )
-        analyzer = ClaudeSentimentAnalyzer(
-            api_key="test-key", http_client=mock_client
-        )
+        analyzer = ClaudeSentimentAnalyzer(api_key="test-key", http_client=mock_client)
 
-        result = await analyzer.extract_qubit_count(
-            "IBM", ["Some headline"]
-        )
+        result = await analyzer.extract_qubit_count("IBM", ["Some headline"])
         assert result is None

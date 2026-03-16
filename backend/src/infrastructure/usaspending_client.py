@@ -19,9 +19,7 @@ from src.domain.models.entities import GovernmentContract
 
 logger = logging.getLogger(__name__)
 
-USASPENDING_SEARCH_URL = (
-    "https://api.usaspending.gov/api/v2/search/spending_by_award/"
-)
+USASPENDING_SEARCH_URL = "https://api.usaspending.gov/api/v2/search/spending_by_award/"
 
 
 class UsaSpendingAdapter(GovernmentContractDataSource):
@@ -75,9 +73,7 @@ class UsaSpendingAdapter(GovernmentContractDataSource):
         return sum(float(c.amount) for c in contracts)
 
     @staticmethod
-    def _build_search_payload(
-        company_name: str, limit: int
-    ) -> dict[str, Any]:
+    def _build_search_payload(company_name: str, limit: int) -> dict[str, Any]:
         """Build USASpending.gov search API payload."""
         return {
             "filters": {

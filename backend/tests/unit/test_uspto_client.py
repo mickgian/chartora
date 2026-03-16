@@ -154,9 +154,7 @@ class TestSearchPatents:
                 request=request,
             )
 
-        mock_client = httpx.AsyncClient(
-            transport=httpx.MockTransport(capture_request)
-        )
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(capture_request))
         adapter = UsptoPatentAdapter(http_client=mock_client, api_key="test-key-123")
         date_range = DateRange(start=date(2025, 1, 1), end=date(2025, 12, 31))
 
@@ -179,9 +177,7 @@ class TestSearchPatents:
                 request=request,
             )
 
-        mock_client = httpx.AsyncClient(
-            transport=httpx.MockTransport(capture_request)
-        )
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(capture_request))
         adapter = UsptoPatentAdapter(http_client=mock_client)
         date_range = DateRange(start=date(2025, 1, 1), end=date(2025, 12, 31))
 

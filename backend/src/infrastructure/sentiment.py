@@ -90,18 +90,14 @@ class ClaudeSentimentAnalyzer(SentimentAnalyzer):
                 json={
                     "model": self._model,
                     "max_tokens": max_tokens,
-                    "messages": [
-                        {"role": "user", "content": prompt}
-                    ],
+                    "messages": [{"role": "user", "content": prompt}],
                 },
             )
             response.raise_for_status()
             result: dict[str, Any] = response.json()
             return result
         except Exception:
-            logger.exception(
-                "Claude API call failed: %s", prompt[:80]
-            )
+            logger.exception("Claude API call failed: %s", prompt[:80])
             return None
 
     async def analyze(self, text: str) -> tuple[str, float] | None:
@@ -117,9 +113,7 @@ class ClaudeSentimentAnalyzer(SentimentAnalyzer):
             return None
         return self._parse_response(data)
 
-    async def analyze_batch(
-        self, texts: list[str]
-    ) -> list[tuple[str, float] | None]:
+    async def analyze_batch(self, texts: list[str]) -> list[tuple[str, float] | None]:
         """Analyze sentiment of multiple texts sequentially."""
         results: list[tuple[str, float] | None] = []
         for text in texts:
@@ -137,9 +131,7 @@ class ClaudeSentimentAnalyzer(SentimentAnalyzer):
         Returns:
             The qubit count as an integer, or None if not found.
         """
-        headline_text = "\n".join(
-            f"- {h}" for h in headlines[:20]
-        )
+        headline_text = "\n".join(f"- {h}" for h in headlines[:20])
         prompt = QUBIT_EXTRACTION_PROMPT.format(
             company=company_name, headlines=headline_text
         )
@@ -218,7 +210,5 @@ class ClaudeSentimentAnalyzer(SentimentAnalyzer):
         except (json.JSONDecodeError, KeyError, IndexError, TypeError):
             content = data.get("content")
             raw = content[0].get("text", "") if content else ""
-            logger.warning(
-                "Could not parse sentiment response: %s", raw[:200]
-            )
+            logger.warning("Could not parse sentiment response: %s", raw[:200])
             return None

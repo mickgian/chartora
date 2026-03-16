@@ -49,9 +49,7 @@ async def get_historical_scores(
     days: int = Query(default=365, ge=7, le=3650),
 ) -> dict[str, Any]:
     """Get historical Quantum Power Score for a company."""
-    logger.info(
-        "[PREMIUM] historical-scores slug=%s days=%d", slug, days
-    )
+    logger.info("[PREMIUM] historical-scores slug=%s days=%d", slug, days)
     company = await company_repo.get_by_slug(slug)
     if company is None:
         logger.warning("[PREMIUM] Company not found slug=%s", slug)
@@ -196,8 +194,7 @@ async def get_government_contracts(
     contracts = await gov_contract_repo.get_by_company(company.id or 0)
     total_value = await gov_contract_repo.get_total_value(company.id or 0)
     logger.info(
-        "[PREMIUM] government-contracts slug=%s "
-        "contracts=%d total_value=%.2f",
+        "[PREMIUM] government-contracts slug=%s contracts=%d total_value=%.2f",
         slug,
         len(contracts),
         total_value,

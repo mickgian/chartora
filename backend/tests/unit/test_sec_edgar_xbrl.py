@@ -19,9 +19,7 @@ class TestGetLatestValue:
                 }
             }
         }
-        result = SecEdgarXbrlAdapter._get_latest_value(
-            us_gaap, "StockholdersEquity"
-        )
+        result = SecEdgarXbrlAdapter._get_latest_value(us_gaap, "StockholdersEquity")
         assert result == 1000000.0
 
     def test_falls_back_to_10q(self):
@@ -63,16 +61,10 @@ class TestGetLatestValue:
     def test_returns_none_for_no_usd(self):
         us_gaap = {
             "Assets": {
-                "units": {
-                    "EUR": [
-                        {"val": 100, "form": "10-K", "end": "2024-12-31"}
-                    ]
-                }
+                "units": {"EUR": [{"val": 100, "form": "10-K", "end": "2024-12-31"}]}
             }
         }
-        result = SecEdgarXbrlAdapter._get_latest_value(
-            us_gaap, "Assets"
-        )
+        result = SecEdgarXbrlAdapter._get_latest_value(us_gaap, "Assets")
         assert result is None
 
 

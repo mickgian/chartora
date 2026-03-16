@@ -38,8 +38,7 @@ class RequestTimingMiddleware(BaseHTTPMiddleware):
 
         content_length = response.headers.get("content-length", "unknown")
         logger.info(
-            "[RESPONSE] %s %s -> status=%d "
-            "content_length=%s duration_ms=%.1f",
+            "[RESPONSE] %s %s -> status=%d content_length=%s duration_ms=%.1f",
             request.method,
             request.url.path,
             response.status_code,

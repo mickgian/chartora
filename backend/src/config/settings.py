@@ -31,9 +31,7 @@ class Settings:
     # External APIs
     news_api_key: str = field(default_factory=lambda: _env("CHARTORA_NEWS_API_KEY"))
     claude_api_key: str = field(default_factory=lambda: _env("CHARTORA_CLAUDE_API_KEY"))
-    uspto_api_key: str = field(
-        default_factory=lambda: _env("CHARTORA_USPTO_API_KEY")
-    )
+    uspto_api_key: str = field(default_factory=lambda: _env("CHARTORA_USPTO_API_KEY"))
     sec_edgar_user_agent: str = field(
         default_factory=lambda: _env(
             "SEC_EDGAR_USER_AGENT", "Chartora contact@chartora.io"
@@ -66,8 +64,9 @@ class Settings:
 
     # Data refresh
     force_refresh: bool = field(
-        default_factory=lambda: _env("CHARTORA_FORCE_REFRESH", "false").lower()
-        in ("true", "1", "yes")
+        default_factory=lambda: (
+            _env("CHARTORA_FORCE_REFRESH", "false").lower() in ("true", "1", "yes")
+        )
     )
 
     # Cache

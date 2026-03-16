@@ -130,7 +130,5 @@ class SentimentAnalyzer(ABC):
         """
 
     @abstractmethod
-    async def analyze_batch(
-        self, texts: list[str]
-    ) -> list[tuple[str, float] | None]:
+    async def analyze_batch(self, texts: list[str]) -> list[tuple[str, float] | None]:
         """Analyze sentiment of multiple texts."""

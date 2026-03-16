@@ -119,8 +119,7 @@ async def get_leaderboard(
     updated_at = datetime.combine(latest_date, datetime.min.time(), tzinfo=UTC)
 
     logger.info(
-        "[LEADERBOARD] Returning %d entries, "
-        "latest_date=%s, sort_by=%s",
+        "[LEADERBOARD] Returning %d entries, latest_date=%s, sort_by=%s",
         len(entries),
         latest_date,
         sort_by,

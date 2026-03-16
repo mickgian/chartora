@@ -143,7 +143,9 @@ class TestSearchContracts:
                     }
                 ]
             },
-            request=httpx.Request("POST", "https://api.usaspending.gov/api/v2/search/spending_by_award/"),
+            request=httpx.Request(
+                "POST", "https://api.usaspending.gov/api/v2/search/spending_by_award/"
+            ),
         )
         mock_client = httpx.AsyncClient(
             transport=httpx.MockTransport(lambda req: mock_response)
@@ -158,7 +160,9 @@ class TestSearchContracts:
     async def test_search_contracts_http_error(self):
         mock_response = httpx.Response(
             500,
-            request=httpx.Request("POST", "https://api.usaspending.gov/api/v2/search/spending_by_award/"),
+            request=httpx.Request(
+                "POST", "https://api.usaspending.gov/api/v2/search/spending_by_award/"
+            ),
         )
         mock_client = httpx.AsyncClient(
             transport=httpx.MockTransport(lambda req: mock_response)
@@ -190,7 +194,9 @@ class TestSearchContracts:
                     },
                 ]
             },
-            request=httpx.Request("POST", "https://api.usaspending.gov/api/v2/search/spending_by_award/"),
+            request=httpx.Request(
+                "POST", "https://api.usaspending.gov/api/v2/search/spending_by_award/"
+            ),
         )
         mock_client = httpx.AsyncClient(
             transport=httpx.MockTransport(lambda req: mock_response)
