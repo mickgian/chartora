@@ -362,6 +362,7 @@ async def run_refresh(
                     "Error refreshing stock data for %s",
                     company.name,
                 )
+                await session.rollback()
 
         # Step 2: Refresh patent data
         for company in companies:
@@ -372,6 +373,7 @@ async def run_refresh(
                     "Error refreshing patent data for %s",
                     company.name,
                 )
+                await session.rollback()
 
         # Step 3: Refresh news + sentiment
         for company in companies:
@@ -387,6 +389,7 @@ async def run_refresh(
                     "Error refreshing news for %s",
                     company.name,
                 )
+                await session.rollback()
 
         # Step 4: Refresh SEC filings
         for company in companies:
@@ -399,6 +402,7 @@ async def run_refresh(
                     "Error refreshing filings for %s",
                     company.name,
                 )
+                await session.rollback()
 
         # Step 5: Refresh government contracts
         for company in companies:
@@ -411,6 +415,7 @@ async def run_refresh(
                     "Error refreshing gov contracts for %s",
                     company.name,
                 )
+                await session.rollback()
 
         # Step 6: Recalculate scores
         try:
@@ -424,6 +429,7 @@ async def run_refresh(
             )
         except Exception:
             logger.exception("Error recalculating scores")
+            await session.rollback()
 
         await session.commit()
 

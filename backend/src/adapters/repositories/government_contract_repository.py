@@ -6,6 +6,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from src.domain.interfaces.repositories import GovernmentContractRepository
 from src.domain.models.entities import GovernmentContract
@@ -57,22 +58,33 @@ class PgGovernmentContractRepository(GovernmentContractRepository):
     async def save_many(
         self, contracts: list[GovernmentContract]
     ) -> list[GovernmentContract]:
-        rows = []
-        for c in contracts:
-            row = GovernmentContractTable(
-                company_id=c.company_id,
-                award_id=c.award_id,
-                title=c.title,
-                amount=c.amount,
-                awarding_agency=c.awarding_agency,
-                start_date=c.start_date,
-                end_date=c.end_date,
-                description=c.description,
+        if not contracts:
+            return []
+
+        values = [
+            {
+                "company_id": c.company_id,
+                "award_id": c.award_id,
+                "title": c.title,
+                "amount": c.amount,
+                "awarding_agency": c.awarding_agency,
+                "start_date": c.start_date,
+                "end_date": c.end_date,
+                "description": c.description,
+            }
+            for c in contracts
+        ]
+
+        stmt = (
+            pg_insert(GovernmentContractTable)
+            .values(values)
+            .on_conflict_do_nothing(
+                constraint="uq_contract_company_award",
             )
-            self._session.add(row)
-            rows.append(row)
+        )
+        await self._session.execute(stmt)
         await self._session.flush()
-        return [self._to_entity(r) for r in rows]
+        return contracts
 
     @staticmethod
     def _to_entity(row: GovernmentContractTable) -> GovernmentContract:
