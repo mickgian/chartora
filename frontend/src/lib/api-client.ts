@@ -41,13 +41,11 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1000;
 
-/* eslint-disable no-console */
 const log = {
-  info: (...args: unknown[]) => console.log("[Chartora API]", ...args),
-  warn: (...args: unknown[]) => console.warn("[Chartora API]", ...args),
-  error: (...args: unknown[]) => console.error("[Chartora API]", ...args),
+  info: (...args: unknown[]) => console.log("[Chartora API]", ...args), // eslint-disable-line no-console
+  warn: (...args: unknown[]) => console.warn("[Chartora API]", ...args), // eslint-disable-line no-console
+  error: (...args: unknown[]) => console.error("[Chartora API]", ...args), // eslint-disable-line no-console
 };
-/* eslint-enable no-console */
 
 // Log config on first load
 log.info(
