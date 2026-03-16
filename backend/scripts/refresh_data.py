@@ -232,6 +232,41 @@ async def refresh_government_contracts(
     )
 
 
+KNOWN_QUBIT_COUNTS: dict[str, int] = {
+    "ionq": 36,
+    "d-wave-quantum": 5000,
+    "rigetti-computing": 84,
+    "quantum-computing-inc": 0,
+    "arqit-quantum": 0,
+    "zapata-computing": 0,
+    "ibm": 1121,
+    "alphabet-google": 105,
+    "microsoft": 0,
+    "amazon-aws": 0,
+    "intel": 12,
+    "honeywell-quantinuum": 56,
+    "defiance-quantum-etf": 0,
+    "ark-space-exploration-etf": 0,
+}
+
+KNOWN_FUNDING_USD: dict[str, float] = {
+    "ionq": 634_000_000.0,
+    "d-wave-quantum": 340_000_000.0,
+    "rigetti-computing": 294_000_000.0,
+    "quantum-computing-inc": 70_000_000.0,
+    "arqit-quantum": 100_000_000.0,
+    "zapata-computing": 64_000_000.0,
+    "ibm": 0.0,
+    "alphabet-google": 0.0,
+    "microsoft": 0.0,
+    "amazon-aws": 0.0,
+    "intel": 0.0,
+    "honeywell-quantinuum": 300_000_000.0,
+    "defiance-quantum-etf": 0.0,
+    "ark-space-exploration-etf": 0.0,
+}
+
+
 async def recalculate_scores(
     companies: list[Company],
     stock_repo: PgStockRepository,
@@ -239,6 +274,7 @@ async def recalculate_scores(
     news_repo: PgNewsRepository,
     score_repo: PgScoreRepository,
     stock_adapter: YahooFinanceAdapter,
+    gov_contract_repo: PgGovernmentContractRepository | None = None,
 ) -> None:
     """Recalculate Quantum Power Scores for all companies."""
     logger.info(
@@ -264,6 +300,15 @@ async def recalculate_scores(
         patent_count = await patent_repo.count_by_date_range(
             company_id, twelve_months_ago
         )
+
+        # Qubit count from known data
+        qubit_count = KNOWN_QUBIT_COUNTS.get(company.slug, 0) or None
+
+        # Funding: use known seed funding + government contract values
+        total_funding = KNOWN_FUNDING_USD.get(company.slug, 0.0)
+        if gov_contract_repo:
+            gov_value = await gov_contract_repo.get_total_value(company_id)
+            total_funding += gov_value
 
         # News sentiment average
         recent_news = await news_repo.get_by_company(company_id, limit=20)
@@ -291,6 +336,8 @@ async def recalculate_scores(
             stock_return_60d=r60,
             stock_return_90d=r90,
             patents_filed_12m=patent_count,
+            qubit_count=qubit_count,
+            total_funding_usd=total_funding if total_funding > 0 else None,
             avg_sentiment=avg_sentiment,
             article_count=article_count,
         )
@@ -426,6 +473,7 @@ async def run_refresh(
                 news_repo,
                 score_repo,
                 stock_adapter,
+                gov_contract_repo,
             )
         except Exception:
             logger.exception("Error recalculating scores")
