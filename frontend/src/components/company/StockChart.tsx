@@ -31,7 +31,6 @@ const PERIOD_OPTIONS = [
   { label: "YTD", days: ytdDays() },
   { label: "1Y", days: 365 },
   { label: "5Y", days: 1825 },
-  { label: "ALL", days: 0 },
 ];
 
 interface StockChartProps {
