@@ -131,9 +131,16 @@ class YahooFinanceAdapter(StockDataSource):
 
     @staticmethod
     def _get_max_history(ticker: str) -> list[StockPrice]:
-        """Synchronous helper to get all available history via yfinance."""
+        """Synchronous helper to get all available history via yfinance.
+
+        Uses explicit start/end dates instead of period="max" as a workaround
+        for yfinance bugs where period="max" may silently truncate results.
+        """
         stock = yf.Ticker(ticker)
-        hist = stock.history(period="max")
+        hist = stock.history(start="1970-01-01", end=date.today().isoformat())
+        if hist.empty:
+            # Fallback to period="max" in case start/end approach fails
+            hist = stock.history(period="max")
         if hist.empty:
             return []
 
