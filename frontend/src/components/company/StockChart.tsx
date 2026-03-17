@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useTheme } from "next-themes";
 import {
   Area,
   AreaChart,
@@ -13,7 +14,6 @@ import {
 import type { IntradayResponse, StockHistoryResponse } from "@/types/api";
 import { apiClient } from "@/lib/api-client";
 import { useApi } from "@/hooks/use-api";
-import { useTheme } from "@/components/layout/ThemeProvider";
 import { ChartSkeleton } from "@/components/ui/LoadingSkeleton";
 import { ErrorMessage } from "@/components/ui/ErrorMessage";
 
@@ -52,7 +52,7 @@ function formatDateForRange(dateStr: string, days: number): string {
     const year = String(date.getFullYear()).slice(2);
     return `${month} '${year}`;
   }
-  // 5Y, ALL (days=0), or days>365
+  // 5Y or days>365
   return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
