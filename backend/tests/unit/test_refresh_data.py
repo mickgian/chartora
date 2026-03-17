@@ -57,7 +57,7 @@ def _make_company(
 async def test_refresh_stock_data() -> None:
     company = _make_company()
     stock_adapter = AsyncMock()
-    stock_adapter.fetch_history = AsyncMock(
+    stock_adapter.fetch_max_history = AsyncMock(
         return_value=[
             StockPrice(
                 company_id=0,
@@ -71,7 +71,7 @@ async def test_refresh_stock_data() -> None:
 
     await refresh_stock_data(company, stock_adapter, stock_repo)
 
-    stock_adapter.fetch_history.assert_called_once()
+    stock_adapter.fetch_max_history.assert_called_once()
     stock_repo.save_many.assert_called_once()
 
 
@@ -91,7 +91,7 @@ async def test_refresh_stock_data_no_ticker() -> None:
 async def test_refresh_stock_data_no_results() -> None:
     company = _make_company()
     stock_adapter = AsyncMock()
-    stock_adapter.fetch_history = AsyncMock(return_value=[])
+    stock_adapter.fetch_max_history = AsyncMock(return_value=[])
     stock_repo = AsyncMock()
 
     await refresh_stock_data(company, stock_adapter, stock_repo)
