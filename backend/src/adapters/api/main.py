@@ -226,8 +226,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 return
 
             logger.info(
-                "[STARTUP] Data refresh needed: %s — "
-                "running in background...",
+                "[STARTUP] Data refresh needed: %s — running in background...",
                 reason,
             )
             from scripts.refresh_data import run_refresh
