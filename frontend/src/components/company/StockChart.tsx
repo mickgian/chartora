@@ -43,6 +43,28 @@ interface ChartPoint {
   price: number;
 }
 
+function formatDateForRange(dateStr: string, days: number): string {
+  const date = new Date(dateStr);
+  if (days > 0 && days <= 90) {
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+  if (days > 90 && days <= 365) {
+    const month = date.toLocaleDateString("en-US", { month: "short" });
+    const year = String(date.getFullYear()).slice(2);
+    return `${month} '${year}`;
+  }
+  // 5Y, ALL (days=0), or days>365
+  return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
+
+function formatTooltipDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 function IntradayChart({ slug, isDark }: { slug: string; isDark: boolean }) {
   const fetcher = useCallback(() => apiClient.getIntradayHistory(slug), [slug]);
   const { data, error, loading, refetch } = useApi<IntradayResponse>(fetcher, [slug]);
@@ -140,14 +162,13 @@ function DailyChart({ slug, days, isDark }: { slug: string; days: number; isDark
         <XAxis
           dataKey="label"
           tick={{ fontSize: 12, fill: isDark ? "#d1d5db" : "#6b7280" }}
-          tickFormatter={(v: string) =>
-            new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-          }
+          tickFormatter={(v: string) => formatDateForRange(v, days)}
+          minTickGap={days > 365 || days === 0 ? 50 : 30}
           stroke={isDark ? "#4b5563" : "#d1d5db"}
         />
         <YAxis domain={[minPrice, maxPrice]} tick={{ fontSize: 12, fill: isDark ? "#d1d5db" : "#6b7280" }} stroke={isDark ? "#4b5563" : "#d1d5db"} />
         <Tooltip
-          labelFormatter={(v) => new Date(String(v)).toLocaleDateString()}
+          labelFormatter={(v) => formatTooltipDate(String(v))}
           formatter={(value) => [`$${Number(value).toFixed(2)}`, "Price"]}
           contentStyle={isDark ? { backgroundColor: "#1f2937", border: "1px solid #4b5563", borderRadius: "8px", color: "#f3f4f6" } : undefined}
           labelStyle={isDark ? { color: "#d1d5db" } : undefined}
