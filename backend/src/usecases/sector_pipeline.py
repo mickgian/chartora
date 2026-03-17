@@ -130,7 +130,11 @@ class SectorPipeline:
             await repos.patent_repo.save_many(patents)
 
         # Fetch and analyse news
-        articles = await self._news_source.fetch_articles(company.name)
+        ticker_str = company.ticker.symbol if company.ticker else None
+        sector_str = company.sector.value if company.sector else None
+        articles = await self._news_source.fetch_articles(
+            company.name, ticker=ticker_str, sector=sector_str
+        )
         if articles:
             analysed = await self._sentiment_analyzer.analyze_batch(
                 [a.title for a in articles],

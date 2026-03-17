@@ -42,7 +42,7 @@ from src.usecases.calculate_score import ScoreInput, calculate_score
 from src.usecases.rank_companies import rank_companies
 
 if TYPE_CHECKING:
-    from src.domain.models.entities import Company
+    from src.domain.models.entities import Company, NewsArticle
 
 logging.basicConfig(
     level=logging.INFO,
@@ -131,14 +131,37 @@ async def refresh_news_data(
         return
 
     ticker_str = company.ticker.symbol if company.ticker else None
-    logger.info("Fetching news for %s", company.name)
+    sector_str = company.sector.value if company.sector else None
+    logger.info("Fetching news for %s (sector=%s)", company.name, sector_str)
 
     articles = await news_adapter.fetch_articles(
-        company.name, ticker=ticker_str, limit=10
+        company.name, ticker=ticker_str, limit=10, sector=sector_str
     )
 
     if not articles:
         logger.info("No news articles found for %s", company.name)
+        return
+
+    # Validate article URLs — skip broken links
+    validated: list[NewsArticle] = []
+    for article in articles:
+        if await news_adapter.validate_url(article.url):
+            validated.append(article)
+        else:
+            logger.warning(
+                "Broken URL skipped for %s: %s", company.name, article.url
+            )
+    if len(validated) < len(articles):
+        logger.info(
+            "URL validation: kept %d/%d articles for %s",
+            len(validated),
+            len(articles),
+            company.name,
+        )
+    articles = validated
+
+    if not articles:
+        logger.info("No valid news articles remaining for %s", company.name)
         return
 
     # Score sentiment if we have a Claude API key
