@@ -76,7 +76,9 @@ function buildLeaderboardEntries(sortBy: SortableMetric): LeaderboardEntry[] {
     .map((entry, i) => ({ ...entry, rank: i + 1 }));
 }
 
-function generateStockHistory(slug: string, days: number): StockHistoryResponse {
+function generateStockHistory(slug: string, days: number | 0): StockHistoryResponse {
+  // days=0 means "ALL" — use a large default so demo mode shows more data than 5Y
+  const effectiveDays = days === 0 ? 3650 : days;
   const basePrice: Record<string, number> = {
     ionq: 32.5, "d-wave-quantum": 8.2, "rigetti-computing": 12.4,
     "quantum-computing-inc": 3.8, "arqit-quantum": 5.1, ibm: 198.5,
@@ -86,11 +88,11 @@ function generateStockHistory(slug: string, days: number): StockHistoryResponse 
   };
   const base = basePrice[slug] ?? 10;
   const prices = [];
-  for (let i = days; i >= 0; i--) {
+  for (let i = effectiveDays; i >= 0; i--) {
     const date = new Date(2026, 2, 15);
     date.setDate(date.getDate() - i);
     const drift = (Math.sin(i * 0.15) * 0.08 + Math.cos(i * 0.07) * 0.05) * base;
-    const close = Math.round((base + drift + (days - i) * base * 0.001) * 100) / 100;
+    const close = Math.round((base + drift + (effectiveDays - i) * base * 0.001) * 100) / 100;
     prices.push({
       price_date: date.toISOString().split("T")[0],
       close_price: close,

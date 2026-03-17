@@ -73,21 +73,25 @@ def mock_score_repo() -> AsyncMock:
 
 
 @pytest.fixture
-def mock_stock_repo() -> AsyncMock:
+def _stock_prices() -> list[StockPrice]:
+    return [
+        StockPrice(
+            company_id=1,
+            price_date=date(2026, 3, 13),
+            close_price=Decimal("25.50"),
+            open_price=Decimal("25.00"),
+            high_price=Decimal("26.00"),
+            low_price=Decimal("24.50"),
+            volume=1000000,
+        ),
+    ]
+
+
+@pytest.fixture
+def mock_stock_repo(_stock_prices: list[StockPrice]) -> AsyncMock:
     repo = AsyncMock()
-    repo.get_by_date_range = AsyncMock(
-        return_value=[
-            StockPrice(
-                company_id=1,
-                price_date=date(2026, 3, 13),
-                close_price=Decimal("25.50"),
-                open_price=Decimal("25.00"),
-                high_price=Decimal("26.00"),
-                low_price=Decimal("24.50"),
-                volume=1000000,
-            ),
-        ]
-    )
+    repo.get_by_date_range = AsyncMock(return_value=_stock_prices)
+    repo.get_all_for_company = AsyncMock(return_value=_stock_prices)
     return repo
 
 

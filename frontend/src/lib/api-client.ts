@@ -162,7 +162,8 @@ export const apiClient = {
 
   getStockHistory(slug: string, days = 90): Promise<StockHistoryResponse> {
     if (IS_DEMO) return Promise.resolve(mockApi.getStockHistory(slug, days));
-    return get(`/api/v1/companies/${encodeURIComponent(slug)}/stock?days=${days}`);
+    const qs = days > 0 ? `?days=${days}` : "";
+    return get(`/api/v1/companies/${encodeURIComponent(slug)}/stock${qs}`);
   },
 
   getPatents(slug: string): Promise<PatentListResponse> {

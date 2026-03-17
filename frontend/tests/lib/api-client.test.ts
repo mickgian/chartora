@@ -79,6 +79,17 @@ describe("apiClient", () => {
         "http://localhost:8000/api/v1/companies/ionq/stock?days=90",
       );
     });
+
+    it("omits days param when days is 0 (ALL)", async () => {
+      mockFetch.mockResolvedValueOnce(jsonResponse({ company_slug: "ionq", prices: [], count: 0 }));
+
+      await apiClient.getStockHistory("ionq", 0);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/companies/ionq/stock",
+        { cache: "no-store" },
+      );
+    });
   });
 
   describe("getPatents", () => {

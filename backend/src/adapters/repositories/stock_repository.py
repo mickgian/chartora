@@ -50,6 +50,15 @@ class PgStockRepository(StockRepository):
         rows = result.scalars().all()
         return [self._to_entity(row) for row in rows]
 
+    async def get_all_for_company(self, company_id: int) -> list[StockPrice]:
+        result = await self._session.execute(
+            select(StockPriceTable)
+            .where(StockPriceTable.company_id == company_id)
+            .order_by(StockPriceTable.price_date)
+        )
+        rows = result.scalars().all()
+        return [self._to_entity(row) for row in rows]
+
     async def save(self, stock_price: StockPrice) -> StockPrice:
         row = StockPriceTable(
             company_id=stock_price.company_id,

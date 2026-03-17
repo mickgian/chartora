@@ -101,15 +101,15 @@ async def get_company_stock(
     slug: str,
     company_repo: CompanyRepoDep,
     stock_repo: StockRepoDep,
-    days: int = Query(
-        default=365,
+    days: int | None = Query(
+        default=None,
         ge=1,
         le=7300,
-        description="Number of days of history",
+        description="Number of days of history. Omit to retrieve all available data.",
     ),
 ) -> StockHistoryResponse:
     """Get stock price history for a company."""
-    logger.info("[STOCK] Fetching stock history slug=%s days=%d", slug, days)
+    logger.info("[STOCK] Fetching stock history slug=%s days=%s", slug, days)
     company = await company_repo.get_by_slug(slug)
     if company is None:
         logger.warning("[STOCK] Company not found slug=%s", slug)
@@ -118,25 +118,28 @@ async def get_company_stock(
             detail=f"Company '{slug}' not found",
         )
 
-    end = date.today()
-    start = end - timedelta(days=days)
-    date_range = DateRange(start=start, end=end)
-
     company_id = company.id or 0
+
+    if days is None:
+        logger.info("[STOCK] Querying ALL prices for company_id=%d", company_id)
+        prices = await stock_repo.get_all_for_company(company_id)
+    else:
+        end = date.today()
+        start = end - timedelta(days=days)
+        date_range = DateRange(start=start, end=end)
+        logger.info(
+            "[STOCK] Querying company_id=%d date_range=%s to %s",
+            company_id,
+            start,
+            end,
+        )
+        prices = await stock_repo.get_by_date_range(company_id, date_range)
+
     logger.info(
-        "[STOCK] Querying company_id=%d date_range=%s to %s",
-        company_id,
-        start,
-        end,
-    )
-    prices = await stock_repo.get_by_date_range(company_id, date_range)
-    logger.info(
-        "[STOCK] slug=%s company_id=%d returned %d prices for range %s to %s",
+        "[STOCK] slug=%s company_id=%d returned %d prices",
         slug,
         company_id,
         len(prices),
-        start,
-        end,
     )
     if prices:
         logger.info(

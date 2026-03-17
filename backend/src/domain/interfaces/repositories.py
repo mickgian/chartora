@@ -64,6 +64,10 @@ class StockRepository(ABC):
         """Get stock prices for a company within a date range."""
 
     @abstractmethod
+    async def get_all_for_company(self, company_id: int) -> list[StockPrice]:
+        """Get all stock prices for a company, ordered by date."""
+
+    @abstractmethod
     async def save(self, stock_price: StockPrice) -> StockPrice:
         """Persist a stock price record."""
 
