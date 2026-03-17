@@ -15,6 +15,7 @@ from src.adapters.api.dependencies import (
     get_news_repo,
     get_patent_repo,
     get_score_repo,
+    get_stock_data_source,
     get_stock_repo,
 )
 from src.adapters.api.main import create_app
@@ -22,6 +23,7 @@ from src.config.settings import Settings
 from src.domain.models.entities import (
     Company,
     Filing,
+    IntradayPrice,
     NewsArticle,
     Patent,
     QuantumPowerScore,
@@ -73,22 +75,46 @@ def mock_score_repo() -> AsyncMock:
 
 
 @pytest.fixture
-def mock_stock_repo() -> AsyncMock:
+def _stock_prices() -> list[StockPrice]:
+    return [
+        StockPrice(
+            company_id=1,
+            price_date=date(2026, 3, 13),
+            close_price=Decimal("25.50"),
+            open_price=Decimal("25.00"),
+            high_price=Decimal("26.00"),
+            low_price=Decimal("24.50"),
+            volume=1000000,
+        ),
+    ]
+
+
+@pytest.fixture
+def mock_stock_repo(_stock_prices: list[StockPrice]) -> AsyncMock:
     repo = AsyncMock()
-    repo.get_by_date_range = AsyncMock(
+    repo.get_by_date_range = AsyncMock(return_value=_stock_prices)
+    repo.get_all_for_company = AsyncMock(return_value=_stock_prices)
+    return repo
+
+
+@pytest.fixture
+def mock_stock_data_source() -> AsyncMock:
+    source = AsyncMock()
+    source.fetch_intraday = AsyncMock(
         return_value=[
-            StockPrice(
-                company_id=1,
-                price_date=date(2026, 3, 13),
-                close_price=Decimal("25.50"),
-                open_price=Decimal("25.00"),
-                high_price=Decimal("26.00"),
-                low_price=Decimal("24.50"),
-                volume=1000000,
+            IntradayPrice(
+                timestamp=datetime(2026, 3, 15, 10, 0, 0, tzinfo=UTC),
+                price=Decimal("25.30"),
+                volume=150000,
+            ),
+            IntradayPrice(
+                timestamp=datetime(2026, 3, 15, 11, 0, 0, tzinfo=UTC),
+                price=Decimal("25.50"),
+                volume=200000,
             ),
         ]
     )
-    return repo
+    return source
 
 
 @pytest.fixture
@@ -149,6 +175,7 @@ def client(
     mock_company_repo: AsyncMock,
     mock_score_repo: AsyncMock,
     mock_stock_repo: AsyncMock,
+    mock_stock_data_source: AsyncMock,
     mock_patent_repo: AsyncMock,
     mock_news_repo: AsyncMock,
     mock_filing_repo: AsyncMock,
@@ -158,6 +185,7 @@ def client(
     app.dependency_overrides[get_company_repo] = lambda: mock_company_repo
     app.dependency_overrides[get_score_repo] = lambda: mock_score_repo
     app.dependency_overrides[get_stock_repo] = lambda: mock_stock_repo
+    app.dependency_overrides[get_stock_data_source] = lambda: mock_stock_data_source
     app.dependency_overrides[get_patent_repo] = lambda: mock_patent_repo
     app.dependency_overrides[get_news_repo] = lambda: mock_news_repo
     app.dependency_overrides[get_filing_repo] = lambda: mock_filing_repo
@@ -240,6 +268,17 @@ def test_get_company_filings(
     assert data["company_slug"] == "ionq"
     assert data["count"] == 1
     assert data["filings"][0]["filing_type"] == "10-K"
+
+
+def test_get_company_intraday(client: TestClient) -> None:
+    response = client.get("/api/v1/companies/ionq/stock/intraday")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["company_slug"] == "ionq"
+    assert data["count"] == 2
+    assert data["prices"][0]["price"] == 25.30
+    assert "timestamp" in data["prices"][0]
+    assert data["prices"][1]["price"] == 25.50
 
 
 def test_company_stock_not_found() -> None:

@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 import yfinance as yf
 
 from src.domain.interfaces.data_sources import StockDataSource
-from src.domain.models.entities import StockPrice
+from src.domain.models.entities import IntradayPrice, StockPrice
 
 if TYPE_CHECKING:
     from src.domain.models.value_objects import DateRange
@@ -74,6 +74,91 @@ class YahooFinanceAdapter(StockDataSource):
         """Run a synchronous function in a thread pool."""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, fn, *args)
+
+    async def fetch_intraday(self, ticker: str) -> list[IntradayPrice]:
+        """Fetch intraday (hourly) prices for the current trading day."""
+        try:
+            prices: list[IntradayPrice] = await self._run_sync(
+                self._get_intraday, ticker
+            )
+            return prices
+        except Exception:
+            logger.exception("Error fetching intraday data for %s", ticker)
+            return []
+
+    @staticmethod
+    def _get_intraday(ticker: str) -> list[IntradayPrice]:
+        """Synchronous helper to get intraday prices via yfinance.
+
+        Uses period="5d" with interval="30m" to ensure we get enough data
+        even outside market hours, then filters to the most recent trading day.
+        """
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="5d", interval="30m")
+        if hist.empty:
+            return []
+
+        # Filter to the most recent trading day that has data
+        if hist.index.tz is None:
+            hist.index = hist.index.tz_localize(None)
+        else:
+            hist.index = hist.index.tz_convert(None)
+        last_date = hist.index[-1].date()
+        hist = hist[hist.index.date == last_date]
+
+        prices: list[IntradayPrice] = []
+        for idx, row in hist.iterrows():
+            ts = idx.to_pydatetime()
+            prices.append(
+                IntradayPrice(
+                    timestamp=ts,
+                    price=Decimal(str(round(row["Close"], 4))),
+                    volume=int(row["Volume"]) if row["Volume"] else None,
+                )
+            )
+        return prices
+
+    async def fetch_max_history(self, ticker: str) -> list[StockPrice]:
+        """Fetch maximum available historical stock prices for a ticker."""
+        try:
+            prices: list[StockPrice] = await self._run_sync(
+                self._get_max_history, ticker
+            )
+            return prices
+        except Exception:
+            logger.exception("Error fetching max history for %s", ticker)
+            return []
+
+    @staticmethod
+    def _get_max_history(ticker: str) -> list[StockPrice]:
+        """Synchronous helper to get all available history via yfinance.
+
+        Uses explicit start/end dates instead of period="max" as a workaround
+        for yfinance bugs where period="max" may silently truncate results.
+        """
+        stock = yf.Ticker(ticker)
+        hist = stock.history(start="1970-01-01", end=date.today().isoformat())
+        if hist.empty:
+            # Fallback to period="max" in case start/end approach fails
+            hist = stock.history(period="max")
+        if hist.empty:
+            return []
+
+        prices: list[StockPrice] = []
+        for idx, row in hist.iterrows():
+            price_date: date = idx.date()
+            prices.append(
+                StockPrice(
+                    company_id=0,
+                    price_date=price_date,
+                    close_price=Decimal(str(round(row["Close"], 4))),
+                    open_price=Decimal(str(round(row["Open"], 4))),
+                    high_price=Decimal(str(round(row["High"], 4))),
+                    low_price=Decimal(str(round(row["Low"], 4))),
+                    volume=int(row["Volume"]),
+                )
+            )
+        return prices
 
     @staticmethod
     def _get_current_price(ticker: str) -> StockPrice | None:

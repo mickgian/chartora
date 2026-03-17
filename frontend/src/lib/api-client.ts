@@ -13,6 +13,7 @@ import type {
   HistoricalScoresResponse,
   InsiderTradingResponse,
   InstitutionalOwnershipResponse,
+  IntradayResponse,
   LeaderboardResponse,
   NewsListResponse,
   PatentListResponse,
@@ -60,7 +61,7 @@ async function fetchWithRetry(url: string, retries = MAX_RETRIES): Promise<Respo
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       log.info(`[FETCH] ${url} (attempt ${attempt + 1}/${retries + 1})`);
-      const response = await fetch(url);
+      const response = await fetch(url, { cache: "no-store" });
 
       if (response.ok) {
         log.info(
@@ -162,7 +163,13 @@ export const apiClient = {
 
   getStockHistory(slug: string, days = 90): Promise<StockHistoryResponse> {
     if (IS_DEMO) return Promise.resolve(mockApi.getStockHistory(slug, days));
-    return get(`/api/v1/companies/${encodeURIComponent(slug)}/stock?days=${days}`);
+    const qs = days > 0 ? `?days=${days}` : "";
+    return get(`/api/v1/companies/${encodeURIComponent(slug)}/stock${qs}`);
+  },
+
+  getIntradayHistory(slug: string): Promise<IntradayResponse> {
+    if (IS_DEMO) return Promise.resolve(mockApi.getIntradayHistory(slug));
+    return get(`/api/v1/companies/${encodeURIComponent(slug)}/stock/intraday`);
   },
 
   getPatents(slug: string): Promise<PatentListResponse> {

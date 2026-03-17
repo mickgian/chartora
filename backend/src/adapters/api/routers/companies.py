@@ -14,6 +14,7 @@ from src.adapters.api.dependencies import (  # noqa: TC001
     NewsRepoDep,
     PatentRepoDep,
     ScoreRepoDep,
+    StockDataSourceDep,
     StockRepoDep,
 )
 from src.adapters.api.schemas import (
@@ -21,6 +22,8 @@ from src.adapters.api.schemas import (
     CompanyResponse,
     FilingListResponse,
     FilingResponse,
+    IntradayPriceResponse,
+    IntradayResponse,
     NewsArticleResponse,
     NewsListResponse,
     PatentListResponse,
@@ -101,15 +104,15 @@ async def get_company_stock(
     slug: str,
     company_repo: CompanyRepoDep,
     stock_repo: StockRepoDep,
-    days: int = Query(
-        default=90,
+    days: int | None = Query(
+        default=None,
         ge=1,
-        le=730,
-        description="Number of days of history",
+        le=7300,
+        description="Number of days of history. Omit to retrieve all available data.",
     ),
 ) -> StockHistoryResponse:
     """Get stock price history for a company."""
-    logger.info("[STOCK] Fetching stock history slug=%s days=%d", slug, days)
+    logger.info("[STOCK] Fetching stock history slug=%s days=%s", slug, days)
     company = await company_repo.get_by_slug(slug)
     if company is None:
         logger.warning("[STOCK] Company not found slug=%s", slug)
@@ -118,18 +121,35 @@ async def get_company_stock(
             detail=f"Company '{slug}' not found",
         )
 
-    end = date.today()
-    start = end - timedelta(days=days)
-    date_range = DateRange(start=start, end=end)
+    company_id = company.id or 0
 
-    prices = await stock_repo.get_by_date_range(company.id or 0, date_range)
+    if days is None:
+        logger.info("[STOCK] Querying ALL prices for company_id=%d", company_id)
+        prices = await stock_repo.get_all_for_company(company_id)
+    else:
+        end = date.today()
+        start = end - timedelta(days=days)
+        date_range = DateRange(start=start, end=end)
+        logger.info(
+            "[STOCK] Querying company_id=%d date_range=%s to %s",
+            company_id,
+            start,
+            end,
+        )
+        prices = await stock_repo.get_by_date_range(company_id, date_range)
+
     logger.info(
-        "[STOCK] slug=%s returned %d prices for range %s to %s",
+        "[STOCK] slug=%s company_id=%d returned %d prices",
         slug,
+        company_id,
         len(prices),
-        start,
-        end,
     )
+    if prices:
+        logger.info(
+            "[STOCK] First price: %s, Last price: %s",
+            prices[0].price_date,
+            prices[-1].price_date,
+        )
 
     return StockHistoryResponse(
         company_slug=slug,
@@ -142,6 +162,38 @@ async def get_company_stock(
                 low_price=(float(p.low_price) if p.low_price is not None else None),
                 volume=p.volume,
                 market_cap=p.market_cap,
+            )
+            for p in prices
+        ],
+        count=len(prices),
+    )
+
+
+@router.get("/{slug}/stock/intraday", response_model=IntradayResponse)
+async def get_company_intraday(
+    slug: str,
+    company_repo: CompanyRepoDep,
+    stock_source: StockDataSourceDep,
+) -> IntradayResponse:
+    """Get intraday (hourly) stock prices for a company."""
+    logger.info("[INTRADAY] Fetching intraday data slug=%s", slug)
+    company = await company_repo.get_by_slug(slug)
+    if company is None:
+        raise HTTPException(status_code=404, detail=f"Company '{slug}' not found")
+
+    if company.ticker is None:
+        return IntradayResponse(company_slug=slug, prices=[], count=0)
+
+    prices = await stock_source.fetch_intraday(company.ticker.symbol)
+    logger.info("[INTRADAY] slug=%s returned %d intraday prices", slug, len(prices))
+
+    return IntradayResponse(
+        company_slug=slug,
+        prices=[
+            IntradayPriceResponse(
+                timestamp=p.timestamp,
+                price=float(p.price),
+                volume=p.volume,
             )
             for p in prices
         ],

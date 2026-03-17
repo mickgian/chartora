@@ -30,7 +30,7 @@ describe("apiClient", () => {
 
       const result = await apiClient.getLeaderboard();
 
-      expect(mockFetch).toHaveBeenCalledWith("http://localhost:8000/api/v1/leaderboard");
+      expect(mockFetch).toHaveBeenCalledWith("http://localhost:8000/api/v1/leaderboard", { cache: "no-store" });
       expect(result).toEqual(mockData);
     });
 
@@ -53,7 +53,7 @@ describe("apiClient", () => {
 
       const result = await apiClient.getCompany("ionq");
 
-      expect(mockFetch).toHaveBeenCalledWith("http://localhost:8000/api/v1/companies/ionq");
+      expect(mockFetch).toHaveBeenCalledWith("http://localhost:8000/api/v1/companies/ionq", { cache: "no-store" });
       expect(result).toEqual(mockData);
     });
   });
@@ -67,6 +67,7 @@ describe("apiClient", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/v1/companies/ionq/stock?days=30",
+        { cache: "no-store" },
       );
     });
 
@@ -77,6 +78,32 @@ describe("apiClient", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/v1/companies/ionq/stock?days=90",
+        { cache: "no-store" },
+      );
+    });
+
+    it("omits days param when days is 0 (ALL)", async () => {
+      mockFetch.mockResolvedValueOnce(jsonResponse({ company_slug: "ionq", prices: [], count: 0 }));
+
+      await apiClient.getStockHistory("ionq", 0);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/companies/ionq/stock",
+        { cache: "no-store" },
+      );
+    });
+  });
+
+  describe("getIntradayHistory", () => {
+    it("fetches intraday data for a company", async () => {
+      const mockData = { company_slug: "ionq", prices: [], count: 0 };
+      mockFetch.mockResolvedValueOnce(jsonResponse(mockData));
+
+      await apiClient.getIntradayHistory("ionq");
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/companies/ionq/stock/intraday",
+        { cache: "no-store" },
       );
     });
   });
@@ -91,6 +118,7 @@ describe("apiClient", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/v1/companies/ionq/patents",
+        { cache: "no-store" },
       );
     });
   });
@@ -105,6 +133,7 @@ describe("apiClient", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/v1/companies/ionq/news?limit=10",
+        { cache: "no-store" },
       );
     });
   });
@@ -119,6 +148,7 @@ describe("apiClient", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/v1/companies/ionq/filings",
+        { cache: "no-store" },
       );
     });
   });
@@ -131,7 +161,7 @@ describe("apiClient", () => {
 
       await apiClient.getRanking("patents");
 
-      expect(mockFetch).toHaveBeenCalledWith("http://localhost:8000/api/v1/rankings/patents");
+      expect(mockFetch).toHaveBeenCalledWith("http://localhost:8000/api/v1/rankings/patents", { cache: "no-store" });
     });
   });
 

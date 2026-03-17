@@ -56,6 +56,18 @@ export interface StockHistoryResponse {
   count: number;
 }
 
+export interface IntradayPriceResponse {
+  timestamp: string;
+  price: number;
+  volume: number | null;
+}
+
+export interface IntradayResponse {
+  company_slug: string;
+  prices: IntradayPriceResponse[];
+  count: number;
+}
+
 export interface PatentResponse {
   patent_number: string;
   title: string;

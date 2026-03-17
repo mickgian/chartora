@@ -6,6 +6,7 @@
 import type {
   CompanyResponse,
   CompanyDetailResponse,
+  IntradayResponse,
   LeaderboardEntry,
   LeaderboardResponse,
   StockHistoryResponse,
@@ -76,7 +77,9 @@ function buildLeaderboardEntries(sortBy: SortableMetric): LeaderboardEntry[] {
     .map((entry, i) => ({ ...entry, rank: i + 1 }));
 }
 
-function generateStockHistory(slug: string, days: number): StockHistoryResponse {
+function generateStockHistory(slug: string, days: number | 0): StockHistoryResponse {
+  // days=0 means "ALL" — use a large default so demo mode shows more data than 5Y
+  const effectiveDays = days === 0 ? 3650 : days;
   const basePrice: Record<string, number> = {
     ionq: 32.5, "d-wave-quantum": 8.2, "rigetti-computing": 12.4,
     "quantum-computing-inc": 3.8, "arqit-quantum": 5.1, ibm: 198.5,
@@ -86,11 +89,11 @@ function generateStockHistory(slug: string, days: number): StockHistoryResponse 
   };
   const base = basePrice[slug] ?? 10;
   const prices = [];
-  for (let i = days; i >= 0; i--) {
+  for (let i = effectiveDays; i >= 0; i--) {
     const date = new Date(2026, 2, 15);
     date.setDate(date.getDate() - i);
     const drift = (Math.sin(i * 0.15) * 0.08 + Math.cos(i * 0.07) * 0.05) * base;
-    const close = Math.round((base + drift + (days - i) * base * 0.001) * 100) / 100;
+    const close = Math.round((base + drift + (effectiveDays - i) * base * 0.001) * 100) / 100;
     prices.push({
       price_date: date.toISOString().split("T")[0],
       close_price: close,
@@ -99,6 +102,32 @@ function generateStockHistory(slug: string, days: number): StockHistoryResponse 
       low_price: Math.round((close * 0.98) * 100) / 100,
       volume: Math.floor(1000000 + Math.random() * 5000000),
       market_cap: Math.floor(close * 100000000),
+    });
+  }
+  return { company_slug: slug, prices, count: prices.length };
+}
+
+function generateIntradayHistory(slug: string): IntradayResponse {
+  const basePrice: Record<string, number> = {
+    ionq: 32.5, "d-wave-quantum": 8.2, "rigetti-computing": 12.4,
+    "quantum-computing-inc": 3.8, "arqit-quantum": 5.1, ibm: 198.5,
+    "alphabet-google": 178.2, microsoft: 428.6, "amazon-aws": 192.3,
+    intel: 28.7, "honeywell-quantinuum": 215.8, "zapata-computing": 2.1,
+    "defiance-quantum-etf": 72.4, "ark-space-exploration": 18.9,
+  };
+  const base = basePrice[slug] ?? 10;
+  const prices = [];
+  // Simulate hourly data from 9:30 AM to 4:00 PM ET (7 hours)
+  const today = new Date(2026, 2, 15);
+  for (let h = 0; h <= 13; h++) {
+    const ts = new Date(today);
+    ts.setHours(9, 30 + h * 30, 0, 0); // every 30 minutes
+    const drift = (Math.sin(h * 0.8) * 0.02 + Math.cos(h * 0.5) * 0.01) * base;
+    const price = Math.round((base + drift) * 100) / 100;
+    prices.push({
+      timestamp: ts.toISOString(),
+      price,
+      volume: Math.floor(100000 + Math.random() * 500000),
     });
   }
   return { company_slug: slug, prices, count: prices.length };
@@ -186,6 +215,10 @@ export const mockApi = {
 
   getStockHistory(slug: string, days = 90): StockHistoryResponse {
     return generateStockHistory(slug, days);
+  },
+
+  getIntradayHistory(slug: string): IntradayResponse {
+    return generateIntradayHistory(slug);
   },
 
   getPatents(slug: string): PatentListResponse {
