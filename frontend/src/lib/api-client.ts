@@ -60,7 +60,7 @@ async function fetchWithRetry(url: string, retries = MAX_RETRIES): Promise<Respo
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       log.info(`[FETCH] ${url} (attempt ${attempt + 1}/${retries + 1})`);
-      const response = await fetch(url);
+      const response = await fetch(url, { cache: "no-store" });
 
       if (response.ok) {
         log.info(

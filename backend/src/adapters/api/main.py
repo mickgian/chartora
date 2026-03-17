@@ -209,6 +209,66 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "default_ttl_seconds": settings.cache_ttl_seconds,
         }
 
+    @app.get("/api/v1/debug/stock-counts")
+    async def debug_stock_counts(request: Request) -> dict[str, Any]:
+        """Diagnostic: show stock price counts per company in the DB."""
+        from sqlalchemy import func, select, text
+
+        from src.infrastructure.database import CompanyTable, StockPriceTable
+
+        factory = getattr(request.app.state, "session_factory", None)
+        if factory is None:
+            from src.adapters.api.dependencies import get_settings, init_db
+
+            s = get_settings(request)
+            factory = init_db(s)
+            request.app.state.session_factory = factory
+
+        async with factory() as session:
+            # Total count
+            total_result = await session.execute(
+                select(func.count()).select_from(StockPriceTable)
+            )
+            total = total_result.scalar() or 0
+
+            # Per-company counts with date range
+            stmt = (
+                select(
+                    CompanyTable.name,
+                    CompanyTable.id,
+                    func.count(StockPriceTable.id).label("count"),
+                    func.min(StockPriceTable.price_date).label("min_date"),
+                    func.max(StockPriceTable.price_date).label("max_date"),
+                )
+                .join(
+                    StockPriceTable,
+                    CompanyTable.id == StockPriceTable.company_id,
+                )
+                .group_by(CompanyTable.name, CompanyTable.id)
+                .order_by(CompanyTable.name)
+            )
+            result = await session.execute(stmt)
+            rows = result.all()
+
+        companies = [
+            {
+                "name": row.name,
+                "company_id": row.id,
+                "stock_price_count": row.count,
+                "earliest_date": str(row.min_date) if row.min_date else None,
+                "latest_date": str(row.max_date) if row.max_date else None,
+            }
+            for row in rows
+        ]
+
+        return {
+            "total_stock_prices": total,
+            "companies": companies,
+            "database_url_host": settings.database_url.split("@")[-1]
+            if "@" in settings.database_url
+            else "(unknown)",
+        }
+
     return app
 
 

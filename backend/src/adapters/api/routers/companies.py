@@ -122,14 +122,28 @@ async def get_company_stock(
     start = end - timedelta(days=days)
     date_range = DateRange(start=start, end=end)
 
-    prices = await stock_repo.get_by_date_range(company.id or 0, date_range)
+    company_id = company.id or 0
     logger.info(
-        "[STOCK] slug=%s returned %d prices for range %s to %s",
+        "[STOCK] Querying company_id=%d date_range=%s to %s",
+        company_id,
+        start,
+        end,
+    )
+    prices = await stock_repo.get_by_date_range(company_id, date_range)
+    logger.info(
+        "[STOCK] slug=%s company_id=%d returned %d prices for range %s to %s",
         slug,
+        company_id,
         len(prices),
         start,
         end,
     )
+    if prices:
+        logger.info(
+            "[STOCK] First price: %s, Last price: %s",
+            prices[0].price_date,
+            prices[-1].price_date,
+        )
 
     return StockHistoryResponse(
         company_slug=slug,
