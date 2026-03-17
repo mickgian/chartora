@@ -160,8 +160,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.refresh_task = asyncio.create_task(_initial_data_refresh(settings))
 
     async def _initial_data_refresh(settings: Settings) -> None:
-        """Run data refresh if the scores table is empty (first deploy)."""
+        """Run data refresh if data is missing, stale, or forced."""
         try:
+            from datetime import date, timedelta
+
             from sqlalchemy import text as sa_text
             from sqlalchemy.ext.asyncio import (
                 async_sessionmaker,
@@ -171,24 +173,62 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             engine = create_async_engine(settings.database_url)
             factory = async_sessionmaker(engine, expire_on_commit=False)
 
+            needs_refresh = False
+            reason = ""
+
             async with factory() as session:
+                # Check if scores exist at all
                 result = await session.execute(sa_text("SELECT COUNT(*) FROM scores"))
-                count = result.scalar() or 0
+                score_count = result.scalar() or 0
+
+                if score_count == 0:
+                    needs_refresh = True
+                    reason = "no scores in database"
+                else:
+                    # Check if stock data is sufficient (need >30 days for charts)
+                    result = await session.execute(
+                        sa_text("SELECT COUNT(*) FROM stock_prices")
+                    )
+                    stock_count = result.scalar() or 0
+
+                    if stock_count < 100:
+                        needs_refresh = True
+                        reason = f"insufficient stock data ({stock_count} rows)"
+                    else:
+                        # Check if stock data is stale (latest price > 2 days old,
+                        # accounting for weekends)
+                        result = await session.execute(
+                            sa_text("SELECT MAX(price_date) FROM stock_prices")
+                        )
+                        latest_date = result.scalar()
+                        if latest_date is not None:
+                            stale_threshold = date.today() - timedelta(days=3)
+                            if latest_date < stale_threshold:
+                                needs_refresh = True
+                                reason = (
+                                    f"stock data is stale "
+                                    f"(latest: {latest_date}, "
+                                    f"threshold: {stale_threshold})"
+                                )
 
             await engine.dispose()
 
-            if count > 0 and not settings.force_refresh:
+            if settings.force_refresh:
+                needs_refresh = True
+                reason = "CHARTORA_FORCE_REFRESH=true"
+
+            if not needs_refresh:
                 logger.info(
-                    "[STARTUP] Scores table has %d rows — "
-                    "skipping initial refresh "
-                    "(set CHARTORA_FORCE_REFRESH=true to override)",
-                    count,
+                    "[STARTUP] Data looks healthy (%d scores, stock data up to date) "
+                    "— skipping refresh",
+                    score_count,
                 )
                 return
 
             logger.info(
-                "[STARTUP] No scores found — running initial data refresh "
-                "in background..."
+                "[STARTUP] Data refresh needed: %s — "
+                "running in background...",
+                reason,
             )
             from scripts.refresh_data import run_refresh
 
@@ -212,7 +252,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/v1/debug/stock-counts")
     async def debug_stock_counts(request: Request) -> dict[str, Any]:
         """Diagnostic: show stock price counts per company in the DB."""
-        from sqlalchemy import func, select, text
+        from sqlalchemy import func, select
 
         from src.infrastructure.database import CompanyTable, StockPriceTable
 
