@@ -71,9 +71,7 @@ async def refresh_stock_data(
         ticker,
     )
 
-    today = date.today()
-    date_range = DateRange(start=today - timedelta(days=1825), end=today)
-    prices = await stock_adapter.fetch_history(ticker, date_range)
+    prices = await stock_adapter.fetch_max_history(ticker)
 
     if not prices:
         logger.warning("No stock data returned for %s", ticker)

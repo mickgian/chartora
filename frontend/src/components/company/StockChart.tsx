@@ -71,8 +71,9 @@ function IntradayChart({ slug, isDark }: { slug: string; isDark: boolean }) {
 
   if (loading) return <ChartSkeleton />;
   if (error) return <ErrorMessage message={error.message} onRetry={refetch} />;
-  if (!data || data.prices.length === 0) {
-    return <p className="text-sm text-gray-500 dark:text-slate-400">No intraday data available.</p>;
+  if (!data || data.prices.length < 2) {
+    // Not enough intraday data (market closed, off-hours) — fall back to 5-day daily chart
+    return <DailyChart slug={slug} days={5} isDark={isDark} />;
   }
 
   const chartData: ChartPoint[] = data.prices.map((p) => ({

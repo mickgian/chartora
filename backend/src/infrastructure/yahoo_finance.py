@@ -88,11 +88,23 @@ class YahooFinanceAdapter(StockDataSource):
 
     @staticmethod
     def _get_intraday(ticker: str) -> list[IntradayPrice]:
-        """Synchronous helper to get intraday prices via yfinance."""
+        """Synchronous helper to get intraday prices via yfinance.
+
+        Uses period="5d" with interval="30m" to ensure we get enough data
+        even outside market hours, then filters to the most recent trading day.
+        """
         stock = yf.Ticker(ticker)
-        hist = stock.history(period="1d", interval="1h")
+        hist = stock.history(period="5d", interval="30m")
         if hist.empty:
             return []
+
+        # Filter to the most recent trading day that has data
+        if hist.index.tz is None:
+            hist.index = hist.index.tz_localize(None)
+        else:
+            hist.index = hist.index.tz_convert(None)
+        last_date = hist.index[-1].date()
+        hist = hist[hist.index.date == last_date]
 
         prices: list[IntradayPrice] = []
         for idx, row in hist.iterrows():
@@ -102,6 +114,41 @@ class YahooFinanceAdapter(StockDataSource):
                     timestamp=ts,
                     price=Decimal(str(round(row["Close"], 4))),
                     volume=int(row["Volume"]) if row["Volume"] else None,
+                )
+            )
+        return prices
+
+    async def fetch_max_history(self, ticker: str) -> list[StockPrice]:
+        """Fetch maximum available historical stock prices for a ticker."""
+        try:
+            prices: list[StockPrice] = await self._run_sync(
+                self._get_max_history, ticker
+            )
+            return prices
+        except Exception:
+            logger.exception("Error fetching max history for %s", ticker)
+            return []
+
+    @staticmethod
+    def _get_max_history(ticker: str) -> list[StockPrice]:
+        """Synchronous helper to get all available history via yfinance."""
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="max")
+        if hist.empty:
+            return []
+
+        prices: list[StockPrice] = []
+        for idx, row in hist.iterrows():
+            price_date: date = idx.date()
+            prices.append(
+                StockPrice(
+                    company_id=0,
+                    price_date=price_date,
+                    close_price=Decimal(str(round(row["Close"], 4))),
+                    open_price=Decimal(str(round(row["Open"], 4))),
+                    high_price=Decimal(str(round(row["High"], 4))),
+                    low_price=Decimal(str(round(row["Low"], 4))),
+                    volume=int(row["Volume"]),
                 )
             )
         return prices
