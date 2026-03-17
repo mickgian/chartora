@@ -6,6 +6,7 @@
 import type {
   CompanyResponse,
   CompanyDetailResponse,
+  IntradayResponse,
   LeaderboardEntry,
   LeaderboardResponse,
   StockHistoryResponse,
@@ -106,6 +107,32 @@ function generateStockHistory(slug: string, days: number | 0): StockHistoryRespo
   return { company_slug: slug, prices, count: prices.length };
 }
 
+function generateIntradayHistory(slug: string): IntradayResponse {
+  const basePrice: Record<string, number> = {
+    ionq: 32.5, "d-wave-quantum": 8.2, "rigetti-computing": 12.4,
+    "quantum-computing-inc": 3.8, "arqit-quantum": 5.1, ibm: 198.5,
+    "alphabet-google": 178.2, microsoft: 428.6, "amazon-aws": 192.3,
+    intel: 28.7, "honeywell-quantinuum": 215.8, "zapata-computing": 2.1,
+    "defiance-quantum-etf": 72.4, "ark-space-exploration": 18.9,
+  };
+  const base = basePrice[slug] ?? 10;
+  const prices = [];
+  // Simulate hourly data from 9:30 AM to 4:00 PM ET (7 hours)
+  const today = new Date(2026, 2, 15);
+  for (let h = 0; h <= 13; h++) {
+    const ts = new Date(today);
+    ts.setHours(9, 30 + h * 30, 0, 0); // every 30 minutes
+    const drift = (Math.sin(h * 0.8) * 0.02 + Math.cos(h * 0.5) * 0.01) * base;
+    const price = Math.round((base + drift) * 100) / 100;
+    prices.push({
+      timestamp: ts.toISOString(),
+      price,
+      volume: Math.floor(100000 + Math.random() * 500000),
+    });
+  }
+  return { company_slug: slug, prices, count: prices.length };
+}
+
 function generatePatents(slug: string): PatentListResponse {
   const patentCounts: Record<string, number> = {
     ionq: 18, ibm: 45, "alphabet-google": 38, microsoft: 28,
@@ -188,6 +215,10 @@ export const mockApi = {
 
   getStockHistory(slug: string, days = 90): StockHistoryResponse {
     return generateStockHistory(slug, days);
+  },
+
+  getIntradayHistory(slug: string): IntradayResponse {
+    return generateIntradayHistory(slug);
   },
 
   getPatents(slug: string): PatentListResponse {

@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from src.domain.models.entities import (
         Filing,
         GovernmentContract,
+        IntradayPrice,
         NewsArticle,
         Patent,
         StockPrice,
@@ -41,6 +42,10 @@ class StockDataSource(ABC):
     @abstractmethod
     async def fetch_performance(self, ticker: str, days: int) -> float | None:
         """Fetch stock performance (% change) over a given number of days."""
+
+    @abstractmethod
+    async def fetch_intraday(self, ticker: str) -> list[IntradayPrice]:
+        """Fetch intraday (hourly) prices for the current trading day."""
 
 
 class PatentDataSource(ABC):

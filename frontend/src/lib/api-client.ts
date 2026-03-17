@@ -13,6 +13,7 @@ import type {
   HistoricalScoresResponse,
   InsiderTradingResponse,
   InstitutionalOwnershipResponse,
+  IntradayResponse,
   LeaderboardResponse,
   NewsListResponse,
   PatentListResponse,
@@ -164,6 +165,11 @@ export const apiClient = {
     if (IS_DEMO) return Promise.resolve(mockApi.getStockHistory(slug, days));
     const qs = days > 0 ? `?days=${days}` : "";
     return get(`/api/v1/companies/${encodeURIComponent(slug)}/stock${qs}`);
+  },
+
+  getIntradayHistory(slug: string): Promise<IntradayResponse> {
+    if (IS_DEMO) return Promise.resolve(mockApi.getIntradayHistory(slug));
+    return get(`/api/v1/companies/${encodeURIComponent(slug)}/stock/intraday`);
   },
 
   getPatents(slug: string): Promise<PatentListResponse> {

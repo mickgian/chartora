@@ -22,6 +22,7 @@ from src.adapters.repositories import (
     PgStockRepository,
     PgUserRepository,
 )
+from src.domain.interfaces.data_sources import StockDataSource
 from src.domain.interfaces.repositories import (
     AlertPreferenceRepository,
     ApiKeyRepository,
@@ -34,6 +35,7 @@ from src.domain.interfaces.repositories import (
     StockRepository,
     UserRepository,
 )
+from src.infrastructure.yahoo_finance import YahooFinanceAdapter
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -147,6 +149,10 @@ def get_gov_contract_repo(
     return PgGovernmentContractRepository(session)
 
 
+def get_stock_data_source() -> StockDataSource:
+    return YahooFinanceAdapter()
+
+
 CompanyRepoDep = Annotated[CompanyRepository, Depends(get_company_repo)]
 StockRepoDep = Annotated[StockRepository, Depends(get_stock_repo)]
 PatentRepoDep = Annotated[PatentRepository, Depends(get_patent_repo)]
@@ -159,3 +165,4 @@ ApiKeyRepoDep = Annotated[ApiKeyRepository, Depends(get_api_key_repo)]
 GovContractRepoDep = Annotated[
     GovernmentContractRepository, Depends(get_gov_contract_repo)
 ]
+StockDataSourceDep = Annotated[StockDataSource, Depends(get_stock_data_source)]

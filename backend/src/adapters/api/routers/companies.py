@@ -14,6 +14,7 @@ from src.adapters.api.dependencies import (  # noqa: TC001
     NewsRepoDep,
     PatentRepoDep,
     ScoreRepoDep,
+    StockDataSourceDep,
     StockRepoDep,
 )
 from src.adapters.api.schemas import (
@@ -21,6 +22,8 @@ from src.adapters.api.schemas import (
     CompanyResponse,
     FilingListResponse,
     FilingResponse,
+    IntradayPriceResponse,
+    IntradayResponse,
     NewsArticleResponse,
     NewsListResponse,
     PatentListResponse,
@@ -159,6 +162,38 @@ async def get_company_stock(
                 low_price=(float(p.low_price) if p.low_price is not None else None),
                 volume=p.volume,
                 market_cap=p.market_cap,
+            )
+            for p in prices
+        ],
+        count=len(prices),
+    )
+
+
+@router.get("/{slug}/stock/intraday", response_model=IntradayResponse)
+async def get_company_intraday(
+    slug: str,
+    company_repo: CompanyRepoDep,
+    stock_source: StockDataSourceDep,
+) -> IntradayResponse:
+    """Get intraday (hourly) stock prices for a company."""
+    logger.info("[INTRADAY] Fetching intraday data slug=%s", slug)
+    company = await company_repo.get_by_slug(slug)
+    if company is None:
+        raise HTTPException(status_code=404, detail=f"Company '{slug}' not found")
+
+    if company.ticker is None:
+        return IntradayResponse(company_slug=slug, prices=[], count=0)
+
+    prices = await stock_source.fetch_intraday(company.ticker.symbol)
+    logger.info("[INTRADAY] slug=%s returned %d intraday prices", slug, len(prices))
+
+    return IntradayResponse(
+        company_slug=slug,
+        prices=[
+            IntradayPriceResponse(
+                timestamp=p.timestamp,
+                price=float(p.price),
+                volume=p.volume,
             )
             for p in prices
         ],

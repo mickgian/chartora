@@ -108,6 +108,18 @@ class StockHistoryResponse(BaseModel):
     count: int
 
 
+class IntradayPriceResponse(BaseModel):
+    timestamp: datetime
+    price: float
+    volume: int | None
+
+
+class IntradayResponse(BaseModel):
+    company_slug: str
+    prices: list[IntradayPriceResponse]
+    count: int
+
+
 class PatentListResponse(BaseModel):
     company_slug: str
     patents: list[PatentResponse]

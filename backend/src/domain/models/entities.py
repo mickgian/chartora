@@ -61,6 +61,19 @@ class StockPrice:
 
 
 @dataclass
+class IntradayPrice:
+    """A single intraday price point for a company (not persisted)."""
+
+    timestamp: datetime
+    price: Decimal
+    volume: int | None = None
+
+    def __post_init__(self) -> None:
+        if self.price < 0:
+            raise ValueError("Price cannot be negative")
+
+
+@dataclass
 class Patent:
     """A patent filing associated with a company."""
 

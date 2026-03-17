@@ -92,6 +92,20 @@ describe("apiClient", () => {
     });
   });
 
+  describe("getIntradayHistory", () => {
+    it("fetches intraday data for a company", async () => {
+      const mockData = { company_slug: "ionq", prices: [], count: 0 };
+      mockFetch.mockResolvedValueOnce(jsonResponse(mockData));
+
+      await apiClient.getIntradayHistory("ionq");
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://localhost:8000/api/v1/companies/ionq/stock/intraday",
+        { cache: "no-store" },
+      );
+    });
+  });
+
   describe("getPatents", () => {
     it("fetches patents for a company", async () => {
       mockFetch.mockResolvedValueOnce(

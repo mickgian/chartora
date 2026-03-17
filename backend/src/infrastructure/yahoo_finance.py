@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 import yfinance as yf
 
 from src.domain.interfaces.data_sources import StockDataSource
-from src.domain.models.entities import StockPrice
+from src.domain.models.entities import IntradayPrice, StockPrice
 
 if TYPE_CHECKING:
     from src.domain.models.value_objects import DateRange
@@ -74,6 +74,37 @@ class YahooFinanceAdapter(StockDataSource):
         """Run a synchronous function in a thread pool."""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, fn, *args)
+
+    async def fetch_intraday(self, ticker: str) -> list[IntradayPrice]:
+        """Fetch intraday (hourly) prices for the current trading day."""
+        try:
+            prices: list[IntradayPrice] = await self._run_sync(
+                self._get_intraday, ticker
+            )
+            return prices
+        except Exception:
+            logger.exception("Error fetching intraday data for %s", ticker)
+            return []
+
+    @staticmethod
+    def _get_intraday(ticker: str) -> list[IntradayPrice]:
+        """Synchronous helper to get intraday prices via yfinance."""
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="1d", interval="1h")
+        if hist.empty:
+            return []
+
+        prices: list[IntradayPrice] = []
+        for idx, row in hist.iterrows():
+            ts = idx.to_pydatetime()
+            prices.append(
+                IntradayPrice(
+                    timestamp=ts,
+                    price=Decimal(str(round(row["Close"], 4))),
+                    volume=int(row["Volume"]) if row["Volume"] else None,
+                )
+            )
+        return prices
 
     @staticmethod
     def _get_current_price(ticker: str) -> StockPrice | None:
