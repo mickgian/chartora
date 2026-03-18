@@ -116,7 +116,8 @@ function IntradayChart({ slug, isDark }: { slug: string; isDark: boolean }) {
           }
           formatter={(value) => [`$${Number(value).toFixed(2)}`, "Price"]}
           contentStyle={isDark ? { backgroundColor: "#1f2937", border: "1px solid #4b5563", borderRadius: "8px", color: "#f3f4f6" } : undefined}
-          labelStyle={isDark ? { color: "#d1d5db" } : undefined}
+          itemStyle={isDark ? { color: "#f3f4f6" } : undefined}
+          labelStyle={isDark ? { color: "#ffffff", fontWeight: 600 } : undefined}
         />
         <Area
           type="monotone"
@@ -171,7 +172,8 @@ function DailyChart({ slug, days, isDark }: { slug: string; days: number; isDark
           labelFormatter={(v) => formatTooltipDate(String(v))}
           formatter={(value) => [`$${Number(value).toFixed(2)}`, "Price"]}
           contentStyle={isDark ? { backgroundColor: "#1f2937", border: "1px solid #4b5563", borderRadius: "8px", color: "#f3f4f6" } : undefined}
-          labelStyle={isDark ? { color: "#d1d5db" } : undefined}
+          itemStyle={isDark ? { color: "#f3f4f6" } : undefined}
+          labelStyle={isDark ? { color: "#ffffff", fontWeight: 600 } : undefined}
         />
         <Area
           type="monotone"
