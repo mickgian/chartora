@@ -208,6 +208,14 @@ async def refresh_news_data(
     for a in articles:
         object.__setattr__(a, "company_id", company.id)
 
+    # Replace old articles with the fresh filtered set
+    deleted = await news_repo.delete_by_company(company.id or 0)
+    if deleted:
+        logger.info(
+            "Cleared %d old articles for %s",
+            deleted,
+            company.name,
+        )
     await news_repo.save_many(articles)
     logger.info(
         "Saved %d news articles for %s",

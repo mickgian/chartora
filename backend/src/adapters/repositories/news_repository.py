@@ -5,7 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from src.domain.interfaces.repositories import NewsRepository
@@ -34,6 +34,15 @@ class PgNewsRepository(NewsRepository):
         )
         rows = result.scalars().all()
         return [self._to_entity(row) for row in rows]
+
+    async def delete_by_company(self, company_id: int) -> int:
+        result = await self._session.execute(
+            delete(NewsArticleTable).where(
+                NewsArticleTable.company_id == company_id
+            )
+        )
+        await self._session.flush()
+        return int(result.rowcount or 0)
 
     async def get_by_date_range(
         self, company_id: int, date_range: DateRange
