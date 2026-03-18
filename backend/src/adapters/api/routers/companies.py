@@ -261,6 +261,21 @@ async def get_company_news(
         )
 
     articles = await news_repo.get_by_company(company.id or 0, limit=limit)
+
+    # Filter out irrelevant articles (e.g. ETF roundups that only
+    # matched on ticker in the article body during a previous fetch).
+    from src.infrastructure.news_client import NewsApiAdapter
+
+    sector_str = company.sector.value if company.sector else None
+    if sector_str is not None:
+        articles = [
+            a
+            for a in articles
+            if NewsApiAdapter._is_relevant_article(
+                a.title, company.name, sector_str
+            )
+        ]
+
     logger.info("[NEWS] slug=%s returned %d articles", slug, len(articles))
 
     return NewsListResponse(
