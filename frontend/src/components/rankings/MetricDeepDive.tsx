@@ -14,7 +14,7 @@ interface MetricInfo {
   title: string;
   label: string;
   description: string;
-  sources: { name: string; detail: string }[];
+  sources: string[];
   calculation: string;
 }
 
@@ -24,7 +24,7 @@ const METRIC_DETAILS: Record<RankingMetric, MetricInfo> = {
     label: "Stock Momentum",
     description: "Companies ranked by blended 30/60/90-day stock returns.",
     sources: [
-      { name: "Yahoo Finance", detail: "Daily closing prices, market cap, and historical returns via yfinance" },
+      "Daily closing prices, market cap, and historical returns",
     ],
     calculation: "Weighted average of 30-day (40%), 60-day (35%), and 90-day (25%) returns, normalized 0-100.",
   },
@@ -33,29 +33,29 @@ const METRIC_DETAILS: Record<RankingMetric, MetricInfo> = {
     label: "Patent Velocity",
     description: "Companies ranked by patent filings in the last 12 months.",
     sources: [
-      { name: "USPTO Patent API", detail: "US patent applications and grants from the United States Patent and Trademark Office" },
-      { name: "EPO OPS API", detail: "European patent filings from the European Patent Office Open Patent Services" },
+      "US patent applications and grants",
+      "European patent filings",
     ],
     calculation: "Total patents filed in the trailing 12-month window, normalized against the highest filer.",
   },
   funding: {
     title: "Funding Rankings",
     label: "Funding Strength",
-    description: "Companies ranked by financial strength using SEC regulatory filings — the same mandatory disclosures institutional investors rely on.",
+    description: "Companies ranked by financial strength using regulatory filings — the same mandatory disclosures institutional investors rely on.",
     sources: [
-      { name: "SEC EDGAR XBRL", detail: "Stockholders' equity or total assets extracted from 10-K (annual) and 10-Q (quarterly) filings via the CompanyFacts API" },
-      { name: "SEC EDGAR Form D", detail: "Private placement amounts from Regulation D exempt securities offerings — filed when companies raise capital through private fundraising rounds" },
-      { name: "USASpending.gov", detail: "Federal government contract awards and grant values" },
+      "Stockholders' equity or total assets from 10-K (annual) and 10-Q (quarterly) filings",
+      "Private placement amounts from Regulation D exempt securities offerings",
+      "Federal government contract awards and grant values",
     ],
-    calculation: "max(XBRL stockholders' equity, Form D total raised) + government contract value. Normalized: $0 = 0, $1B+ = 100. Blended 70% total funding, 30% most recent round.",
+    calculation: "max(stockholders' equity, total raised) + government contract value. Normalized: $0 = 0, $1B+ = 100. Blended 70% total funding, 30% most recent round.",
   },
   sentiment: {
     title: "News Sentiment Rankings",
     label: "News Sentiment",
     description: "Companies ranked by AI-scored news sentiment.",
     sources: [
-      { name: "NewsAPI.org", detail: "Aggregated headlines from major financial and tech news outlets" },
-      { name: "Claude API", detail: "AI-powered sentiment scoring classifying each article as bullish, bearish, or neutral with a confidence score" },
+      "Aggregated headlines from major financial and tech news outlets",
+      "AI-powered sentiment scoring classifying each article as bullish, bearish, or neutral with a confidence score",
     ],
     calculation: "Average sentiment score across recent articles, weighted by recency. Bullish = positive, bearish = negative, normalized 0-100.",
   },
@@ -105,18 +105,15 @@ export function MetricDeepDive({ metric }: MetricDeepDiveProps) {
         </div>
         <ul className="space-y-1.5">
           {details.sources.map((source) => (
-            <li key={source.name} className="flex items-start gap-2 text-sm">
+            <li key={source} className="flex items-start gap-2 text-sm">
               <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-green-500" />
-              <span>
-                <span className="font-medium text-gray-700 dark:text-slate-300">{source.name}</span>
-                <span className="text-gray-500 dark:text-slate-400"> — {source.detail}</span>
-              </span>
+              <span className="text-gray-600 dark:text-slate-400">{source}</span>
             </li>
           ))}
         </ul>
         <p className="mt-3 text-xs text-gray-400 dark:text-slate-500">
-          All data sourced from free, publicly accessible APIs.
-          No paid databases, no manual overrides.{" "}
+          All data sourced from publicly accessible government and financial data.
+          No manual overrides.{" "}
           <Link href="/methodology" className="text-indigo-500 underline hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300">
             Full methodology
           </Link>
