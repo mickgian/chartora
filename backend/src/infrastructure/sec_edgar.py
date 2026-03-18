@@ -157,17 +157,17 @@ class SecEdgarAdapter(FilingDataSource):
                         filing_date=filing_date,
                         description=description,
                         url=file_url,
-                        data_json=json.dumps({
-                            "form": "D",
-                            "accession": accession,
-                            "entity_name": entity_name,
-                        }),
+                        data_json=json.dumps(
+                            {
+                                "form": "D",
+                                "accession": accession,
+                                "entity_name": entity_name,
+                            }
+                        ),
                     )
                 )
 
-            logger.info(
-                "Found %d Form D filings for %s", len(filings), company_name
-            )
+            logger.info("Found %d Form D filings for %s", len(filings), company_name)
             return filings
         except httpx.HTTPStatusError as e:
             logger.error(
@@ -177,9 +177,7 @@ class SecEdgarAdapter(FilingDataSource):
             )
             return []
         except Exception:
-            logger.exception(
-                "Error fetching Form D filings for %s", company_name
-            )
+            logger.exception("Error fetching Form D filings for %s", company_name)
             return []
 
     async def fetch_form_d_total_raised(self, ticker: str) -> float | None:
@@ -225,9 +223,7 @@ class SecEdgarAdapter(FilingDataSource):
 
             return total_raised if total_raised > 0 else None
         except Exception:
-            logger.exception(
-                "Error fetching Form D total raised for %s", ticker
-            )
+            logger.exception("Error fetching Form D total raised for %s", ticker)
             return None
 
     async def _extract_form_d_amount(
@@ -267,9 +263,7 @@ class SecEdgarAdapter(FilingDataSource):
 
             return None
         except Exception:
-            logger.debug(
-                "Could not extract Form D amount from %s/%s", cik, accession
-            )
+            logger.debug("Could not extract Form D amount from %s/%s", cik, accession)
             return None
 
     async def _resolve_cik(self, ticker: str) -> str | None:
