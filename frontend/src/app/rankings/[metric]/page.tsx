@@ -8,10 +8,6 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://chartora.com";
 
 const VALID_METRICS: RankingMetric[] = ["stock-performance", "patents", "funding", "sentiment"];
 
-export function generateStaticParams() {
-  return VALID_METRICS.map((metric) => ({ metric }));
-}
-
 const METRIC_META: Record<RankingMetric, { title: string; description: string }> = {
   "stock-performance": {
     title: "Stock Performance Rankings",

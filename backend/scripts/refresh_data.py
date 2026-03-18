@@ -324,24 +324,6 @@ KNOWN_PATENT_COUNTS: dict[str, int] = {
     "ark-space-exploration-etf": 0,
 }
 
-KNOWN_FUNDING_USD: dict[str, float] = {
-    "ionq": 634_000_000.0,
-    "d-wave-quantum": 340_000_000.0,
-    "rigetti-computing": 294_000_000.0,
-    "quantum-computing-inc": 70_000_000.0,
-    "arqit-quantum": 100_000_000.0,
-    "zapata-computing": 64_000_000.0,
-    "ibm": 0.0,
-    "alphabet-google": 0.0,
-    "microsoft": 0.0,
-    "amazon-aws": 0.0,
-    "intel": 0.0,
-    "honeywell-quantinuum": 300_000_000.0,
-    "defiance-quantum-etf": 0.0,
-    "ark-space-exploration-etf": 0.0,
-}
-
-
 async def recalculate_scores(
     companies: list[Company],
     stock_repo: PgStockRepository,
@@ -352,6 +334,7 @@ async def recalculate_scores(
     gov_contract_repo: PgGovernmentContractRepository | None = None,
     xbrl_adapter: SecEdgarXbrlAdapter | None = None,
     sentiment_analyzer: ClaudeSentimentAnalyzer | None = None,
+    filing_adapter: SecEdgarAdapter | None = None,
 ) -> None:
     """Recalculate Quantum Power Scores for all companies."""
     logger.info(
@@ -413,13 +396,13 @@ async def recalculate_scores(
                     company.name,
                 )
 
-        # Funding: try SEC EDGAR XBRL, fall back to known estimates
+        # Funding: combine SEC EDGAR XBRL (equity/assets) + Form D (private placements)
         total_funding = 0.0
+
+        # Source 1: XBRL — stockholders' equity or total assets
         if xbrl_adapter and ticker:
             try:
-                xbrl_funding = await xbrl_adapter.fetch_total_funding(
-                    ticker
-                )
+                xbrl_funding = await xbrl_adapter.fetch_total_funding(ticker)
                 if xbrl_funding is not None and xbrl_funding > 0:
                     total_funding = xbrl_funding
                     logger.info(
@@ -429,11 +412,30 @@ async def recalculate_scores(
                     )
             except Exception:
                 logger.warning(
-                    "XBRL funding fetch failed for %s, using fallback",
+                    "XBRL funding fetch failed for %s",
                     company.name,
                 )
-        if total_funding == 0.0:
-            total_funding = KNOWN_FUNDING_USD.get(company.slug, 0.0)
+
+        # Source 2: Form D — private placement / Reg D offering amounts
+        if filing_adapter and ticker:
+            try:
+                form_d_amount = await filing_adapter.fetch_form_d_total_raised(
+                    ticker
+                )
+                if form_d_amount is not None and form_d_amount > 0:
+                    logger.info(
+                        "SEC Form D total raised for %s: $%.0f",
+                        company.name,
+                        form_d_amount,
+                    )
+                    # Use the higher of XBRL equity vs Form D raised
+                    total_funding = max(total_funding, form_d_amount)
+            except Exception:
+                logger.warning(
+                    "Form D funding fetch failed for %s",
+                    company.name,
+                )
+
         if gov_contract_repo:
             gov_value = await gov_contract_repo.get_total_value(company_id)
             total_funding += gov_value
@@ -623,6 +625,7 @@ async def run_refresh(
                 gov_contract_repo,
                 xbrl_adapter,
                 sentiment_analyzer,
+                filing_adapter,
             )
         except Exception:
             logger.exception("Error recalculating scores")

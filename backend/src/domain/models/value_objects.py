@@ -33,6 +33,7 @@ class FilingType(StrEnum):
     FORM_10Q = "10-Q"
     FORM_4 = "Form4"
     FORM_13F = "13F"
+    FORM_D = "FormD"
 
 
 class PatentSource(StrEnum):
