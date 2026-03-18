@@ -297,7 +297,13 @@ async def update_alert_preferences(
     saved = []
     for alert_data in alerts:
         alert_type = alert_data.get("alert_type")
-        if alert_type not in ("score_change", "insider_trading"):
+        valid_types = (
+            "score_change",
+            "insider_trading",
+            "institutional_ownership",
+            "government_contract",
+        )
+        if alert_type not in valid_types:
             raise HTTPException(
                 status_code=422,
                 detail=f"Invalid alert_type: {alert_type}",
