@@ -37,9 +37,7 @@ class PgNewsRepository(NewsRepository):
 
     async def delete_by_company(self, company_id: int) -> int:
         result = await self._session.execute(
-            delete(NewsArticleTable).where(
-                NewsArticleTable.company_id == company_id
-            )
+            delete(NewsArticleTable).where(NewsArticleTable.company_id == company_id)
         )
         await self._session.flush()
         return int(result.rowcount or 0)

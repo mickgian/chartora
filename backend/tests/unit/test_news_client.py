@@ -302,8 +302,7 @@ class TestFetchArticles:
                     },
                     {
                         "title": (
-                            "GraniteShares Announces Weekly "
-                            "Distributions for ETFs"
+                            "GraniteShares Announces Weekly Distributions for ETFs"
                         ),
                         "url": "https://example.com/graniteshares",
                         "publishedAt": "2025-06-13T08:00:00Z",
@@ -535,9 +534,7 @@ class TestValidateUrl:
         async def raise_timeout(request: httpx.Request) -> httpx.Response:
             raise httpx.ReadTimeout("Timed out")
 
-        mock_client = httpx.AsyncClient(
-            transport=httpx.MockTransport(raise_timeout)
-        )
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(raise_timeout))
         adapter = NewsApiAdapter(api_key="test-key", http_client=mock_client)
 
         result = await adapter.validate_url("https://example.com/slow")
@@ -563,9 +560,7 @@ class TestValidateUrl:
         async def raise_error(request: httpx.Request) -> httpx.Response:
             raise httpx.ConnectError("Connection failed")
 
-        mock_client = httpx.AsyncClient(
-            transport=httpx.MockTransport(raise_error)
-        )
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(raise_error))
         adapter = NewsApiAdapter(api_key="test-key", http_client=mock_client)
 
         result = await adapter.validate_url("https://example.com/down")

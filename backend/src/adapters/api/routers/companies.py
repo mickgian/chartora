@@ -271,9 +271,7 @@ async def get_company_news(
         articles = [
             a
             for a in articles
-            if NewsApiAdapter._is_relevant_article(
-                a.title, company.name, sector_str
-            )
+            if NewsApiAdapter._is_relevant_article(a.title, company.name, sector_str)
         ]
 
     logger.info("[NEWS] slug=%s returned %d articles", slug, len(articles))

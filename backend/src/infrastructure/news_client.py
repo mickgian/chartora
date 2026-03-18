@@ -101,9 +101,7 @@ class NewsApiAdapter(NewsDataSource):
                 articles = [
                     a
                     for a in articles
-                    if self._is_relevant_article(
-                        a.title, company_name, sector
-                    )
+                    if self._is_relevant_article(a.title, company_name, sector)
                 ]
                 filtered = before - len(articles)
                 if filtered > 0:
@@ -157,9 +155,7 @@ class NewsApiAdapter(NewsDataSource):
         return bool(_QUANTUM_PATTERN.search(title))
 
     @staticmethod
-    def _is_relevant_article(
-        title: str, company_name: str, sector: str
-    ) -> bool:
+    def _is_relevant_article(title: str, company_name: str, sector: str) -> bool:
         """Check if an article is relevant to a company's quantum activities.
 
         - For big_tech: title must contain a quantum keyword.
@@ -193,9 +189,7 @@ class NewsApiAdapter(NewsDataSource):
         """Check if a URL is reachable via HEAD request."""
         try:
             client = await self._get_client()
-            response = await client.head(
-                url, follow_redirects=False, timeout=5.0
-            )
+            response = await client.head(url, follow_redirects=False, timeout=5.0)
             return bool(response.status_code < 400)
         except (httpx.HTTPError, httpx.StreamError):
             return False
