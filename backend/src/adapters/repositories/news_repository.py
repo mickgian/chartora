@@ -40,7 +40,8 @@ class PgNewsRepository(NewsRepository):
             delete(NewsArticleTable).where(NewsArticleTable.company_id == company_id)
         )
         await self._session.flush()
-        return int(result.rowcount or 0)
+        rowcount: int = getattr(result, "rowcount", 0) or 0
+        return rowcount
 
     async def get_by_date_range(
         self, company_id: int, date_range: DateRange
