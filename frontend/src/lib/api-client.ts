@@ -1,9 +1,6 @@
 /**
  * API client for the Chartora backend.
  * Provides typed fetch wrappers with error handling and retries.
- *
- * In demo mode (NEXT_PUBLIC_DEMO_MODE=true), returns mock data instead
- * of calling the backend. Used for GitHub Pages static preview.
  */
 
 import type {
@@ -23,9 +20,6 @@ import type {
   SortableMetric,
   StockHistoryResponse,
 } from "@/types/api";
-import { mockApi } from "@/lib/mock-data";
-
-const IS_DEMO = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 export class ApiError extends Error {
   constructor(
@@ -49,9 +43,7 @@ const log = {
 };
 
 // Log config on first load
-log.info(
-  `Initialized — BASE_URL=${BASE_URL}, DEMO_MODE=${IS_DEMO}`,
-);
+log.info(`Initialized — BASE_URL=${BASE_URL}`);
 
 async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -148,7 +140,7 @@ export const apiClient = {
     sort_by?: SortableMetric;
     limit?: number;
   }): Promise<LeaderboardResponse> {
-    if (IS_DEMO) return Promise.resolve(mockApi.getLeaderboard(params));
+
     const searchParams = new URLSearchParams();
     if (params?.sort_by) searchParams.set("sort_by", params.sort_by);
     if (params?.limit) searchParams.set("limit", String(params.limit));
@@ -157,38 +149,38 @@ export const apiClient = {
   },
 
   getCompany(slug: string): Promise<CompanyDetailResponse> {
-    if (IS_DEMO) return Promise.resolve(mockApi.getCompany(slug));
+
     return get(`/api/v1/companies/${encodeURIComponent(slug)}`);
   },
 
   getStockHistory(slug: string, days = 90): Promise<StockHistoryResponse> {
-    if (IS_DEMO) return Promise.resolve(mockApi.getStockHistory(slug, days));
+
     const qs = days > 0 ? `?days=${days}` : "";
     return get(`/api/v1/companies/${encodeURIComponent(slug)}/stock${qs}`);
   },
 
   getIntradayHistory(slug: string): Promise<IntradayResponse> {
-    if (IS_DEMO) return Promise.resolve(mockApi.getIntradayHistory(slug));
+
     return get(`/api/v1/companies/${encodeURIComponent(slug)}/stock/intraday`);
   },
 
   getPatents(slug: string): Promise<PatentListResponse> {
-    if (IS_DEMO) return Promise.resolve(mockApi.getPatents(slug));
+
     return get(`/api/v1/companies/${encodeURIComponent(slug)}/patents`);
   },
 
   getNews(slug: string, limit = 20): Promise<NewsListResponse> {
-    if (IS_DEMO) return Promise.resolve(mockApi.getNews(slug));
+
     return get(`/api/v1/companies/${encodeURIComponent(slug)}/news?limit=${limit}`);
   },
 
   getFilings(slug: string): Promise<FilingListResponse> {
-    if (IS_DEMO) return Promise.resolve(mockApi.getFilings(slug));
+
     return get(`/api/v1/companies/${encodeURIComponent(slug)}/filings`);
   },
 
   getRanking(metric: RankingMetric): Promise<RankingResponse> {
-    if (IS_DEMO) return Promise.resolve(mockApi.getRanking(metric));
+
     return get(`/api/v1/rankings/${encodeURIComponent(metric)}`);
   },
 

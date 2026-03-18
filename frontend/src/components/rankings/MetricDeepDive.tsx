@@ -10,29 +10,56 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { TrendArrow } from "@/components/leaderboard/TrendArrow";
 import { MetricChart } from "./MetricChart";
 
-const METRIC_DETAILS: Record<RankingMetric, { title: string; label: string; description: string }> =
-  {
-    "stock-performance": {
-      title: "Stock Performance Rankings",
-      label: "Stock Momentum",
-      description: "Companies ranked by blended 30/60/90-day stock returns.",
-    },
-    patents: {
-      title: "Patent Activity Rankings",
-      label: "Patent Velocity",
-      description: "Companies ranked by patent filings in the last 12 months.",
-    },
-    funding: {
-      title: "Funding Rankings",
-      label: "Funding Strength",
-      description: "Companies ranked by total funding raised and recent rounds.",
-    },
-    sentiment: {
-      title: "News Sentiment Rankings",
-      label: "News Sentiment",
-      description: "Companies ranked by AI-scored news sentiment.",
-    },
-  };
+interface MetricInfo {
+  title: string;
+  label: string;
+  description: string;
+  sources: { name: string; detail: string }[];
+  calculation: string;
+}
+
+const METRIC_DETAILS: Record<RankingMetric, MetricInfo> = {
+  "stock-performance": {
+    title: "Stock Performance Rankings",
+    label: "Stock Momentum",
+    description: "Companies ranked by blended 30/60/90-day stock returns.",
+    sources: [
+      { name: "Yahoo Finance", detail: "Daily closing prices, market cap, and historical returns via yfinance" },
+    ],
+    calculation: "Weighted average of 30-day (40%), 60-day (35%), and 90-day (25%) returns, normalized 0-100.",
+  },
+  patents: {
+    title: "Patent Activity Rankings",
+    label: "Patent Velocity",
+    description: "Companies ranked by patent filings in the last 12 months.",
+    sources: [
+      { name: "USPTO Patent API", detail: "US patent applications and grants from the United States Patent and Trademark Office" },
+      { name: "EPO OPS API", detail: "European patent filings from the European Patent Office Open Patent Services" },
+    ],
+    calculation: "Total patents filed in the trailing 12-month window, normalized against the highest filer.",
+  },
+  funding: {
+    title: "Funding Rankings",
+    label: "Funding Strength",
+    description: "Companies ranked by financial strength using SEC regulatory filings — the same mandatory disclosures institutional investors rely on.",
+    sources: [
+      { name: "SEC EDGAR XBRL", detail: "Stockholders' equity or total assets extracted from 10-K (annual) and 10-Q (quarterly) filings via the CompanyFacts API" },
+      { name: "SEC EDGAR Form D", detail: "Private placement amounts from Regulation D exempt securities offerings — filed when companies raise capital through private fundraising rounds" },
+      { name: "USASpending.gov", detail: "Federal government contract awards and grant values" },
+    ],
+    calculation: "max(XBRL stockholders' equity, Form D total raised) + government contract value. Normalized: $0 = 0, $1B+ = 100. Blended 70% total funding, 30% most recent round.",
+  },
+  sentiment: {
+    title: "News Sentiment Rankings",
+    label: "News Sentiment",
+    description: "Companies ranked by AI-scored news sentiment.",
+    sources: [
+      { name: "NewsAPI.org", detail: "Aggregated headlines from major financial and tech news outlets" },
+      { name: "Claude API", detail: "AI-powered sentiment scoring classifying each article as bullish, bearish, or neutral with a confidence score" },
+    ],
+    calculation: "Average sentiment score across recent articles, weighted by recency. Bullish = positive, bearish = negative, normalized 0-100.",
+  },
+};
 
 interface MetricDeepDiveProps {
   metric: RankingMetric;
@@ -62,6 +89,38 @@ export function MetricDeepDive({ metric }: MetricDeepDiveProps) {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{details.title}</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{details.description}</p>
+      </div>
+
+      {/* Data source transparency */}
+      <div className="mb-8 rounded-lg border border-gray-200 bg-gray-50 p-5 dark:border-gray-700 dark:bg-slate-800/50">
+        <div className="mb-3 flex items-center gap-2">
+          <svg className="h-4 w-4 text-gray-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300">How this ranking is calculated</h3>
+        </div>
+        <p className="mb-3 text-sm text-gray-600 dark:text-slate-400">{details.calculation}</p>
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+          Data sources
+        </div>
+        <ul className="space-y-1.5">
+          {details.sources.map((source) => (
+            <li key={source.name} className="flex items-start gap-2 text-sm">
+              <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-green-500" />
+              <span>
+                <span className="font-medium text-gray-700 dark:text-slate-300">{source.name}</span>
+                <span className="text-gray-500 dark:text-slate-400"> — {source.detail}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-xs text-gray-400 dark:text-slate-500">
+          All data sourced from free, publicly accessible APIs.
+          No paid databases, no manual overrides.{" "}
+          <Link href="/methodology" className="text-indigo-500 underline hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300">
+            Full methodology
+          </Link>
+        </p>
       </div>
 
       {isEmpty ? (
