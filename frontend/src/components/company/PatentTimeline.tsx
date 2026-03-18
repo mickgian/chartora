@@ -44,7 +44,7 @@ export function PatentTimeline({ slug }: PatentTimelineProps) {
           <CartesianGrid strokeDasharray="3 3" stroke={"#374151"} />
           <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#d1d5db" }} stroke={"#4b5563"} />
           <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#d1d5db" }} stroke={"#4b5563"} />
-          <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #4b5563", borderRadius: "8px", color: "#f3f4f6" }} />
+          <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #4b5563", borderRadius: "8px", color: "#f3f4f6" }} itemStyle={{ color: "#f3f4f6" }} labelStyle={{ color: "#ffffff", fontWeight: 600 }} />
           <Bar dataKey="count" name="Patents Filed" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>

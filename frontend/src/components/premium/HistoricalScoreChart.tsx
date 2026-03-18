@@ -149,7 +149,8 @@ export function HistoricalScoreChart() {
               <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#d1d5db" }} stroke={"#4b5563"} />
               <Tooltip
                 contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #4b5563", borderRadius: "8px", fontSize: "12px", color: "#f3f4f6" }}
-                labelStyle={{ color: "#d1d5db" }}
+                itemStyle={{ color: "#f3f4f6" }}
+                labelStyle={{ color: "#ffffff", fontWeight: 600 }}
                 labelFormatter={(v) => new Date(String(v)).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
               />
               <Area

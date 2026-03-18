@@ -49,6 +49,8 @@ export function MetricChart({ entries, metricLabel }: MetricChartProps) {
             return entry?.fullName ?? "";
           }}
           contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #4b5563", borderRadius: "8px", color: "#f3f4f6" }}
+          itemStyle={{ color: "#f3f4f6" }}
+          labelStyle={{ color: "#ffffff", fontWeight: 600 }}
         />
         <Bar dataKey="value" name={metricLabel} radius={[0, 4, 4, 0]}>
           {chartData.map((_, index) => (
