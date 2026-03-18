@@ -26,7 +26,7 @@ export function Footer() {
           </nav>
         </div>
         <div className="mt-6 text-center text-xs text-gray-400 dark:text-slate-500">
-          Data sourced from Yahoo Finance, USPTO, SEC EDGAR, and NewsAPI. Not financial advice.
+          Data sourced from public financial and regulatory filings. Not financial advice.
         </div>
       </div>
     </footer>
