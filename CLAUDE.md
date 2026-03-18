@@ -27,6 +27,21 @@ The goal: build once, let it run passively with daily auto-updating data, moneti
 | Email | Resend.com (free tier) |
 | Hosting | Hetzner CX22 VPS (Ubuntu 24.04) |
 
+## Data Sources (All Free)
+
+| Data | Source | Library/API |
+|------|--------|-------------|
+| Stock prices, market cap | Yahoo Finance | `yfinance` Python lib |
+| Patent filings (US) | USPTO Patent API | REST API |
+| Patent filings (EU) | EPO OPS API | REST API |
+| SEC filings, funding | SEC EDGAR | REST API |
+| Company descriptions | Wikipedia API | REST API |
+| News headlines | NewsAPI.org | REST API (free: 100 req/day) |
+| News sentiment | Claude API | ~$2-5/month |
+| Insider trading | SEC EDGAR Form 4 | REST API |
+| Institutional ownership | SEC EDGAR 13F | REST API |
+| Government contracts | USASpending.gov | REST API |
+
 ## Companies Tracked
 
 **Pure-play public quantum:**
