@@ -29,7 +29,7 @@ const VALUE_PROPS = [
   {
     title: "Data-Driven Rankings",
     description:
-      "Every score is backed by real data from public APIs — stock prices, patent filings, SEC filings, and news sentiment.",
+      "Every score is backed by real data — stock prices, patent filings, regulatory filings, and news sentiment.",
     icon: (
       <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -49,7 +49,7 @@ const VALUE_PROPS = [
   {
     title: "Transparent Methodology",
     description:
-      "Our scoring formula is fully published. Every weight, every data source, every calculation — open for scrutiny.",
+      "Our scoring formula is fully published. Every weight, every calculation — open for scrutiny.",
     icon: (
       <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -57,19 +57,6 @@ const VALUE_PROPS = [
       </svg>
     ),
   },
-];
-
-const DATA_SOURCES = [
-  { name: "Yahoo Finance", usage: "Stock prices, market cap, historical performance" },
-  { name: "USPTO Patent API", usage: "US patent filings and grants" },
-  { name: "EPO OPS API", usage: "European patent filings" },
-  { name: "SEC EDGAR XBRL", usage: "Stockholders' equity and total assets from 10-K/10-Q filings" },
-  { name: "SEC EDGAR Form D", usage: "Private placement fundraising amounts (Reg D exempt offerings)" },
-  { name: "SEC EDGAR Filings", usage: "Insider trades (Form 4), institutional ownership (13F), material events (8-K)" },
-  { name: "NewsAPI.org", usage: "News headlines aggregation" },
-  { name: "Claude API", usage: "AI-powered news sentiment analysis" },
-  { name: "Wikipedia API", usage: "Company descriptions and background" },
-  { name: "USASpending.gov", usage: "Federal government contract awards" },
 ];
 
 const FAQS = [
@@ -143,44 +130,6 @@ export default function AboutPage() {
               </p>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* Data Sources */}
-      <section className="mb-16">
-        <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-slate-100">
-          Data Sources
-        </h2>
-        <p className="mb-6 text-gray-600 dark:text-slate-400">
-          Chartora pulls data exclusively from free, publicly available APIs.
-          Every data point feeding into the Quantum Power Score can be
-          independently verified.
-        </p>
-        <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-900">
-              <tr>
-                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-slate-300">
-                  Source
-                </th>
-                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-slate-300">
-                  Data Provided
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-              {DATA_SOURCES.map((source) => (
-                <tr key={source.name} className="bg-white dark:bg-gray-950">
-                  <td className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-slate-100">
-                    {source.name}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600 dark:text-slate-400">
-                    {source.usage}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </section>
 

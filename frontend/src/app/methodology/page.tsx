@@ -23,7 +23,6 @@ interface ScoringComponent {
   icon: React.ReactNode;
   description: string;
   details: string[];
-  sources: string[];
 }
 
 const SCORING_COMPONENTS: ScoringComponent[] = [
@@ -41,11 +40,10 @@ const SCORING_COMPONENTS: ScoringComponent[] = [
       "Measures the rate of patent filings over the last 12 months, indicating active R&D investment and innovation velocity.",
     details: [
       "Counts patent applications filed in the trailing 12-month window",
-      "Covers both US (USPTO) and European (EPO) patent offices",
+      "Covers both US and European patent offices",
       "Normalized against the highest filer in our tracked universe",
       "Includes provisional and full patent applications",
     ],
-    sources: ["USPTO Patent API", "EPO Open Patent Services (OPS) API"],
   },
   {
     title: "Stock Momentum",
@@ -65,7 +63,6 @@ const SCORING_COMPONENTS: ScoringComponent[] = [
       "Big-tech companies measured by quantum-segment proxy metrics",
       "ETFs use NAV performance data",
     ],
-    sources: ["Yahoo Finance (yfinance)"],
   },
   {
     title: "Qubit Progress",
@@ -85,7 +82,6 @@ const SCORING_COMPONENTS: ScoringComponent[] = [
       "Normalized logarithmically to avoid outsized influence from leaders",
       "Updated when companies announce new processor milestones",
     ],
-    sources: ["Company press releases", "SEC filings (EDGAR)"],
   },
   {
     title: "Funding Strength",
@@ -100,17 +96,12 @@ const SCORING_COMPONENTS: ScoringComponent[] = [
     description:
       "Assesses total capital raised and financial strength using SEC regulatory filings — the same mandatory disclosures that institutional investors rely on.",
     details: [
-      "SEC EDGAR XBRL: stockholders' equity or total assets from 10-K/10-Q filings",
-      "SEC Form D: actual private placement amounts from Regulation D exempt offerings",
-      "Government contracts value from USASpending.gov added to total",
-      "Score uses max(XBRL equity, Form D raised) + government contracts",
+      "Stockholders' equity or total assets from 10-K/10-Q filings",
+      "Private placement amounts from Regulation D exempt offerings",
+      "Government contract values included in total",
+      "Score uses max(equity, private placements) + government contracts",
       "Normalized: $0 maps to 0, $1B+ maps to 100 (70% total weight, 30% recent round)",
       "All data pulled automatically — zero manual input or hardcoded values",
-    ],
-    sources: [
-      "SEC EDGAR XBRL (10-K, 10-Q equity/assets)",
-      "SEC EDGAR Form D (Reg D private placements)",
-      "USASpending.gov (government contracts)",
     ],
   },
   {
@@ -131,7 +122,6 @@ const SCORING_COMPONENTS: ScoringComponent[] = [
       "Weighted by source credibility and recency",
       "Rolling 30-day sentiment window with exponential decay",
     ],
-    sources: ["NewsAPI.org", "Claude API (sentiment analysis)"],
   },
 ];
 
@@ -180,21 +170,6 @@ function ScoringSection({ component }: { component: ScoringComponent }) {
             </li>
           ))}
         </ul>
-      </div>
-      <div>
-        <h4 className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-          Data sources
-        </h4>
-        <div className="flex flex-wrap gap-2">
-          {component.sources.map((source) => (
-            <span
-              key={source}
-              className="rounded-full bg-white/70 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800/70 dark:text-slate-300"
-            >
-              {source}
-            </span>
-          ))}
-        </div>
       </div>
     </section>
   );
@@ -246,12 +221,12 @@ export default function MethodologyPage() {
   Stock Momentum  (20%)  → 30/60/90-day price performance
   Patent Velocity  (25%)  → Patents filed in last 12 months
   Qubit Progress   (20%)  → Latest announced qubit count
-  Funding Strength (20%)  → SEC EDGAR XBRL + Form D + gov contracts
+  Funding Strength (20%)  → Total raised + recent rounds + gov contracts
   News Sentiment   (15%)  → AI-scored recent coverage`}
           </pre>
           <p className="mt-3 text-xs text-indigo-700/80 dark:text-indigo-400/70">
-            Every data point is sourced from free, publicly accessible government
-            and financial APIs. No paid third-party databases. No manual overrides.
+            Every data point is sourced from publicly accessible government
+            and financial data. No manual overrides.
           </p>
         </div>
 
@@ -292,7 +267,7 @@ export default function MethodologyPage() {
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                   <span className="h-2 w-2 rounded-full bg-green-500" />
-                  Patent data refreshed daily from USPTO and EPO
+                  Patent data refreshed daily from US and European patent offices
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                   <span className="h-2 w-2 rounded-full bg-green-500" />
@@ -300,7 +275,7 @@ export default function MethodologyPage() {
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                   <span className="h-2 w-2 rounded-full bg-green-500" />
-                  Funding and SEC filings checked on each update cycle
+                  Funding and regulatory filings checked on each update cycle
                 </li>
               </ul>
             </div>
