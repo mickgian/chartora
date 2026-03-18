@@ -67,7 +67,11 @@ class NewsDataSource(ABC):
 
     @abstractmethod
     async def fetch_articles(
-        self, company_name: str, ticker: str | None = None, limit: int = 10
+        self,
+        company_name: str,
+        ticker: str | None = None,
+        limit: int = 10,
+        sector: str | None = None,
     ) -> list[NewsArticle]:
         """Fetch recent news articles about a company."""
 

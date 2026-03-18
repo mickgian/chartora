@@ -140,6 +140,10 @@ class NewsRepository(ABC):
         """Get recent news articles for a company, ordered by date descending."""
 
     @abstractmethod
+    async def delete_by_company(self, company_id: int) -> int:
+        """Delete all news articles for a company. Returns count deleted."""
+
+    @abstractmethod
     async def get_by_date_range(
         self, company_id: int, date_range: DateRange
     ) -> list[NewsArticle]:
