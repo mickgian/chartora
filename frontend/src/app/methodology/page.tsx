@@ -98,14 +98,20 @@ const SCORING_COMPONENTS: ScoringComponent[] = [
       </svg>
     ),
     description:
-      "Assesses total capital raised, recent funding rounds, and cash position to determine how well a company is resourced for long-term R&D.",
+      "Assesses total capital raised and financial strength using SEC regulatory filings — the same mandatory disclosures that institutional investors rely on.",
     details: [
-      "Total capital raised across all funding rounds",
-      "Recent fundraising activity weighted more heavily",
-      "Includes secondary offerings and government grants",
-      "Considers cash-on-hand from latest SEC filings",
+      "SEC EDGAR XBRL: stockholders' equity or total assets from 10-K/10-Q filings",
+      "SEC Form D: actual private placement amounts from Regulation D exempt offerings",
+      "Government contracts value from USASpending.gov added to total",
+      "Score uses max(XBRL equity, Form D raised) + government contracts",
+      "Normalized: $0 maps to 0, $1B+ maps to 100 (70% total weight, 30% recent round)",
+      "All data pulled automatically — zero manual input or hardcoded values",
     ],
-    sources: ["SEC EDGAR (10-K, 10-Q filings)", "USASpending.gov"],
+    sources: [
+      "SEC EDGAR XBRL (10-K, 10-Q equity/assets)",
+      "SEC EDGAR Form D (Reg D private placements)",
+      "USASpending.gov (government contracts)",
+    ],
   },
   {
     title: "News Sentiment",
@@ -240,9 +246,13 @@ export default function MethodologyPage() {
   Stock Momentum  (20%)  → 30/60/90-day price performance
   Patent Velocity  (25%)  → Patents filed in last 12 months
   Qubit Progress   (20%)  → Latest announced qubit count
-  Funding Strength (20%)  → Total raised + recent rounds
+  Funding Strength (20%)  → SEC EDGAR XBRL + Form D + gov contracts
   News Sentiment   (15%)  → AI-scored recent coverage`}
           </pre>
+          <p className="mt-3 text-xs text-indigo-700/80 dark:text-indigo-400/70">
+            Every data point is sourced from free, publicly accessible government
+            and financial APIs. No paid third-party databases. No manual overrides.
+          </p>
         </div>
 
         {/* Scoring components */}

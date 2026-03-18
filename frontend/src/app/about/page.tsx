@@ -63,11 +63,13 @@ const DATA_SOURCES = [
   { name: "Yahoo Finance", usage: "Stock prices, market cap, historical performance" },
   { name: "USPTO Patent API", usage: "US patent filings and grants" },
   { name: "EPO OPS API", usage: "European patent filings" },
-  { name: "SEC EDGAR", usage: "Financial filings, funding rounds, insider trades, institutional ownership" },
+  { name: "SEC EDGAR XBRL", usage: "Stockholders' equity and total assets from 10-K/10-Q filings" },
+  { name: "SEC EDGAR Form D", usage: "Private placement fundraising amounts (Reg D exempt offerings)" },
+  { name: "SEC EDGAR Filings", usage: "Insider trades (Form 4), institutional ownership (13F), material events (8-K)" },
   { name: "NewsAPI.org", usage: "News headlines aggregation" },
   { name: "Claude API", usage: "AI-powered news sentiment analysis" },
   { name: "Wikipedia API", usage: "Company descriptions and background" },
-  { name: "USASpending.gov", usage: "Government contract data" },
+  { name: "USASpending.gov", usage: "Federal government contract awards" },
 ];
 
 const FAQS = [
