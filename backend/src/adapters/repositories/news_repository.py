@@ -6,6 +6,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from src.domain.interfaces.repositories import NewsRepository
 from src.domain.models.entities import NewsArticle
@@ -50,7 +51,7 @@ class PgNewsRepository(NewsRepository):
         return [self._to_entity(row) for row in rows]
 
     async def save(self, article: NewsArticle) -> NewsArticle:
-        row = NewsArticleTable(
+        stmt = pg_insert(NewsArticleTable).values(
             company_id=article.company_id,
             title=article.title,
             url=article.url,
@@ -59,26 +60,54 @@ class PgNewsRepository(NewsRepository):
             sentiment=article.sentiment.value if article.sentiment else None,
             sentiment_score=article.sentiment_score,
         )
-        self._session.add(row)
+        stmt = stmt.on_conflict_do_update(
+            constraint="uq_news_company_url",
+            set_={
+                "title": stmt.excluded.title,
+                "sentiment": stmt.excluded.sentiment,
+                "sentiment_score": stmt.excluded.sentiment_score,
+            },
+        )
+        await self._session.execute(stmt)
         await self._session.flush()
-        return self._to_entity(row)
+        # Fetch the row back to get the id
+        row = await self._session.execute(
+            select(NewsArticleTable).where(
+                NewsArticleTable.company_id == article.company_id,
+                NewsArticleTable.url == article.url,
+            )
+        )
+        return self._to_entity(row.scalar_one())
 
     async def save_many(self, articles: list[NewsArticle]) -> list[NewsArticle]:
-        rows = []
-        for a in articles:
-            row = NewsArticleTable(
-                company_id=a.company_id,
-                title=a.title,
-                url=a.url,
-                published_at=a.published_at,
-                source_name=a.source_name,
-                sentiment=a.sentiment.value if a.sentiment else None,
-                sentiment_score=a.sentiment_score,
-            )
-            self._session.add(row)
-            rows.append(row)
+        if not articles:
+            return []
+
+        values = [
+            {
+                "company_id": a.company_id,
+                "title": a.title,
+                "url": a.url,
+                "published_at": a.published_at,
+                "source_name": a.source_name,
+                "sentiment": a.sentiment.value if a.sentiment else None,
+                "sentiment_score": a.sentiment_score,
+            }
+            for a in articles
+        ]
+
+        stmt = pg_insert(NewsArticleTable).values(values)
+        stmt = stmt.on_conflict_do_update(
+            constraint="uq_news_company_url",
+            set_={
+                "title": stmt.excluded.title,
+                "sentiment": stmt.excluded.sentiment,
+                "sentiment_score": stmt.excluded.sentiment_score,
+            },
+        )
+        await self._session.execute(stmt)
         await self._session.flush()
-        return [self._to_entity(r) for r in rows]
+        return articles
 
     @staticmethod
     def _to_entity(row: NewsArticleTable) -> NewsArticle:

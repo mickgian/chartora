@@ -281,8 +281,8 @@ class TestFetchArticles:
         assert "qubit" in articles[0].title.lower()
 
     @pytest.mark.asyncio
-    async def test_fetch_keeps_all_for_pure_play(self):
-        """Pure-play sector should not filter articles by quantum relevance."""
+    async def test_fetch_keeps_company_name_articles_for_pure_play(self):
+        """Pure-play sector keeps articles mentioning the company name."""
         mock_response = httpx.Response(
             200,
             json={
@@ -300,6 +300,15 @@ class TestFetchArticles:
                         "publishedAt": "2025-06-14T08:00:00Z",
                         "source": {"name": "CNBC"},
                     },
+                    {
+                        "title": (
+                            "GraniteShares Announces Weekly "
+                            "Distributions for ETFs"
+                        ),
+                        "url": "https://example.com/graniteshares",
+                        "publishedAt": "2025-06-13T08:00:00Z",
+                        "source": {"name": "GlobeNewswire"},
+                    },
                 ],
             },
             request=httpx.Request("GET", "https://newsapi.org/v2/everything"),
@@ -313,10 +322,96 @@ class TestFetchArticles:
             "IonQ", "IONQ", limit=10, sector="pure_play"
         )
 
+        # IonQ articles kept (company name in title), GraniteShares filtered out
         assert len(articles) == 2
+        assert all("IonQ" in a.title for a in articles)
+
+    @pytest.mark.asyncio
+    async def test_fetch_filters_etf_roundup_for_pure_play(self):
+        """Pure-play sector should filter out ETF roundup articles."""
+        mock_response = httpx.Response(
+            200,
+            json={
+                "status": "ok",
+                "articles": [
+                    {
+                        "title": (
+                            "D-Wave Keeps Delivering Good News"
+                            "\u2014So Why Is It Falling?"
+                        ),
+                        "url": "https://example.com/dwave-news",
+                        "publishedAt": "2025-06-15T10:30:00Z",
+                        "source": {"name": "MarketBeat"},
+                    },
+                    {
+                        "title": (
+                            "Tidal Financial Group and Defiance ETFs "
+                            "Announce Reverse Stock Splits for Select ETFs"
+                        ),
+                        "url": "https://example.com/tidal-etf",
+                        "publishedAt": "2025-06-14T08:00:00Z",
+                        "source": {"name": "GlobeNewswire"},
+                    },
+                ],
+            },
+            request=httpx.Request("GET", "https://newsapi.org/v2/everything"),
+        )
+        mock_client = httpx.AsyncClient(
+            transport=httpx.MockTransport(lambda req: mock_response)
+        )
+        adapter = NewsApiAdapter(api_key="test-key", http_client=mock_client)
+
+        articles = await adapter.fetch_articles(
+            "D-Wave Quantum", "QBTS", limit=10, sector="pure_play"
+        )
+
+        assert len(articles) == 1
+        assert "D-Wave" in articles[0].title
+
+    @pytest.mark.asyncio
+    async def test_fetch_uses_search_in_for_non_big_tech(self):
+        """Non-big-tech sectors should use searchIn=title,description."""
+        captured_params: dict[str, str] = {}
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            captured_params.update(dict(request.url.params))
+            return httpx.Response(
+                200,
+                json={"status": "ok", "articles": []},
+                request=request,
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = NewsApiAdapter(api_key="test-key", http_client=mock_client)
+
+        await adapter.fetch_articles(
+            "D-Wave Quantum", "QBTS", limit=10, sector="pure_play"
+        )
+        assert captured_params.get("searchIn") == "title,description"
+
+    @pytest.mark.asyncio
+    async def test_fetch_no_search_in_for_big_tech(self):
+        """Big-tech sectors should NOT set searchIn (query has AND clause)."""
+        captured_params: dict[str, str] = {}
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            captured_params.update(dict(request.url.params))
+            return httpx.Response(
+                200,
+                json={"status": "ok", "articles": []},
+                request=request,
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = NewsApiAdapter(api_key="test-key", http_client=mock_client)
+
+        await adapter.fetch_articles("IBM", "IBM", limit=10, sector="big_tech")
+        assert "searchIn" not in captured_params
 
 
 class TestIsQuantumRelevant:
+    """Tests for the low-level _is_quantum_relevant static method."""
+
     def test_quantum_title_is_relevant(self):
         assert NewsApiAdapter._is_quantum_relevant(
             "IBM advances quantum computing roadmap"
@@ -354,6 +449,56 @@ class TestIsQuantumRelevant:
 
     def test_empty_title(self):
         assert not NewsApiAdapter._is_quantum_relevant("")
+
+
+class TestIsRelevantArticle:
+    """Tests for the sector-aware _is_relevant_article method."""
+
+    def test_quantum_keyword_relevant_for_any_sector(self):
+        assert NewsApiAdapter._is_relevant_article(
+            "D-Wave advances quantum annealing", "D-Wave Quantum", "pure_play"
+        )
+
+    def test_company_name_relevant_for_pure_play(self):
+        assert NewsApiAdapter._is_relevant_article(
+            "D-Wave Keeps Delivering Good News", "D-Wave Quantum", "pure_play"
+        )
+
+    def test_etf_roundup_rejected_for_pure_play(self):
+        assert not NewsApiAdapter._is_relevant_article(
+            "GraniteShares Announces Weekly Distributions for ETFs",
+            "D-Wave Quantum",
+            "pure_play",
+        )
+
+    def test_stock_split_rejected_for_pure_play(self):
+        assert not NewsApiAdapter._is_relevant_article(
+            "Tidal Financial Group and Defiance ETFs Announce Reverse Stock Splits",
+            "D-Wave Quantum",
+            "pure_play",
+        )
+
+    def test_company_name_not_relevant_for_big_tech(self):
+        # For big-tech, only quantum keywords count
+        assert not NewsApiAdapter._is_relevant_article(
+            "IBM reports Q3 earnings beat", "IBM", "big_tech"
+        )
+
+    def test_quantum_keyword_relevant_for_big_tech(self):
+        assert NewsApiAdapter._is_relevant_article(
+            "IBM unveils 1000-qubit quantum processor", "IBM", "big_tech"
+        )
+
+    def test_first_part_of_name_matches(self):
+        # "D-Wave" is the first part of "D-Wave Quantum"
+        assert NewsApiAdapter._is_relevant_article(
+            "D-Wave Keeps Delivering Good News", "D-Wave Quantum", "pure_play"
+        )
+
+    def test_empty_title_rejected(self):
+        assert not NewsApiAdapter._is_relevant_article(
+            "", "D-Wave Quantum", "pure_play"
+        )
 
 
 class TestValidateUrl:

@@ -76,6 +76,11 @@ class NewsApiAdapter(NewsDataSource):
                 "apiKey": self._api_key,
             }
 
+            # Restrict search to title+description to avoid false positives
+            # from short tickers matching unrelated article body text.
+            if sector != "big_tech":
+                params["searchIn"] = "title,description"
+
             response = await client.get(NEWSAPI_BASE_URL, params=params)
             response.raise_for_status()
             data = response.json()
@@ -90,11 +95,15 @@ class NewsApiAdapter(NewsDataSource):
 
             articles = self._parse_articles(data)
 
-            # Post-fetch relevance filter for big-tech companies
-            if sector == "big_tech":
+            # Post-fetch relevance filter
+            if sector is not None:
                 before = len(articles)
                 articles = [
-                    a for a in articles if self._is_quantum_relevant(a.title)
+                    a
+                    for a in articles
+                    if self._is_relevant_article(
+                        a.title, company_name, sector
+                    )
                 ]
                 filtered = before - len(articles)
                 if filtered > 0:
@@ -146,6 +155,39 @@ class NewsApiAdapter(NewsDataSource):
         if not title:
             return False
         return bool(_QUANTUM_PATTERN.search(title))
+
+    @staticmethod
+    def _is_relevant_article(
+        title: str, company_name: str, sector: str
+    ) -> bool:
+        """Check if an article is relevant to a company's quantum activities.
+
+        - For big_tech: title must contain a quantum keyword.
+        - For pure_play/etf: title must contain a quantum keyword OR the
+          company name (to allow legitimate business news like earnings,
+          partnerships that mention the company by name).
+        """
+        if not title:
+            return False
+
+        # Quantum keyword match — relevant for any sector
+        if _QUANTUM_PATTERN.search(title):
+            return True
+
+        # For non-big-tech, also accept articles that mention the company name
+        if sector != "big_tech":
+            # Extract the core name (e.g. "D-Wave" from "D-Wave Quantum")
+            # Check both full name and first word/hyphenated part
+            title_lower = title.lower()
+            name_lower = company_name.lower()
+            if name_lower in title_lower:
+                return True
+            # Check first significant part (e.g. "D-Wave" from "D-Wave Quantum")
+            first_part = company_name.split()[0] if company_name else ""
+            if len(first_part) > 2 and first_part.lower() in title_lower:
+                return True
+
+        return False
 
     async def validate_url(self, url: str) -> bool:
         """Check if a URL is reachable via HEAD request."""

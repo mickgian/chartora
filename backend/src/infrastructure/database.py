@@ -123,6 +123,9 @@ class ScoreTable(Base):
 
 class NewsArticleTable(Base):
     __tablename__ = "news_articles"
+    __table_args__ = (
+        UniqueConstraint("company_id", "url", name="uq_news_company_url"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     company_id: Mapped[int] = mapped_column(
