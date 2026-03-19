@@ -18,7 +18,7 @@ describe("sitemap", () => {
   it("includes company pages with correct URL pattern", () => {
     const entries = sitemap();
     const companyPages = entries.filter((e) => e.url.includes("/company/"));
-    expect(companyPages.length).toBe(14);
+    expect(companyPages.length).toBe(24);
     companyPages.forEach((page) => {
       expect(page.url).toMatch(/^https:\/\/chartora\.com\/company\/[\w-]+$/);
       expect(page.priority).toBe(0.8);

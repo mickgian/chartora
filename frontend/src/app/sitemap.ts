@@ -14,6 +14,9 @@ const COMPANY_SLUGS = [
   "infleqtion",
   "sealsq",
   "btq-technologies",
+  "quantumctek",
+  "quantum-emotion",
+  "01-communique",
   "ibm",
   "alphabet-google",
   "microsoft",
@@ -24,6 +27,9 @@ const COMPANY_SLUGS = [
   "fujitsu",
   "defiance-quantum-etf",
   "wisdomtree-quantum-etf",
+  "vaneck-quantum-etf",
+  "ishares-quantum-etf",
+  "globalx-ai-quantum-etf",
 ];
 
 const RANKING_METRICS: RankingMetric[] = ["stock-performance", "patents", "funding", "sentiment"];
