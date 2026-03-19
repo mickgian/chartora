@@ -36,37 +36,31 @@ QUANTUM_KEYWORDS: re.Pattern[str] = re.compile(
 # Values are additional search terms to try — these are the legal entity
 # names that appear as recipients in USASpending.gov federal award records.
 ALTERNATE_SEARCH_NAMES: dict[str, list[str]] = {
-    # Pure-play quantum companies
-    "IonQ": ["IONQ INC"],
+    # Pure-play quantum — legal entity names verified via USASpending / SAM.gov
+    "IonQ": ["IONQ, INC."],
     "D-Wave Quantum": ["D-WAVE SYSTEMS", "D-WAVE SYSTEMS INC"],
-    "Rigetti Computing": ["RIGETTI & CO", "RIGETTI & CO LLC"],
+    "Rigetti Computing": ["RIGETTI & CO, LLC", "RIGETTI & CO"],
     "Quantum Computing Inc": ["QUANTUM COMPUTING INC"],
     "Arqit Quantum": ["ARQIT LIMITED", "ARQIT"],
-    "Zapata Computing": ["ZAPATA COMPUTING INC", "ZAPATA AI", "ZAPATA AI INC"],
-    # Big tech — DB names contain parentheticals that won't match
+    "Zapata Computing": ["ZAPATA COMPUTING, INC.", "ZAPATA AI"],
+    # Big tech — DB names won't match; use verified USASpending recipient names
     "IBM": [
         "INTERNATIONAL BUSINESS MACHINES CORPORATION",
-        "INTERNATIONAL BUSINESS MACHINES",
-        "IBM CORPORATION",
     ],
     "Alphabet (Google)": [
-        "ALPHABET INC",
         "GOOGLE LLC",
-        "GOOGLE INC",
-        "GOOGLE",
     ],
     "Microsoft": ["MICROSOFT CORPORATION"],
     "Amazon (AWS)": [
-        "AMAZON WEB SERVICES INC",
+        "AMAZON WEB SERVICES, INC.",
         "AMAZON.COM SERVICES LLC",
-        "AMAZON",
+        "AMAZON.COM, INC.",
     ],
     "Intel": ["INTEL CORPORATION", "INTEL FEDERAL LLC"],
     "Honeywell (Quantinuum)": [
         "QUANTINUUM LLC",
-        "QUANTINUUM",
-        "HONEYWELL INTERNATIONAL INC",
-        "HONEYWELL",
+        "HONEYWELL INTERNATIONAL INC.",
+        "HONEYWELL FEDERAL MANUFACTURING & TECHNOLOGIES, LLC",
     ],
 }
 
