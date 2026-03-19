@@ -106,6 +106,7 @@ export function GovernmentContracts({ slug }: GovernmentContractsProps) {
               </h3>
               <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                 Federal contract awards sourced from USASpending.gov.
+                Contracts tagged <span className="font-semibold text-purple-600 dark:text-purple-400">Quantum</span> mention quantum computing keywords in their description.
               </p>
             </div>
             {hasQuantumContracts && (
@@ -158,7 +159,10 @@ export function GovernmentContracts({ slug }: GovernmentContractsProps) {
                       <td className="max-w-xs truncate px-4 py-3 text-gray-700 dark:text-slate-300">
                         {c.title}
                         {c.quantum_related && (
-                          <span className="ml-2 inline-block rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+                          <span
+                            title="This contract mentions quantum computing keywords (e.g. quantum, qubit, superconducting) in its description"
+                            className="ml-2 inline-block cursor-help rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
+                          >
                             Quantum
                           </span>
                         )}
