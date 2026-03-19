@@ -53,15 +53,15 @@ class TestTicker:
         assert t.symbol == "688027.SS"
 
     def test_ticker_invalid_double_dot_raises(self) -> None:
-        with pytest.raises(ValueError, match="alphanumeric with optional exchange suffix"):
+        with pytest.raises(ValueError, match="Invalid ticker"):
             Ticker("ONE..V")
 
     def test_ticker_invalid_trailing_dot_raises(self) -> None:
-        with pytest.raises(ValueError, match="alphanumeric with optional exchange suffix"):
+        with pytest.raises(ValueError, match="Invalid ticker"):
             Ticker("ONE.")
 
     def test_ticker_invalid_special_chars_raises(self) -> None:
-        with pytest.raises(ValueError, match="alphanumeric with optional exchange suffix"):
+        with pytest.raises(ValueError, match="Invalid ticker"):
             Ticker("ION@Q")
 
     def test_ticker_is_frozen(self) -> None:
