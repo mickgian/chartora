@@ -146,8 +146,8 @@ class TestCompany:
 
     def test_company_without_ticker(self) -> None:
         c = Company(
-            name="Zapata Computing",
-            slug="zapata-computing",
+            name="Quantum Startup",
+            slug="quantum-startup",
             sector=Sector.PURE_PLAY,
         )
         assert c.ticker is None
@@ -384,6 +384,45 @@ class TestQuantumPowerScore:
                 funding_strength=50.0,
                 news_sentiment=50.0,
             )
+
+    def test_custom_etf_weights(self) -> None:
+        """ETFs use only stock_momentum (60%) and news_sentiment (40%)."""
+        score = QuantumPowerScore(
+            company_id=1,
+            score_date=date(2025, 3, 14),
+            stock_momentum=80.0,
+            patent_velocity=0.0,
+            qubit_progress=0.0,
+            funding_strength=0.0,
+            news_sentiment=70.0,
+            score_weights={"stock_momentum": 0.60, "news_sentiment": 0.40},
+        )
+        expected = 80.0 * 0.60 + 70.0 * 0.40
+        assert score.total_score == round(expected, 2)
+
+    def test_custom_weights_ignore_zero_metrics(self) -> None:
+        """With ETF weights, zero patents/qubits/funding don't drag score down."""
+        etf_score = QuantumPowerScore(
+            company_id=1,
+            score_date=date(2025, 3, 14),
+            stock_momentum=80.0,
+            patent_velocity=0.0,
+            qubit_progress=0.0,
+            funding_strength=0.0,
+            news_sentiment=70.0,
+            score_weights={"stock_momentum": 0.60, "news_sentiment": 0.40},
+        )
+        company_score = QuantumPowerScore(
+            company_id=2,
+            score_date=date(2025, 3, 14),
+            stock_momentum=80.0,
+            patent_velocity=0.0,
+            qubit_progress=0.0,
+            funding_strength=0.0,
+            news_sentiment=70.0,
+        )
+        # ETF score should be much higher since zeros are not weighted
+        assert etf_score.total_score > company_score.total_score
 
     def test_trend_up(self) -> None:
         score = QuantumPowerScore(

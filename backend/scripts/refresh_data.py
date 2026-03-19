@@ -38,6 +38,7 @@ from src.infrastructure.sentiment import ClaudeSentimentAnalyzer
 from src.infrastructure.usaspending_client import UsaSpendingAdapter
 from src.infrastructure.uspto_client import UsptoPatentAdapter
 from src.infrastructure.yahoo_finance import YahooFinanceAdapter
+from src.domain.models.sector_config import DEFAULT_ETF_SECTOR
 from src.usecases.calculate_score import ScoreInput, calculate_score
 from src.usecases.rank_companies import rank_companies
 
@@ -328,7 +329,6 @@ KNOWN_QUBIT_COUNTS: dict[str, int] = {
 #   Quantinuum: 410 publications / 188 families (PatentVest)
 #   Arqit: ~52 registered patents (IPqwery/GreyB)
 #   QUBT: 100+ patents from LSI acquisition + organic (SEC filings)
-#   Zapata: 60+ patents granted+pending (GlobeNewswire Oct 2025)
 #   Amazon/AWS: undisclosed, estimated from Ocelot + Braket activity
 #   Intel: top-10 holder but second tier ~35/yr (QED-C, MIT QIR)
 KNOWN_PATENT_COUNTS: dict[str, int] = {
@@ -500,7 +500,11 @@ async def recalculate_scores(
             avg_sentiment=avg_sentiment,
             article_count=article_count,
         )
-        score = calculate_score(score_input)
+        # Use ETF-specific weights for ETFs (only stock + sentiment matter)
+        etf_weights = (
+            DEFAULT_ETF_SECTOR.score_weights if company.is_etf else None
+        )
+        score = calculate_score(score_input, score_weights=etf_weights)
         logger.info(
             "Score for %s: total=%.2f stock=%.2f patent=%.2f "
             "qubit=%.2f funding=%.2f news=%.2f "

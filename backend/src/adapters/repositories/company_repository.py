@@ -46,6 +46,15 @@ class PgCompanyRepository(CompanyRepository):
         rows = result.scalars().all()
         return [self._to_entity(row) for row in rows]
 
+    async def get_by_sector(self, sector: str) -> list[Company]:
+        result = await self._session.execute(
+            select(CompanyTable)
+            .where(CompanyTable.sector == sector)
+            .order_by(CompanyTable.name)
+        )
+        rows = result.scalars().all()
+        return [self._to_entity(row) for row in rows]
+
     async def save(self, company: Company) -> Company:
         if company.id is not None:
             # Update existing

@@ -152,11 +152,16 @@ def _normalize_news_sentiment(
     return max(0.0, min(100.0, adjusted))
 
 
-def calculate_score(score_input: ScoreInput) -> QuantumPowerScore:
+def calculate_score(
+    score_input: ScoreInput,
+    score_weights: dict[str, float] | None = None,
+) -> QuantumPowerScore:
     """Calculate the Quantum Power Score from raw metric inputs.
 
     Args:
         score_input: Raw metric data for a single company on a given date.
+        score_weights: Optional custom weights (e.g. for ETFs). When provided,
+            only the specified metrics are weighted in the total. Must sum to ~1.0.
 
     Returns:
         A QuantumPowerScore entity with all components normalized to 0-100.
@@ -196,4 +201,5 @@ def calculate_score(score_input: ScoreInput) -> QuantumPowerScore:
         qubit_progress=qubit_progress,
         funding_strength=funding_strength,
         news_sentiment=news_sentiment,
+        score_weights=score_weights,
     )

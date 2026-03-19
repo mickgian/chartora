@@ -68,7 +68,7 @@ const FAQS = [
   {
     question: "Which companies does Chartora track?",
     answer:
-      "We track pure-play quantum companies (IonQ, D-Wave, Rigetti, Quantum Computing Inc, Arqit, Zapata), big tech with quantum divisions (IBM, Google, Microsoft, Amazon, Intel, Honeywell/Quantinuum), and quantum-focused ETFs (QTUM, ARKX).",
+      "We track pure-play quantum companies (IonQ, D-Wave, Rigetti, Quantum Computing Inc, Arqit, and others), big tech with quantum divisions (IBM, Google, Microsoft, Amazon, Intel, Honeywell/Quantinuum), and quantum-focused ETFs (QTUM, WQTM, QNTM.L, and more) ranked in a separate section.",
   },
   {
     question: "Is the Quantum Power Score financial advice?",

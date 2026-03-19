@@ -158,8 +158,9 @@ class QuantumPowerScore:
     rank: int | None = None
     rank_change: int | None = None
     id: int | None = None
+    score_weights: dict[str, float] | None = None
 
-    # Weights per CLAUDE.md spec
+    # Default weights per CLAUDE.md spec (used when score_weights is None)
     WEIGHT_STOCK_MOMENTUM: float = 0.20
     WEIGHT_PATENT_VELOCITY: float = 0.25
     WEIGHT_QUBIT_PROGRESS: float = 0.20
@@ -179,7 +180,27 @@ class QuantumPowerScore:
         self.total_score = self._calculate_total()
 
     def _calculate_total(self) -> float:
-        """Calculate weighted total score."""
+        """Calculate weighted total score.
+
+        Uses custom score_weights if provided, otherwise falls back to
+        the default class-level weights.
+        """
+        if self.score_weights is not None:
+            component_map = {
+                "stock_momentum": self.stock_momentum,
+                "patent_velocity": self.patent_velocity,
+                "qubit_progress": self.qubit_progress,
+                "funding_strength": self.funding_strength,
+                "news_sentiment": self.news_sentiment,
+            }
+            return round(
+                sum(
+                    component_map[k] * w
+                    for k, w in self.score_weights.items()
+                    if k in component_map
+                ),
+                2,
+            )
         return round(
             self.stock_momentum * self.WEIGHT_STOCK_MOMENTUM
             + self.patent_velocity * self.WEIGHT_PATENT_VELOCITY

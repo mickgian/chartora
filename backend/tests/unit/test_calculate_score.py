@@ -257,6 +257,29 @@ class TestCalculateScore:
         result = calculate_score(score_input)
         assert result.total_score == 100.0
 
+    def test_etf_weights_only_use_stock_and_sentiment(self) -> None:
+        """ETF score should use only stock_momentum + news_sentiment."""
+        score_input = ScoreInput(
+            company_id=1,
+            score_date=date(2025, 3, 14),
+            stock_return_30d=20.0,
+            stock_return_60d=15.0,
+            stock_return_90d=10.0,
+            patents_filed_12m=0,
+            qubit_count=0,
+            total_funding_usd=0.0,
+            avg_sentiment=0.5,
+            article_count=10,
+        )
+        etf_weights = {"stock_momentum": 0.60, "news_sentiment": 0.40}
+        result = calculate_score(score_input, score_weights=etf_weights)
+
+        # Total should only consider stock + sentiment
+        expected = result.stock_momentum * 0.60 + result.news_sentiment * 0.40
+        assert result.total_score == pytest.approx(expected, abs=0.01)
+        # Patent/qubit/funding zeros should not affect the score
+        assert result.total_score > 0.0
+
     def test_score_returns_quantum_power_score_entity(self) -> None:
         score_input = ScoreInput(
             company_id=1,

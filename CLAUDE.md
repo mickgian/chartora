@@ -55,13 +55,14 @@ The goal: build once, let it run passively with daily auto-updating data, moneti
 - Amazon/AWS (AMZN), Intel (INTC), Honeywell/Quantinuum
 - NVIDIA (NVDA), Fujitsu (6702.T)
 
-**ETFs:**
+**ETFs (ranked separately — scored by stock performance + sentiment only):**
 - Defiance Quantum ETF (QTUM), WisdomTree Quantum Computing Fund (WQTM)
 - VanEck Quantum Computing UCITS ETF (QNTM.L), iShares Quantum Computing UCITS ETF (QANT.AS)
 - Global X AI Semiconductor & Quantum ETF (CHPX)
 
 ## Quantum Power Score Formula
 
+### Companies
 ```
 Quantum Power Score (0-100) =
   Stock momentum (20%)    → 30/60/90 day performance
@@ -70,6 +71,15 @@ Quantum Power Score (0-100) =
   Funding strength (20%)  → Total raised + recent rounds
   News sentiment (15%)    → AI-scored recent coverage
 ```
+
+### ETFs
+```
+ETF Score (0-100) =
+  Stock momentum (60%)    → 30/60/90 day performance
+  News sentiment (40%)    → AI-scored recent coverage
+```
+ETFs don't have patents, qubits, or funding rounds, so they use a simplified
+two-metric score and appear in a separate section on the leaderboard.
 
 ## Pages
 

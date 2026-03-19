@@ -51,6 +51,7 @@ class LeaderboardResponse(BaseModel):
     count: int
     updated_at: datetime | None
     hardcoded_metrics: list[str] = []
+    sector: str | None = None
 
 
 class StockPriceResponse(BaseModel):

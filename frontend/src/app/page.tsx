@@ -1,4 +1,5 @@
 import { LeaderboardTable } from "@/components/leaderboard/LeaderboardTable";
+import { ETFLeaderboardTable } from "@/components/leaderboard/ETFLeaderboardTable";
 import { AdSlot } from "@/components/ads/AdSlot";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://chartora.com";
@@ -25,6 +26,9 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <LeaderboardTable />
+      <div className="mt-10">
+        <ETFLeaderboardTable />
+      </div>
       <AdSlot adSlot="leaderboard-bottom" placement="between-sections" className="mt-8" />
     </>
   );

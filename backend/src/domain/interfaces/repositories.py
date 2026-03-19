@@ -42,6 +42,10 @@ class CompanyRepository(ABC):
         """Retrieve all tracked companies."""
 
     @abstractmethod
+    async def get_by_sector(self, sector: str) -> list[Company]:
+        """Retrieve companies filtered by sector."""
+
+    @abstractmethod
     async def save(self, company: Company) -> Company:
         """Persist a company entity. Returns the saved entity with ID set."""
 

@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.domain.models.sector_config import DEFAULT_QUANTUM_SECTOR, SectorConfig
+from src.domain.models.sector_config import DEFAULT_ETF_SECTOR, DEFAULT_QUANTUM_SECTOR, SectorConfig
 
 
 class TestSectorConfig:
@@ -51,6 +51,20 @@ class TestSectorConfig:
         assert w["qubit_progress"] == 0.20
         assert w["funding_strength"] == 0.20
         assert w["news_sentiment"] == 0.15
+
+    def test_default_etf_sector(self):
+        assert DEFAULT_ETF_SECTOR.name == "etf"
+        assert DEFAULT_ETF_SECTOR.display_name == "Quantum ETFs"
+        total = sum(DEFAULT_ETF_SECTOR.score_weights.values())
+        assert abs(total - 1.0) < 0.01
+
+    def test_default_etf_weights(self):
+        w = DEFAULT_ETF_SECTOR.score_weights
+        assert w["stock_momentum"] == 0.60
+        assert w["news_sentiment"] == 0.40
+        assert "patent_velocity" not in w
+        assert "qubit_progress" not in w
+        assert "funding_strength" not in w
 
     def test_disabled_sector(self):
         config = SectorConfig(
