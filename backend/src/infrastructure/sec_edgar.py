@@ -111,13 +111,9 @@ class SecEdgarAdapter(FilingDataSource):
                 await asyncio.sleep(0.15)
         return filings
 
-    async def fetch_institutional_holdings(
-        self, ticker: str
-    ) -> list[Filing]:
+    async def fetch_institutional_holdings(self, ticker: str) -> list[Filing]:
         """Fetch 13F institutional ownership filings with details."""
-        filings = await self.fetch_filings(
-            ticker, filing_types=["13F-HR"]
-        )
+        filings = await self.fetch_filings(ticker, filing_types=["13F-HR"])
         cik = await self._resolve_cik(ticker)
         if cik and filings:
             client = await self._get_client()
@@ -326,9 +322,7 @@ class SecEdgarAdapter(FilingDataSource):
             if txns:
                 txn = txns[0]
                 code_map = {"P": "Purchase", "S": "Sale", "G": "Gift"}
-                action = code_map.get(
-                    txn.get("type", ""), txn.get("type", "Trade")
-                )
+                action = code_map.get(txn.get("type", ""), txn.get("type", "Trade"))
                 shares = txn.get("shares")
                 price = txn.get("price")
                 parts = [f"{name}"]
@@ -336,9 +330,7 @@ class SecEdgarAdapter(FilingDataSource):
                     parts[0] += f" ({title})"
                 parts.append(action)
                 if shares:
-                    parts.append(
-                        f"{int(shares):,} shares"
-                    )
+                    parts.append(f"{int(shares):,} shares")
                 if price and price > 0:
                     parts.append(f"@ ${price:.2f}")
                 filing.description = " — ".join(parts)
@@ -370,77 +362,50 @@ class SecEdgarAdapter(FilingDataSource):
         # Extract reporting owner info
         owner = root.find(f"{ns}reportingOwner")
         if owner is not None:
-            owner_id = owner.find(
-                f"{ns}reportingOwnerId"
-            )
+            owner_id = owner.find(f"{ns}reportingOwnerId")
             if owner_id is not None:
                 name_el = owner_id.find(f"{ns}rptOwnerName")
                 if name_el is not None and name_el.text:
                     result["insider_name"] = name_el.text.strip()
 
-            rel = owner.find(
-                f"{ns}reportingOwnerRelationship"
-            )
+            rel = owner.find(f"{ns}reportingOwnerRelationship")
             if rel is not None:
                 title_el = rel.find(f"{ns}officerTitle")
                 if title_el is not None and title_el.text:
-                    result["insider_title"] = (
-                        title_el.text.strip()
-                    )
+                    result["insider_title"] = title_el.text.strip()
 
         # Extract non-derivative transactions
         transactions: list[dict[str, Any]] = []
         nd_table = root.find(f"{ns}nonDerivativeTable")
         if nd_table is not None:
-            for txn in nd_table.findall(
-                f"{ns}nonDerivativeTransaction"
-            ):
+            for txn in nd_table.findall(f"{ns}nonDerivativeTransaction"):
                 t: dict[str, Any] = {}
 
-                date_el = txn.find(
-                    f"{ns}transactionDate/{ns}value"
-                )
+                date_el = txn.find(f"{ns}transactionDate/{ns}value")
                 if date_el is not None and date_el.text:
                     t["date"] = date_el.text.strip()
 
-                code_el = txn.find(
-                    f"{ns}transactionCoding/"
-                    f"{ns}transactionCode"
-                )
+                code_el = txn.find(f"{ns}transactionCoding/{ns}transactionCode")
                 if code_el is not None and code_el.text:
                     t["type"] = code_el.text.strip()
 
-                amounts = txn.find(
-                    f"{ns}transactionAmounts"
-                )
+                amounts = txn.find(f"{ns}transactionAmounts")
                 if amounts is not None:
-                    shares_el = amounts.find(
-                        f"{ns}transactionShares/{ns}value"
-                    )
+                    shares_el = amounts.find(f"{ns}transactionShares/{ns}value")
                     if shares_el is not None and shares_el.text:
                         with contextlib.suppress(ValueError):
-                            t["shares"] = float(
-                                shares_el.text.strip()
-                            )
+                            t["shares"] = float(shares_el.text.strip())
 
-                    price_el = amounts.find(
-                        f"{ns}transactionPricePerShare/"
-                        f"{ns}value"
-                    )
+                    price_el = amounts.find(f"{ns}transactionPricePerShare/{ns}value")
                     if price_el is not None and price_el.text:
                         with contextlib.suppress(ValueError):
-                            t["price"] = float(
-                                price_el.text.strip()
-                            )
+                            t["price"] = float(price_el.text.strip())
 
                     ad_el = amounts.find(
-                        f"{ns}transactionAcquiredDisposedCode"
-                        f"/{ns}value"
+                        f"{ns}transactionAcquiredDisposedCode/{ns}value"
                     )
                     if ad_el is not None and ad_el.text:
-                        t["acquired_disposed"] = (
-                            ad_el.text.strip()
-                        )
+                        t["acquired_disposed"] = ad_el.text.strip()
 
                 if t:
                     transactions.append(t)
@@ -551,14 +516,8 @@ class SecEdgarAdapter(FilingDataSource):
                 continue
 
             description = descriptions[i] if i < len(descriptions) else None
-            accession = (
-                accession_numbers[i]
-                if i < len(accession_numbers) else ""
-            )
-            primary_doc = (
-                primary_docs[i]
-                if i < len(primary_docs) else ""
-            )
+            accession = accession_numbers[i] if i < len(accession_numbers) else ""
+            primary_doc = primary_docs[i] if i < len(primary_docs) else ""
             url = (
                 f"https://www.sec.gov/Archives/edgar/data/"
                 f"{accession.replace('-', '')}/{accession}-index.htm"
@@ -573,11 +532,13 @@ class SecEdgarAdapter(FilingDataSource):
                     filing_date=filing_date,
                     description=description,
                     url=url,
-                    data_json=json.dumps({
-                        "form": form_type,
-                        "accession": accession,
-                        "primary_document": primary_doc,
-                    }),
+                    data_json=json.dumps(
+                        {
+                            "form": form_type,
+                            "accession": accession,
+                            "primary_document": primary_doc,
+                        }
+                    ),
                 )
             )
 
