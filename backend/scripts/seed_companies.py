@@ -231,7 +231,11 @@ COMPANIES = [
 
 
 def seed(database_url: str | None = None) -> None:
-    """Insert seed companies into the database."""
+    """Insert seed companies into the database.
+
+    Also removes any companies that are no longer in the tracked list
+    (e.g. ARKX, Zapata) along with their associated data.
+    """
     url = database_url or os.environ.get(
         "CHARTORA_DATABASE_URL",
         "postgresql://chartora:chartora@localhost:5432/chartora",
@@ -239,6 +243,8 @@ def seed(database_url: str | None = None) -> None:
     # Strip async driver — this script uses synchronous SQLAlchemy
     url = url.replace("postgresql+asyncpg://", "postgresql://")
     engine = create_engine(url)
+
+    tracked_slugs = {c["slug"] for c in COMPANIES}
 
     with engine.begin() as conn:
         for company in COMPANIES:
@@ -253,6 +259,34 @@ def seed(database_url: str | None = None) -> None:
                 ),
                 company,
             )
+
+        # Remove companies no longer in the tracked list
+        stale = conn.execute(
+            text("SELECT id, slug FROM companies WHERE slug NOT IN :slugs"),
+            {"slugs": tuple(tracked_slugs)},
+        ).fetchall()
+
+        for company_id, slug in stale:
+            # Clean up related data before deleting the company
+            for table in [
+                "quantum_power_scores",
+                "stock_prices",
+                "patents",
+                "news_articles",
+                "filings",
+                "government_contracts",
+                "funding_rounds",
+            ]:
+                conn.execute(
+                    text(f"DELETE FROM {table} WHERE company_id = :id"),  # noqa: S608
+                    {"id": company_id},
+                )
+            conn.execute(
+                text("DELETE FROM companies WHERE id = :id"),
+                {"id": company_id},
+            )
+            print(f"  Removed stale company: {slug} (id={company_id})")
+
     print(f"Seeded {len(COMPANIES)} companies.")
 
 
