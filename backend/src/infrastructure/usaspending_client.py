@@ -42,7 +42,9 @@ ALTERNATE_SEARCH_NAMES: dict[str, list[str]] = {
     "Rigetti Computing": ["RIGETTI & CO, LLC", "RIGETTI & CO"],
     "Quantum Computing Inc": ["QUANTUM COMPUTING INC"],
     "Arqit Quantum": ["ARQIT LIMITED", "ARQIT"],
-    "Zapata Computing": ["ZAPATA COMPUTING, INC.", "ZAPATA AI"],
+    "Infleqtion": ["INFLEQTION, INC.", "COLDQUANTA, INC."],
+    "SEALSQ": ["SEALSQ CORP", "WISEKEY SEMICONDUCTORS"],
+    "BTQ Technologies": ["BTQ TECHNOLOGIES CORP."],
     # Big tech — DB names won't match; use verified USASpending recipient names
     "IBM": [
         "INTERNATIONAL BUSINESS MACHINES CORPORATION",
@@ -62,6 +64,8 @@ ALTERNATE_SEARCH_NAMES: dict[str, list[str]] = {
         "HONEYWELL INTERNATIONAL INC.",
         "HONEYWELL FEDERAL MANUFACTURING & TECHNOLOGIES, LLC",
     ],
+    "NVIDIA": ["NVIDIA CORPORATION"],
+    "Fujitsu": ["FUJITSU LIMITED", "FUJITSU AMERICA, INC."],
 }
 
 

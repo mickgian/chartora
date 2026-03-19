@@ -301,15 +301,19 @@ KNOWN_QUBIT_COUNTS: dict[str, int] = {
     "rigetti-computing": 84,
     "quantum-computing-inc": 0,
     "arqit-quantum": 0,
-    "zapata-computing": 0,
+    "infleqtion": 12,
+    "sealsq": 0,
+    "btq-technologies": 0,
     "ibm": 1121,
     "alphabet-google": 105,
     "microsoft": 0,
     "amazon-aws": 0,
     "intel": 12,
     "honeywell-quantinuum": 56,
+    "nvidia": 0,
+    "fujitsu": 256,
     "defiance-quantum-etf": 0,
-    "ark-space-exploration-etf": 0,
+    "wisdomtree-quantum-etf": 0,
 }
 
 # Estimated quantum-computing patents filed in the last 12 months, derived from
@@ -333,15 +337,19 @@ KNOWN_PATENT_COUNTS: dict[str, int] = {
     "rigetti-computing": 45,
     "quantum-computing-inc": 15,
     "arqit-quantum": 12,
-    "zapata-computing": 10,
+    "infleqtion": 25,
+    "sealsq": 10,
+    "btq-technologies": 5,
     "ibm": 190,
     "alphabet-google": 170,
     "microsoft": 50,
     "amazon-aws": 30,
     "intel": 35,
     "honeywell-quantinuum": 45,
+    "nvidia": 40,
+    "fujitsu": 60,
     "defiance-quantum-etf": 0,
-    "ark-space-exploration-etf": 0,
+    "wisdomtree-quantum-etf": 0,
 }
 
 async def recalculate_scores(

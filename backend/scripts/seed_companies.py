@@ -53,12 +53,55 @@ COMPANIES = [
         "description": "Quantum encryption and cybersecurity.",
     },
     {
-        "name": "Zapata Computing",
-        "slug": "zapata-computing",
-        "ticker": None,
+        "name": "Infleqtion",
+        "slug": "infleqtion",
+        "ticker": "INFQ",
         "sector": "pure_play",
         "is_etf": False,
-        "description": "Enterprise quantum software and algorithms.",
+        "description": "Neutral-atom quantum computing and quantum sensors.",
+    },
+    {
+        "name": "SEALSQ",
+        "slug": "sealsq",
+        "ticker": "LAES",
+        "sector": "pure_play",
+        "is_etf": False,
+        "description": "Post-quantum cryptography semiconductors and secure hardware.",
+    },
+    {
+        "name": "BTQ Technologies",
+        "slug": "btq-technologies",
+        "ticker": "BTQ",
+        "sector": "pure_play",
+        "is_etf": False,
+        "description": "Post-quantum blockchain security and cryptography.",
+    },
+    {
+        "name": "QuantumCTek",
+        "slug": "quantumctek",
+        "ticker": "688027.SS",
+        "sector": "pure_play",
+        "is_etf": False,
+        "description": (
+            "Quantum key distribution and quantum"
+            " communication hardware (Shanghai-listed)."
+        ),
+    },
+    {
+        "name": "Quantum eMotion",
+        "slug": "quantum-emotion",
+        "ticker": "QNC.V",
+        "sector": "pure_play",
+        "is_etf": False,
+        "description": "Quantum random-number-generator chips for cybersecurity.",
+    },
+    {
+        "name": "01 Communique",
+        "slug": "01-communique",
+        "ticker": "ONE.V",
+        "sector": "pure_play",
+        "is_etf": False,
+        "description": "Post-quantum encryption solutions under the IronCAP brand.",
     },
     # Big tech with quantum divisions
     {
@@ -112,6 +155,28 @@ COMPANIES = [
             " (Honeywell subsidiary)."
         ),
     },
+    {
+        "name": "NVIDIA",
+        "slug": "nvidia",
+        "ticker": "NVDA",
+        "sector": "big_tech",
+        "is_etf": False,
+        "description": (
+            "CUDA-Q quantum platform and NVQLink"
+            " quantum-classical interconnect."
+        ),
+    },
+    {
+        "name": "Fujitsu",
+        "slug": "fujitsu",
+        "ticker": "6702.T",
+        "sector": "big_tech",
+        "is_etf": False,
+        "description": (
+            "Superconducting quantum computing"
+            " with RIKEN (256-qubit systems)."
+        ),
+    },
     # ETFs
     {
         "name": "Defiance Quantum ETF",
@@ -122,12 +187,45 @@ COMPANIES = [
         "description": "ETF tracking quantum computing and machine learning companies.",
     },
     {
-        "name": "ARK Space Exploration & Innovation ETF",
-        "slug": "ark-space-exploration-etf",
-        "ticker": "ARKX",
+        "name": "WisdomTree Quantum Computing Fund",
+        "slug": "wisdomtree-quantum-etf",
+        "ticker": "WQTM",
         "sector": "etf",
         "is_etf": True,
-        "description": "ARK Invest ETF with exposure to quantum computing companies.",
+        "description": "ETF focused on pure quantum computing ecosystem companies.",
+    },
+    {
+        "name": "VanEck Quantum Computing UCITS ETF",
+        "slug": "vaneck-quantum-etf",
+        "ticker": "QNTM.L",
+        "sector": "etf",
+        "is_etf": True,
+        "description": (
+            "Europe's first quantum ETF tracking the"
+            " MarketVector Global Quantum Leaders Index."
+        ),
+    },
+    {
+        "name": "iShares Quantum Computing UCITS ETF",
+        "slug": "ishares-quantum-etf",
+        "ticker": "QANT.AS",
+        "sector": "etf",
+        "is_etf": True,
+        "description": (
+            "BlackRock UCITS ETF tracking the"
+            " STOXX Global Quantum Computing Index."
+        ),
+    },
+    {
+        "name": "Global X AI Semiconductor & Quantum ETF",
+        "slug": "globalx-ai-quantum-etf",
+        "ticker": "CHPX",
+        "sector": "etf",
+        "is_etf": True,
+        "description": (
+            "ETF covering AI semiconductor and"
+            " quantum computing companies."
+        ),
     },
 ]
 
