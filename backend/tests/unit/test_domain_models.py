@@ -40,9 +40,29 @@ class TestTicker:
         with pytest.raises(ValueError, match="cannot be empty"):
             Ticker("")
 
-    def test_non_alpha_ticker_raises(self) -> None:
-        with pytest.raises(ValueError, match="only letters"):
-            Ticker("ION1")
+    def test_ticker_with_digits(self) -> None:
+        t = Ticker("6702")
+        assert t.symbol == "6702"
+
+    def test_ticker_with_exchange_suffix(self) -> None:
+        t = Ticker("ONE.V")
+        assert t.symbol == "ONE.V"
+
+    def test_ticker_numeric_with_exchange_suffix(self) -> None:
+        t = Ticker("688027.SS")
+        assert t.symbol == "688027.SS"
+
+    def test_ticker_invalid_double_dot_raises(self) -> None:
+        with pytest.raises(ValueError, match="alphanumeric with optional exchange suffix"):
+            Ticker("ONE..V")
+
+    def test_ticker_invalid_trailing_dot_raises(self) -> None:
+        with pytest.raises(ValueError, match="alphanumeric with optional exchange suffix"):
+            Ticker("ONE.")
+
+    def test_ticker_invalid_special_chars_raises(self) -> None:
+        with pytest.raises(ValueError, match="alphanumeric with optional exchange suffix"):
+            Ticker("ION@Q")
 
     def test_ticker_is_frozen(self) -> None:
         t = Ticker("IONQ")
