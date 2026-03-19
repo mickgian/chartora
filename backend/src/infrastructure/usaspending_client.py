@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import re
 from datetime import date
 from decimal import Decimal
 from typing import Any
@@ -20,6 +21,48 @@ from src.domain.models.entities import GovernmentContract
 logger = logging.getLogger(__name__)
 
 USASPENDING_SEARCH_URL = "https://api.usaspending.gov/api/v2/search/spending_by_award/"
+
+# Keywords that indicate a contract is quantum-computing related.
+# Used to tag contracts for big-tech companies that have many non-quantum awards.
+QUANTUM_KEYWORDS: re.Pattern[str] = re.compile(
+    r"quantum|qubit|superconducting\s+processor|cryogenic|topological\s+computing"
+    r"|trapped.ion|photonic\s+computing|error.correction\s+code"
+    r"|NISQ|QPU|quantum\s+advantage|quantum\s+supremacy",
+    re.IGNORECASE,
+)
+
+# Alternate / legal entity names for USASpending.gov searches.
+# Keys are the company names as stored in the DB (from seed_companies.py).
+# Values are additional search terms to try — these are the legal entity
+# names that appear as recipients in USASpending.gov federal award records.
+ALTERNATE_SEARCH_NAMES: dict[str, list[str]] = {
+    # Pure-play quantum — legal entity names verified via USASpending / SAM.gov
+    "IonQ": ["IONQ, INC."],
+    "D-Wave Quantum": ["D-WAVE SYSTEMS", "D-WAVE SYSTEMS INC"],
+    "Rigetti Computing": ["RIGETTI & CO, LLC", "RIGETTI & CO"],
+    "Quantum Computing Inc": ["QUANTUM COMPUTING INC"],
+    "Arqit Quantum": ["ARQIT LIMITED", "ARQIT"],
+    "Zapata Computing": ["ZAPATA COMPUTING, INC.", "ZAPATA AI"],
+    # Big tech — DB names won't match; use verified USASpending recipient names
+    "IBM": [
+        "INTERNATIONAL BUSINESS MACHINES CORPORATION",
+    ],
+    "Alphabet (Google)": [
+        "GOOGLE LLC",
+    ],
+    "Microsoft": ["MICROSOFT CORPORATION"],
+    "Amazon (AWS)": [
+        "AMAZON WEB SERVICES, INC.",
+        "AMAZON.COM SERVICES LLC",
+        "AMAZON.COM, INC.",
+    ],
+    "Intel": ["INTEL CORPORATION", "INTEL FEDERAL LLC"],
+    "Honeywell (Quantinuum)": [
+        "QUANTINUUM LLC",
+        "HONEYWELL INTERNATIONAL INC.",
+        "HONEYWELL FEDERAL MANUFACTURING & TECHNOLOGIES, LLC",
+    ],
+}
 
 
 class UsaSpendingAdapter(GovernmentContractDataSource):
@@ -67,10 +110,34 @@ class UsaSpendingAdapter(GovernmentContractDataSource):
             )
             return []
 
+    async def search_contracts_multi(
+        self, search_names: list[str], limit: int = 50
+    ) -> list[GovernmentContract]:
+        """Search using multiple name variants and deduplicate by award_id."""
+        seen_award_ids: set[str] = set()
+        all_contracts: list[GovernmentContract] = []
+
+        for name in search_names:
+            contracts = await self.search_contracts(name, limit=limit)
+            for c in contracts:
+                if c.award_id not in seen_award_ids:
+                    seen_award_ids.add(c.award_id)
+                    all_contracts.append(c)
+
+        # Sort by amount descending
+        all_contracts.sort(key=lambda c: c.amount, reverse=True)
+        return all_contracts[:limit]
+
     async def get_total_contract_value(self, company_name: str) -> float:
         """Get total value of government contracts for a company."""
         contracts = await self.search_contracts(company_name, limit=100)
         return sum(float(c.amount) for c in contracts)
+
+    @staticmethod
+    def is_quantum_related(contract: GovernmentContract) -> bool:
+        """Check if a contract description or title suggests quantum relevance."""
+        text = f"{contract.title} {contract.description or ''}"
+        return bool(QUANTUM_KEYWORDS.search(text))
 
     @staticmethod
     def _build_search_payload(company_name: str, limit: int) -> dict[str, Any]:

@@ -10,6 +10,7 @@ function getToken(): string {
 
 export function ExportButtons() {
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [lastExported, setLastExported] = useState<string | null>(null);
 
   async function handleExport(format: "csv" | "json") {
     setDownloading(format);
@@ -38,6 +39,8 @@ export function ExportButtons() {
         a.click();
         URL.revokeObjectURL(url);
       }
+
+      setLastExported(new Date().toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }));
     } catch {
       alert("Export failed. Please try again.");
     } finally {
@@ -47,9 +50,12 @@ export function ExportButtons() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-600 dark:text-slate-400">
-        Download the current quantum computing company rankings data.
-      </p>
+      <div>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300">Data Exports</h3>
+        <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
+          Download the current quantum computing company rankings including rank, company name, ticker, sector, all 5 score components (stock momentum, patent velocity, qubit progress, funding strength, news sentiment), and score date.
+        </p>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <button
@@ -74,6 +80,10 @@ export function ExportButtons() {
           {downloading === "json" ? "Downloading..." : "Export JSON"}
         </button>
       </div>
+
+      {lastExported && (
+        <p className="text-xs text-gray-500 dark:text-slate-400">Last exported: {lastExported}</p>
+      )}
     </div>
   );
 }

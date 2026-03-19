@@ -34,15 +34,17 @@ describe("PremiumDashboard", () => {
 
   it("renders tab navigation", () => {
     render(<PremiumDashboard />);
-    expect(screen.getByText("Historical Data")).toBeInTheDocument();
+    expect(screen.getByText("Score Analytics")).toBeInTheDocument();
+    expect(screen.getByText("SEC Filings")).toBeInTheDocument();
+    expect(screen.getByText("Patents & Contracts")).toBeInTheDocument();
     expect(screen.getByText("Alerts")).toBeInTheDocument();
-    expect(screen.getByText("Exports")).toBeInTheDocument();
-    expect(screen.getByText("API Keys")).toBeInTheDocument();
+    expect(screen.getByText("Exports & API")).toBeInTheDocument();
+    expect(screen.getByText("Your Benefits")).toBeInTheDocument();
   });
 
   it("switches tabs when clicked", () => {
     render(<PremiumDashboard />);
-    fireEvent.click(screen.getByText("Exports"));
+    fireEvent.click(screen.getByText("Exports & API"));
     expect(screen.getByText("Export CSV")).toBeInTheDocument();
   });
 });

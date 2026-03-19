@@ -2,23 +2,36 @@
 
 import { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { CompanySelector } from "./CompanySelector";
 import { HistoricalScoreChart } from "./HistoricalScoreChart";
+import { RdSpendingCard } from "./RdSpendingCard";
+import { InsiderTradingTable } from "./InsiderTradingTable";
+import { InstitutionalOwnershipTable } from "./InstitutionalOwnershipTable";
+import { FullPatentHistory } from "./FullPatentHistory";
+import { GovernmentContracts } from "./GovernmentContracts";
 import { AlertPreferences } from "./AlertPreferences";
 import { ApiKeyManager } from "./ApiKeyManager";
 import { ExportButtons } from "./ExportButtons";
+import { PremiumBenefits } from "./PremiumBenefits";
 
 const TABS = [
-  { id: "historical", label: "Historical Data" },
+  { id: "score-analytics", label: "Score Analytics" },
+  { id: "sec-filings", label: "SEC Filings" },
+  { id: "patents-contracts", label: "Patents & Contracts" },
   { id: "alerts", label: "Alerts" },
-  { id: "exports", label: "Exports" },
-  { id: "api-keys", label: "API Keys" },
+  { id: "exports-api", label: "Exports & API" },
+  { id: "benefits", label: "Your Benefits" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
 
+const COMPANY_TABS = new Set<TabId>(["score-analytics", "sec-filings", "patents-contracts"]);
+
 export function PremiumDashboard() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabId>("historical");
+  const [activeTab, setActiveTab] = useState<TabId>("score-analytics");
+  const [selectedSlug, setSelectedSlug] = useState("");
+  const [period, setPeriod] = useState(365);
 
   return (
     <div>
@@ -50,10 +63,52 @@ export function PremiumDashboard() {
         ))}
       </div>
 
-      {activeTab === "historical" && <HistoricalScoreChart />}
+      {/* Persistent company selector for data tabs */}
+      {COMPANY_TABS.has(activeTab) && (
+        <div className="mb-6">
+          <CompanySelector
+            selectedSlug={selectedSlug}
+            onSlugChange={setSelectedSlug}
+            showPeriod={activeTab === "score-analytics"}
+            period={period}
+            onPeriodChange={setPeriod}
+          />
+        </div>
+      )}
+
+      {activeTab === "score-analytics" && selectedSlug && (
+        <div className="space-y-6">
+          <HistoricalScoreChart slug={selectedSlug} period={period} />
+          <RdSpendingCard slug={selectedSlug} />
+        </div>
+      )}
+
+      {activeTab === "sec-filings" && selectedSlug && (
+        <div className="space-y-6">
+          <InsiderTradingTable slug={selectedSlug} />
+          <InstitutionalOwnershipTable slug={selectedSlug} />
+        </div>
+      )}
+
+      {activeTab === "patents-contracts" && selectedSlug && (
+        <div className="space-y-6">
+          <FullPatentHistory slug={selectedSlug} />
+          <GovernmentContracts slug={selectedSlug} />
+        </div>
+      )}
+
       {activeTab === "alerts" && <AlertPreferences />}
-      {activeTab === "exports" && <ExportButtons />}
-      {activeTab === "api-keys" && <ApiKeyManager />}
+
+      {activeTab === "exports-api" && (
+        <div className="space-y-8">
+          <ExportButtons />
+          <div className="border-t border-gray-200 pt-8 dark:border-gray-700">
+            <ApiKeyManager />
+          </div>
+        </div>
+      )}
+
+      {activeTab === "benefits" && <PremiumBenefits />}
     </div>
   );
 }

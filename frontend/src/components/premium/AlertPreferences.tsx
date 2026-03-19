@@ -26,6 +26,20 @@ const ALERT_TYPES = [
     hasThreshold: false,
     defaultThreshold: null,
   },
+  {
+    type: "institutional_ownership",
+    label: "Institutional ownership alerts",
+    description: "Get notified when new 13F institutional ownership filings are detected.",
+    hasThreshold: false,
+    defaultThreshold: null,
+  },
+  {
+    type: "government_contract",
+    label: "Government contract alerts",
+    description: "Get notified when new government contracts are awarded to tracked companies.",
+    hasThreshold: false,
+    defaultThreshold: null,
+  },
 ];
 
 function getToken(): string {

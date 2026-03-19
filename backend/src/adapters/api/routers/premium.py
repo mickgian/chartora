@@ -200,6 +200,8 @@ async def get_government_contracts(
         total_value,
     )
 
+    from src.infrastructure.usaspending_client import UsaSpendingAdapter
+
     return {
         "company_slug": slug,
         "company_name": company.name,
@@ -212,6 +214,7 @@ async def get_government_contracts(
                 "start_date": c.start_date.isoformat(),
                 "end_date": c.end_date.isoformat() if c.end_date else None,
                 "description": c.description,
+                "quantum_related": UsaSpendingAdapter.is_quantum_related(c),
             }
             for c in contracts
         ],
@@ -297,7 +300,13 @@ async def update_alert_preferences(
     saved = []
     for alert_data in alerts:
         alert_type = alert_data.get("alert_type")
-        if alert_type not in ("score_change", "insider_trading"):
+        valid_types = (
+            "score_change",
+            "insider_trading",
+            "institutional_ownership",
+            "government_contract",
+        )
+        if alert_type not in valid_types:
             raise HTTPException(
                 status_code=422,
                 detail=f"Invalid alert_type: {alert_type}",
