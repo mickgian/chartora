@@ -48,6 +48,7 @@ The goal: build once, let it run passively with daily auto-updating data, moneti
 - IonQ (IONQ), D-Wave Quantum (QBTS), Rigetti Computing (RGTI)
 - Quantum Computing Inc (QUBT), Arqit Quantum (ARQQ)
 - Infleqtion (INFQ), SEALSQ (LAES), BTQ Technologies (BTQ)
+- QuantumCTek (688027.SS), Quantum eMotion (QNC.V), 01 Communique (ONE.V)
 
 **Big tech with quantum divisions:**
 - IBM, Google/Alphabet (GOOGL), Microsoft (MSFT)
@@ -56,6 +57,7 @@ The goal: build once, let it run passively with daily auto-updating data, moneti
 
 **ETFs:**
 - Defiance Quantum ETF (QTUM), WisdomTree Quantum Computing Fund (WQTM)
+- iShares Quantum Computing and Tech ETF (QCMP), AXA IM Nasdaq US Quantum Computing ETF (NAQC)
 
 ## Quantum Power Score Formula
 

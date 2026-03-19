@@ -76,6 +76,33 @@ COMPANIES = [
         "is_etf": False,
         "description": "Post-quantum blockchain security and cryptography.",
     },
+    {
+        "name": "QuantumCTek",
+        "slug": "quantumctek",
+        "ticker": "688027.SS",
+        "sector": "pure_play",
+        "is_etf": False,
+        "description": (
+            "Quantum key distribution and quantum"
+            " communication hardware (Shanghai-listed)."
+        ),
+    },
+    {
+        "name": "Quantum eMotion",
+        "slug": "quantum-emotion",
+        "ticker": "QNC.V",
+        "sector": "pure_play",
+        "is_etf": False,
+        "description": "Quantum random-number-generator chips for cybersecurity.",
+    },
+    {
+        "name": "01 Communique",
+        "slug": "01-communique",
+        "ticker": "ONE.V",
+        "sector": "pure_play",
+        "is_etf": False,
+        "description": "Post-quantum encryption solutions under the IronCAP brand.",
+    },
     # Big tech with quantum divisions
     {
         "name": "IBM",
@@ -166,6 +193,28 @@ COMPANIES = [
         "sector": "etf",
         "is_etf": True,
         "description": "ETF focused on pure quantum computing ecosystem companies.",
+    },
+    {
+        "name": "iShares Quantum Computing and Tech ETF",
+        "slug": "ishares-quantum-etf",
+        "ticker": "QCMP",
+        "sector": "etf",
+        "is_etf": True,
+        "description": (
+            "BlackRock ETF tracking quantum computing"
+            " hardware, software, and related technologies."
+        ),
+    },
+    {
+        "name": "AXA IM Nasdaq US Quantum Computing ETF",
+        "slug": "axa-nasdaq-quantum-etf",
+        "ticker": "NAQC",
+        "sector": "etf",
+        "is_etf": True,
+        "description": (
+            "Tracks the Nasdaq Quantum Computing Index"
+            " focusing on US-listed quantum companies."
+        ),
     },
 ]
 
