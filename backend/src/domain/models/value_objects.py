@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING
@@ -69,10 +70,8 @@ class Ticker:
     def __post_init__(self) -> None:
         if not self.symbol:
             raise ValueError("Ticker symbol cannot be empty")
-        if not self.symbol.isalpha():
-            raise ValueError(
-                f"Ticker symbol must contain only letters, got '{self.symbol}'"
-            )
+        if not re.match(r"^[A-Za-z0-9]+(\.[A-Za-z]+)?$", self.symbol):
+            raise ValueError(f"Invalid ticker symbol: '{self.symbol}'")
         # Ensure uppercase via object.__setattr__ since frozen
         object.__setattr__(self, "symbol", self.symbol.upper())
 
