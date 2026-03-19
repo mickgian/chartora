@@ -84,50 +84,88 @@ export function InsiderTradingTable({ slug }: InsiderTradingTableProps) {
             <thead>
               <tr className="border-b border-gray-200 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-slate-400">
                 <th className="px-4 py-3">Filing Date</th>
-                <th className="px-4 py-3">Description</th>
-                <th className="px-4 py-3">Details</th>
+                <th className="px-4 py-3">Insider</th>
+                <th className="px-4 py-3">Transaction</th>
                 <th className="px-4 py-3">Link</th>
               </tr>
             </thead>
             <tbody>
-              {trades.map((trade, i) => (
-                <tr
-                  key={`${trade.filing_date}-${i}`}
-                  className="border-b border-gray-100 dark:border-gray-800 even:bg-gray-50 dark:even:bg-slate-800/30"
-                >
-                  <td className="whitespace-nowrap px-4 py-3 text-gray-900 dark:text-white">
-                    {formatDate(trade.filing_date)}
-                  </td>
-                  <td className="px-4 py-3 text-gray-700 dark:text-slate-300">
-                    {trade.description ?? "Form 4 Filing"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600 dark:text-slate-400">
-                    {trade.data ? (
-                      <span className="text-xs">
-                        {"transaction_type" in trade.data && <span className="mr-2">{String(trade.data.transaction_type)}</span>}
-                        {"shares" in trade.data && <span className="mr-2">{Number(trade.data.shares).toLocaleString()} shares</span>}
-                        {"price_per_share" in trade.data && <span>@ ${Number(trade.data.price_per_share).toFixed(2)}</span>}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-gray-400">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {trade.url ? (
-                      <a
-                        href={trade.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-indigo-600 hover:underline dark:text-indigo-400"
-                      >
-                        SEC Filing
-                      </a>
-                    ) : (
-                      <span className="text-xs text-gray-400">—</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {trades.map((trade, i) => {
+                const insiderName = trade.data?.insider_name
+                  ? String(trade.data.insider_name)
+                  : null;
+                const insiderTitle = trade.data?.insider_title
+                  ? String(trade.data.insider_title)
+                  : null;
+                const transactions = trade.data?.transactions as
+                  | Array<Record<string, unknown>>
+                  | undefined;
+                const txn = transactions?.[0];
+
+                return (
+                  <tr
+                    key={`${trade.filing_date}-${i}`}
+                    className="border-b border-gray-100 dark:border-gray-800 even:bg-gray-50 dark:even:bg-slate-800/30"
+                  >
+                    <td className="whitespace-nowrap px-4 py-3 text-gray-900 dark:text-white">
+                      {formatDate(trade.filing_date)}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700 dark:text-slate-300">
+                      {insiderName ? (
+                        <div>
+                          <span className="font-medium">{insiderName}</span>
+                          {insiderTitle && (
+                            <span className="ml-1 text-xs text-gray-500 dark:text-slate-400">
+                              ({insiderTitle})
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        trade.description ?? "Form 4 Filing"
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600 dark:text-slate-400">
+                      {txn ? (
+                        <span className="text-xs">
+                          {"type" in txn && (
+                            <span className={`mr-2 rounded-full px-2 py-0.5 font-medium ${
+                              txn.type === "P"
+                                ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                                : txn.type === "S"
+                                  ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
+                                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                            }`}>
+                              {txn.type === "P" ? "Buy" : txn.type === "S" ? "Sell" : String(txn.type)}
+                            </span>
+                          )}
+                          {"shares" in txn && (
+                            <span className="mr-2">{Number(txn.shares).toLocaleString()} shares</span>
+                          )}
+                          {"price" in txn && Number(txn.price) > 0 && (
+                            <span>@ ${Number(txn.price).toFixed(2)}</span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {trade.url ? (
+                        <a
+                          href={trade.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-600 hover:underline dark:text-indigo-400"
+                        >
+                          SEC Filing
+                        </a>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

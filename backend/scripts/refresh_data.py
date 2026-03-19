@@ -232,7 +232,21 @@ async def refresh_filing_data(
     ticker = company.ticker.symbol
     logger.info("Fetching SEC filings for %s (%s)", company.name, ticker)
 
-    filings = await filing_adapter.fetch_filings(ticker)
+    # Fetch general filings (10-K, 10-Q)
+    filings = await filing_adapter.fetch_filings(
+        ticker, filing_types=["10-K", "10-Q"]
+    )
+
+    # Fetch Form 4 with enriched insider transaction details
+    insider_filings = await filing_adapter.fetch_insider_trades(ticker)
+    filings.extend(insider_filings)
+
+    # Fetch 13F with enriched institution details
+    inst_filings = await filing_adapter.fetch_institutional_holdings(
+        ticker
+    )
+    filings.extend(inst_filings)
+
     if not filings:
         logger.info("No filings returned for %s", ticker)
         return

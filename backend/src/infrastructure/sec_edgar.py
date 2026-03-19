@@ -5,10 +5,14 @@ Implements the FilingDataSource interface using the SEC EDGAR REST API.
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import json
 import logging
+import re
 from datetime import date
 from typing import Any
+from xml.etree import ElementTree
 
 import httpx
 
@@ -96,12 +100,31 @@ class SecEdgarAdapter(FilingDataSource):
             return []
 
     async def fetch_insider_trades(self, ticker: str) -> list[Filing]:
-        """Fetch Form 4 insider trading filings."""
-        return await self.fetch_filings(ticker, filing_types=["4"])
+        """Fetch Form 4 insider trading filings with parsed details."""
+        filings = await self.fetch_filings(ticker, filing_types=["4"])
+        cik = await self._resolve_cik(ticker)
+        if cik and filings:
+            client = await self._get_client()
+            for filing in filings:
+                await self._enrich_form4(filing, cik, client)
+                # SEC rate limit: max 10 requests/sec
+                await asyncio.sleep(0.15)
+        return filings
 
-    async def fetch_institutional_holdings(self, ticker: str) -> list[Filing]:
-        """Fetch 13F institutional ownership filings."""
-        return await self.fetch_filings(ticker, filing_types=["13F-HR"])
+    async def fetch_institutional_holdings(
+        self, ticker: str
+    ) -> list[Filing]:
+        """Fetch 13F institutional ownership filings with details."""
+        filings = await self.fetch_filings(
+            ticker, filing_types=["13F-HR"]
+        )
+        cik = await self._resolve_cik(ticker)
+        if cik and filings:
+            client = await self._get_client()
+            for filing in filings:
+                await self._enrich_13f(filing, cik, client)
+                await asyncio.sleep(0.15)
+        return filings
 
     async def fetch_form_d_filings(self, company_name: str) -> list[Filing]:
         """Fetch Form D filings (private placement fundraising via Reg D).
@@ -266,6 +289,213 @@ class SecEdgarAdapter(FilingDataSource):
             logger.debug("Could not extract Form D amount from %s/%s", cik, accession)
             return None
 
+    async def _enrich_form4(
+        self,
+        filing: Filing,
+        cik: str,
+        client: httpx.AsyncClient,
+    ) -> None:
+        """Enrich a Form 4 filing with parsed insider transaction data."""
+        try:
+            data = json.loads(filing.data_json or "{}")
+            accession = data.get("accession", "")
+            primary_doc = data.get("primary_document", "")
+            if not accession or not primary_doc:
+                return
+
+            clean_accession = accession.replace("-", "")
+            doc_url = (
+                f"https://www.sec.gov/Archives/edgar/data/"
+                f"{cik.lstrip('0')}/{clean_accession}/{primary_doc}"
+            )
+            response = await client.get(doc_url)
+            if response.status_code != 200:
+                return
+
+            parsed = self._parse_form4_xml(response.text)
+            if not parsed:
+                return
+
+            data.update(parsed)
+            filing.data_json = json.dumps(data)
+
+            # Build a human-readable description
+            name = parsed.get("insider_name", "Unknown")
+            title = parsed.get("insider_title", "")
+            txns = parsed.get("transactions", [])
+            if txns:
+                txn = txns[0]
+                code_map = {"P": "Purchase", "S": "Sale", "G": "Gift"}
+                action = code_map.get(
+                    txn.get("type", ""), txn.get("type", "Trade")
+                )
+                shares = txn.get("shares")
+                price = txn.get("price")
+                parts = [f"{name}"]
+                if title:
+                    parts[0] += f" ({title})"
+                parts.append(action)
+                if shares:
+                    parts.append(
+                        f"{int(shares):,} shares"
+                    )
+                if price and price > 0:
+                    parts.append(f"@ ${price:.2f}")
+                filing.description = " — ".join(parts)
+            elif title:
+                filing.description = f"{name} ({title})"
+            else:
+                filing.description = name
+        except Exception:
+            logger.debug(
+                "Could not enrich Form 4 filing %s",
+                filing.url,
+            )
+
+    @staticmethod
+    def _parse_form4_xml(xml_text: str) -> dict[str, Any] | None:
+        """Parse Form 4 XML to extract insider transaction details."""
+        try:
+            root = ElementTree.fromstring(xml_text)
+        except ElementTree.ParseError:
+            return None
+
+        # Handle XML namespace if present
+        ns = ""
+        if root.tag.startswith("{"):
+            ns = root.tag.split("}")[0] + "}"
+
+        result: dict[str, Any] = {}
+
+        # Extract reporting owner info
+        owner = root.find(f"{ns}reportingOwner")
+        if owner is not None:
+            owner_id = owner.find(
+                f"{ns}reportingOwnerId"
+            )
+            if owner_id is not None:
+                name_el = owner_id.find(f"{ns}rptOwnerName")
+                if name_el is not None and name_el.text:
+                    result["insider_name"] = name_el.text.strip()
+
+            rel = owner.find(
+                f"{ns}reportingOwnerRelationship"
+            )
+            if rel is not None:
+                title_el = rel.find(f"{ns}officerTitle")
+                if title_el is not None and title_el.text:
+                    result["insider_title"] = (
+                        title_el.text.strip()
+                    )
+
+        # Extract non-derivative transactions
+        transactions: list[dict[str, Any]] = []
+        nd_table = root.find(f"{ns}nonDerivativeTable")
+        if nd_table is not None:
+            for txn in nd_table.findall(
+                f"{ns}nonDerivativeTransaction"
+            ):
+                t: dict[str, Any] = {}
+
+                date_el = txn.find(
+                    f"{ns}transactionDate/{ns}value"
+                )
+                if date_el is not None and date_el.text:
+                    t["date"] = date_el.text.strip()
+
+                code_el = txn.find(
+                    f"{ns}transactionCoding/"
+                    f"{ns}transactionCode"
+                )
+                if code_el is not None and code_el.text:
+                    t["type"] = code_el.text.strip()
+
+                amounts = txn.find(
+                    f"{ns}transactionAmounts"
+                )
+                if amounts is not None:
+                    shares_el = amounts.find(
+                        f"{ns}transactionShares/{ns}value"
+                    )
+                    if shares_el is not None and shares_el.text:
+                        with contextlib.suppress(ValueError):
+                            t["shares"] = float(
+                                shares_el.text.strip()
+                            )
+
+                    price_el = amounts.find(
+                        f"{ns}transactionPricePerShare/"
+                        f"{ns}value"
+                    )
+                    if price_el is not None and price_el.text:
+                        with contextlib.suppress(ValueError):
+                            t["price"] = float(
+                                price_el.text.strip()
+                            )
+
+                    ad_el = amounts.find(
+                        f"{ns}transactionAcquiredDisposedCode"
+                        f"/{ns}value"
+                    )
+                    if ad_el is not None and ad_el.text:
+                        t["acquired_disposed"] = (
+                            ad_el.text.strip()
+                        )
+
+                if t:
+                    transactions.append(t)
+
+        if transactions:
+            result["transactions"] = transactions
+
+        return result if result else None
+
+    async def _enrich_13f(
+        self,
+        filing: Filing,
+        cik: str,
+        client: httpx.AsyncClient,
+    ) -> None:
+        """Enrich a 13F filing with institution name from XML."""
+        try:
+            data = json.loads(filing.data_json or "{}")
+            accession = data.get("accession", "")
+            primary_doc = data.get("primary_document", "")
+            if not accession or not primary_doc:
+                return
+
+            clean_accession = accession.replace("-", "")
+            doc_url = (
+                f"https://www.sec.gov/Archives/edgar/data/"
+                f"{cik.lstrip('0')}/{clean_accession}/{primary_doc}"
+            )
+            response = await client.get(doc_url)
+            if response.status_code != 200:
+                return
+
+            text = response.text
+            # 13F primary docs may be XML or HTML
+            # Try to extract filer/institution name
+            name_match = re.search(
+                r"<filingManager>\s*<name>([^<]+)</name>",
+                text,
+            )
+            if not name_match:
+                name_match = re.search(
+                    r"COMPANY CONFORMED NAME:\s*(.+)",
+                    text,
+                )
+            if name_match:
+                institution = name_match.group(1).strip()
+                data["institution_name"] = institution
+                filing.data_json = json.dumps(data)
+                filing.description = f"13F — {institution}"
+        except Exception:
+            logger.debug(
+                "Could not enrich 13F filing %s",
+                filing.url,
+            )
+
     async def _resolve_cik(self, ticker: str) -> str | None:
         """Resolve a ticker symbol to a CIK number."""
         if ticker in self._cik_cache:
@@ -302,6 +532,7 @@ class SecEdgarAdapter(FilingDataSource):
         dates = recent.get("filingDate", [])
         descriptions = recent.get("primaryDocDescription", [])
         accession_numbers = recent.get("accessionNumber", [])
+        primary_docs = recent.get("primaryDocument", [])
 
         for i, form_type in enumerate(forms):
             # Filter by requested filing types
@@ -320,7 +551,14 @@ class SecEdgarAdapter(FilingDataSource):
                 continue
 
             description = descriptions[i] if i < len(descriptions) else None
-            accession = accession_numbers[i] if i < len(accession_numbers) else ""
+            accession = (
+                accession_numbers[i]
+                if i < len(accession_numbers) else ""
+            )
+            primary_doc = (
+                primary_docs[i]
+                if i < len(primary_docs) else ""
+            )
             url = (
                 f"https://www.sec.gov/Archives/edgar/data/"
                 f"{accession.replace('-', '')}/{accession}-index.htm"
@@ -335,7 +573,11 @@ class SecEdgarAdapter(FilingDataSource):
                     filing_date=filing_date,
                     description=description,
                     url=url,
-                    data_json=json.dumps({"form": form_type, "accession": accession}),
+                    data_json=json.dumps({
+                        "form": form_type,
+                        "accession": accession,
+                        "primary_document": primary_doc,
+                    }),
                 )
             )
 

@@ -117,6 +117,7 @@ class TestParseFilings:
                     "filingDate": ["2025-03-15"],
                     "primaryDocDescription": ["Annual"],
                     "accessionNumber": ["acc-123"],
+                    "primaryDocument": ["annual.htm"],
                 }
             }
         }
@@ -124,6 +125,7 @@ class TestParseFilings:
         parsed = json.loads(filings[0].data_json)
         assert parsed["form"] == "10-K"
         assert parsed["accession"] == "acc-123"
+        assert parsed["primary_document"] == "annual.htm"
 
 
 class TestResolveCik:
@@ -267,3 +269,107 @@ class TestFetchFilings:
 
         filings = await adapter.fetch_filings("IONQ")
         assert filings == []
+
+
+class TestParseForm4Xml:
+    """Tests for Form 4 XML parsing."""
+
+    SAMPLE_FORM4_XML = """\
+<?xml version="1.0"?>
+<ownershipDocument>
+  <reportingOwner>
+    <reportingOwnerId>
+      <rptOwnerName>John Smith</rptOwnerName>
+    </reportingOwnerId>
+    <reportingOwnerRelationship>
+      <officerTitle>Chief Executive Officer</officerTitle>
+      <isOfficer>1</isOfficer>
+    </reportingOwnerRelationship>
+  </reportingOwner>
+  <nonDerivativeTable>
+    <nonDerivativeTransaction>
+      <transactionDate><value>2026-03-10</value></transactionDate>
+      <transactionCoding>
+        <transactionCode>P</transactionCode>
+      </transactionCoding>
+      <transactionAmounts>
+        <transactionShares><value>10000</value></transactionShares>
+        <transactionPricePerShare><value>5.25</value></transactionPricePerShare>
+        <transactionAcquiredDisposedCode><value>A</value></transactionAcquiredDisposedCode>
+      </transactionAmounts>
+    </nonDerivativeTransaction>
+  </nonDerivativeTable>
+</ownershipDocument>"""
+
+    def test_parses_insider_name(self):
+        result = SecEdgarAdapter._parse_form4_xml(self.SAMPLE_FORM4_XML)
+        assert result is not None
+        assert result["insider_name"] == "John Smith"
+
+    def test_parses_insider_title(self):
+        result = SecEdgarAdapter._parse_form4_xml(self.SAMPLE_FORM4_XML)
+        assert result is not None
+        assert result["insider_title"] == "Chief Executive Officer"
+
+    def test_parses_transaction_details(self):
+        result = SecEdgarAdapter._parse_form4_xml(self.SAMPLE_FORM4_XML)
+        assert result is not None
+        txns = result["transactions"]
+        assert len(txns) == 1
+        assert txns[0]["type"] == "P"
+        assert txns[0]["shares"] == 10000.0
+        assert txns[0]["price"] == 5.25
+        assert txns[0]["acquired_disposed"] == "A"
+        assert txns[0]["date"] == "2026-03-10"
+
+    def test_returns_none_for_invalid_xml(self):
+        result = SecEdgarAdapter._parse_form4_xml("not xml")
+        assert result is None
+
+    def test_returns_none_for_empty_document(self):
+        result = SecEdgarAdapter._parse_form4_xml(
+            "<ownershipDocument></ownershipDocument>"
+        )
+        assert result is None
+
+    def test_handles_multiple_transactions(self):
+        xml = """\
+<?xml version="1.0"?>
+<ownershipDocument>
+  <reportingOwner>
+    <reportingOwnerId>
+      <rptOwnerName>Jane Doe</rptOwnerName>
+    </reportingOwnerId>
+    <reportingOwnerRelationship>
+      <officerTitle>CFO</officerTitle>
+    </reportingOwnerRelationship>
+  </reportingOwner>
+  <nonDerivativeTable>
+    <nonDerivativeTransaction>
+      <transactionDate><value>2026-03-10</value></transactionDate>
+      <transactionCoding><transactionCode>S</transactionCode></transactionCoding>
+      <transactionAmounts>
+        <transactionShares><value>5000</value></transactionShares>
+        <transactionPricePerShare><value>12.50</value></transactionPricePerShare>
+        <transactionAcquiredDisposedCode><value>D</value></transactionAcquiredDisposedCode>
+      </transactionAmounts>
+    </nonDerivativeTransaction>
+    <nonDerivativeTransaction>
+      <transactionDate><value>2026-03-11</value></transactionDate>
+      <transactionCoding><transactionCode>P</transactionCode></transactionCoding>
+      <transactionAmounts>
+        <transactionShares><value>2000</value></transactionShares>
+        <transactionPricePerShare><value>11.00</value></transactionPricePerShare>
+        <transactionAcquiredDisposedCode><value>A</value></transactionAcquiredDisposedCode>
+      </transactionAmounts>
+    </nonDerivativeTransaction>
+  </nonDerivativeTable>
+</ownershipDocument>"""
+        result = SecEdgarAdapter._parse_form4_xml(xml)
+        assert result is not None
+        assert result["insider_name"] == "Jane Doe"
+        assert len(result["transactions"]) == 2
+        assert result["transactions"][0]["type"] == "S"
+        assert result["transactions"][0]["shares"] == 5000.0
+        assert result["transactions"][1]["type"] == "P"
+        assert result["transactions"][1]["shares"] == 2000.0
