@@ -11,15 +11,19 @@ const COMPANY_SLUGS = [
   "rigetti-computing",
   "quantum-computing-inc",
   "arqit-quantum",
-  "zapata-computing",
+  "infleqtion",
+  "sealsq",
+  "btq-technologies",
   "ibm",
-  "google",
+  "alphabet-google",
   "microsoft",
-  "amazon",
+  "amazon-aws",
   "intel",
   "honeywell-quantinuum",
+  "nvidia",
+  "fujitsu",
   "defiance-quantum-etf",
-  "ark-space-exploration",
+  "wisdomtree-quantum-etf",
 ];
 
 const RANKING_METRICS: RankingMetric[] = ["stock-performance", "patents", "funding", "sentiment"];

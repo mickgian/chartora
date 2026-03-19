@@ -53,12 +53,28 @@ COMPANIES = [
         "description": "Quantum encryption and cybersecurity.",
     },
     {
-        "name": "Zapata Computing",
-        "slug": "zapata-computing",
-        "ticker": None,
+        "name": "Infleqtion",
+        "slug": "infleqtion",
+        "ticker": "INFQ",
         "sector": "pure_play",
         "is_etf": False,
-        "description": "Enterprise quantum software and algorithms.",
+        "description": "Neutral-atom quantum computing and quantum sensors.",
+    },
+    {
+        "name": "SEALSQ",
+        "slug": "sealsq",
+        "ticker": "LAES",
+        "sector": "pure_play",
+        "is_etf": False,
+        "description": "Post-quantum cryptography semiconductors and secure hardware.",
+    },
+    {
+        "name": "BTQ Technologies",
+        "slug": "btq-technologies",
+        "ticker": "BTQ",
+        "sector": "pure_play",
+        "is_etf": False,
+        "description": "Post-quantum blockchain security and cryptography.",
     },
     # Big tech with quantum divisions
     {
@@ -112,6 +128,28 @@ COMPANIES = [
             " (Honeywell subsidiary)."
         ),
     },
+    {
+        "name": "NVIDIA",
+        "slug": "nvidia",
+        "ticker": "NVDA",
+        "sector": "big_tech",
+        "is_etf": False,
+        "description": (
+            "CUDA-Q quantum platform and NVQLink"
+            " quantum-classical interconnect."
+        ),
+    },
+    {
+        "name": "Fujitsu",
+        "slug": "fujitsu",
+        "ticker": "6702.T",
+        "sector": "big_tech",
+        "is_etf": False,
+        "description": (
+            "Superconducting quantum computing"
+            " with RIKEN (256-qubit systems)."
+        ),
+    },
     # ETFs
     {
         "name": "Defiance Quantum ETF",
@@ -122,12 +160,12 @@ COMPANIES = [
         "description": "ETF tracking quantum computing and machine learning companies.",
     },
     {
-        "name": "ARK Space Exploration & Innovation ETF",
-        "slug": "ark-space-exploration-etf",
-        "ticker": "ARKX",
+        "name": "WisdomTree Quantum Computing Fund",
+        "slug": "wisdomtree-quantum-etf",
+        "ticker": "WQTM",
         "sector": "etf",
         "is_etf": True,
-        "description": "ARK Invest ETF with exposure to quantum computing companies.",
+        "description": "ETF focused on pure quantum computing ecosystem companies.",
     },
 ]
 
