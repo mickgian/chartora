@@ -71,10 +71,7 @@ class Ticker:
         if not self.symbol:
             raise ValueError("Ticker symbol cannot be empty")
         if not re.match(r"^[A-Za-z0-9]+(\.[A-Za-z]+)?$", self.symbol):
-            raise ValueError(
-                "Invalid ticker symbol: "
-                f"'{self.symbol}'"
-            )
+            raise ValueError(f"Invalid ticker symbol: '{self.symbol}'")
         # Ensure uppercase via object.__setattr__ since frozen
         object.__setattr__(self, "symbol", self.symbol.upper())
 
