@@ -195,25 +195,36 @@ COMPANIES = [
         "description": "ETF focused on pure quantum computing ecosystem companies.",
     },
     {
-        "name": "iShares Quantum Computing and Tech ETF",
-        "slug": "ishares-quantum-etf",
-        "ticker": "QCMP",
+        "name": "VanEck Quantum Computing UCITS ETF",
+        "slug": "vaneck-quantum-etf",
+        "ticker": "QNTM.L",
         "sector": "etf",
         "is_etf": True,
         "description": (
-            "BlackRock ETF tracking quantum computing"
-            " hardware, software, and related technologies."
+            "Europe's first quantum ETF tracking the"
+            " MarketVector Global Quantum Leaders Index."
         ),
     },
     {
-        "name": "AXA IM Nasdaq US Quantum Computing ETF",
-        "slug": "axa-nasdaq-quantum-etf",
-        "ticker": "NAQC",
+        "name": "iShares Quantum Computing UCITS ETF",
+        "slug": "ishares-quantum-etf",
+        "ticker": "QANT.AS",
         "sector": "etf",
         "is_etf": True,
         "description": (
-            "Tracks the Nasdaq Quantum Computing Index"
-            " focusing on US-listed quantum companies."
+            "BlackRock UCITS ETF tracking the"
+            " STOXX Global Quantum Computing Index."
+        ),
+    },
+    {
+        "name": "Global X AI Semiconductor & Quantum ETF",
+        "slug": "globalx-ai-quantum-etf",
+        "ticker": "CHPX",
+        "sector": "etf",
+        "is_etf": True,
+        "description": (
+            "ETF covering AI semiconductor and"
+            " quantum computing companies."
         ),
     },
 ]

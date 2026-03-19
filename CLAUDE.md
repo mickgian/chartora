@@ -57,7 +57,8 @@ The goal: build once, let it run passively with daily auto-updating data, moneti
 
 **ETFs:**
 - Defiance Quantum ETF (QTUM), WisdomTree Quantum Computing Fund (WQTM)
-- iShares Quantum Computing and Tech ETF (QCMP), AXA IM Nasdaq US Quantum Computing ETF (NAQC)
+- VanEck Quantum Computing UCITS ETF (QNTM.L), iShares Quantum Computing UCITS ETF (QANT.AS)
+- Global X AI Semiconductor & Quantum ETF (CHPX)
 
 ## Quantum Power Score Formula
 
