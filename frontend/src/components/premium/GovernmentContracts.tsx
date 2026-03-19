@@ -12,6 +12,7 @@ interface Contract {
   start_date: string;
   end_date: string | null;
   description: string | null;
+  quantum_related?: boolean;
 }
 
 interface GovernmentContractsProps {
@@ -32,6 +33,7 @@ export function GovernmentContracts({ slug }: GovernmentContractsProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [quantumOnly, setQuantumOnly] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!slug) return;
@@ -60,6 +62,11 @@ export function GovernmentContracts({ slug }: GovernmentContractsProps) {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const hasQuantumContracts = contracts.some((c) => c.quantum_related);
+  const displayedContracts = quantumOnly
+    ? contracts.filter((c) => c.quantum_related)
+    : contracts;
 
   if (loading) {
     return (
@@ -92,17 +99,37 @@ export function GovernmentContracts({ slug }: GovernmentContractsProps) {
 
       <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-slate-900">
         <div className="border-b border-gray-200 p-4 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300">
-            Government Contracts (USASpending.gov)
-          </h3>
-          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-            Federal contract awards sourced from USASpending.gov.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300">
+                Government Contracts (USASpending.gov)
+              </h3>
+              <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                Federal contract awards sourced from USASpending.gov.
+              </p>
+            </div>
+            {hasQuantumContracts && (
+              <button
+                onClick={() => setQuantumOnly(!quantumOnly)}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  quantumOnly
+                    ? "bg-purple-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                }`}
+              >
+                {quantumOnly ? "Showing Quantum Only" : "Show Quantum Only"}
+              </button>
+            )}
+          </div>
         </div>
 
         {contracts.length === 0 ? (
           <p className="p-4 text-sm text-gray-500 dark:text-slate-400">
             No government contracts found for this company.
+          </p>
+        ) : displayedContracts.length === 0 ? (
+          <p className="p-4 text-sm text-gray-500 dark:text-slate-400">
+            No quantum-related contracts found. Try disabling the filter.
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -118,7 +145,7 @@ export function GovernmentContracts({ slug }: GovernmentContractsProps) {
                 </tr>
               </thead>
               <tbody>
-                {contracts.map((c) => (
+                {displayedContracts.map((c) => (
                   <>
                     <tr
                       key={c.award_id}
@@ -130,6 +157,11 @@ export function GovernmentContracts({ slug }: GovernmentContractsProps) {
                       </td>
                       <td className="max-w-xs truncate px-4 py-3 text-gray-700 dark:text-slate-300">
                         {c.title}
+                        {c.quantum_related && (
+                          <span className="ml-2 inline-block rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+                            Quantum
+                          </span>
+                        )}
                         {c.description && (
                           <span className="ml-1 text-xs text-indigo-500">{expandedId === c.award_id ? "[-]" : "[+]"}</span>
                         )}

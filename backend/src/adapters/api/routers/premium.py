@@ -200,6 +200,8 @@ async def get_government_contracts(
         total_value,
     )
 
+    from src.infrastructure.usaspending_client import UsaSpendingAdapter
+
     return {
         "company_slug": slug,
         "company_name": company.name,
@@ -212,6 +214,7 @@ async def get_government_contracts(
                 "start_date": c.start_date.isoformat(),
                 "end_date": c.end_date.isoformat() if c.end_date else None,
                 "description": c.description,
+                "quantum_related": UsaSpendingAdapter.is_quantum_related(c),
             }
             for c in contracts
         ],

@@ -268,12 +268,18 @@ async def refresh_government_contracts(
     gov_contract_repo: PgGovernmentContractRepository,
 ) -> None:
     """Pull government contracts for a single company."""
+    from src.infrastructure.usaspending_client import ALTERNATE_SEARCH_NAMES
+
     logger.info(
         "Fetching government contracts for %s",
         company.name,
     )
 
-    contracts = await usaspending_adapter.search_contracts(company.name)
+    # Build search names: primary name + any known alternates
+    search_names = [company.name]
+    search_names.extend(ALTERNATE_SEARCH_NAMES.get(company.name, []))
+
+    contracts = await usaspending_adapter.search_contracts_multi(search_names)
     if not contracts:
         logger.info("No government contracts found for %s", company.name)
         return

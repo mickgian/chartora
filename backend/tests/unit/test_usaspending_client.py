@@ -6,6 +6,7 @@ from decimal import Decimal
 import httpx
 import pytest
 
+from src.domain.models.entities import GovernmentContract
 from src.infrastructure.usaspending_client import UsaSpendingAdapter
 
 
@@ -205,3 +206,112 @@ class TestSearchContracts:
 
         total = await adapter.get_total_contract_value("IonQ")
         assert total == 1500000.0
+
+    @pytest.mark.asyncio
+    async def test_search_contracts_multi_deduplicates(self):
+        """Multi-name search deduplicates by award_id."""
+        call_names: list[str] = []
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            import json as _json
+
+            body = _json.loads(request.content)
+            name = body["filters"]["recipient_search_text"][0]
+            call_names.append(name)
+
+            if name == "Rigetti Computing":
+                results: list[dict] = []
+            else:
+                results = [
+                    {
+                        "Award ID": "FA875020P1716",
+                        "Recipient Name": "RIGETTI & CO LLC",
+                        "Award Amount": 250000,
+                        "Awarding Agency": "Department of Defense",
+                        "Start Date": "2020-09-01",
+                        "End Date": "2021-09-01",
+                        "Description": "Quantum computing research",
+                    }
+                ]
+            return httpx.Response(200, json={"results": results}, request=request)
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = UsaSpendingAdapter(http_client=mock_client)
+
+        contracts = await adapter.search_contracts_multi(
+            ["Rigetti Computing", "RIGETTI & CO"]
+        )
+        assert len(contracts) == 1
+        assert contracts[0].award_id == "FA875020P1716"
+        assert len(call_names) == 2
+
+    @pytest.mark.asyncio
+    async def test_search_contracts_multi_merges_different_awards(self):
+        """Multi-name search merges distinct awards from different names."""
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            import json as _json
+
+            body = _json.loads(request.content)
+            name = body["filters"]["recipient_search_text"][0]
+
+            if name == "D-Wave Quantum":
+                results = []
+            else:
+                results = [
+                    {
+                        "Award ID": "AWD-DW-001",
+                        "Recipient Name": "D-WAVE SYSTEMS INC",
+                        "Award Amount": 500000,
+                        "Awarding Agency": "DARPA",
+                        "Start Date": "2023-01-01",
+                        "Description": "Quantum annealing research",
+                    }
+                ]
+            return httpx.Response(200, json={"results": results}, request=request)
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = UsaSpendingAdapter(http_client=mock_client)
+
+        contracts = await adapter.search_contracts_multi(
+            ["D-Wave Quantum", "D-WAVE SYSTEMS"]
+        )
+        assert len(contracts) == 1
+        assert contracts[0].award_id == "AWD-DW-001"
+
+
+class TestIsQuantumRelated:
+    def _make_contract(self, description: str | None = None) -> GovernmentContract:
+        return GovernmentContract(
+            company_id=1,
+            award_id="AWD-001",
+            title="Test Corp",
+            amount=Decimal("100000"),
+            awarding_agency="DOD",
+            start_date=date(2025, 1, 1),
+            description=description,
+        )
+
+    def test_quantum_keyword_in_description(self):
+        c = self._make_contract("Research on quantum computing processors")
+        assert UsaSpendingAdapter.is_quantum_related(c) is True
+
+    def test_qubit_keyword(self):
+        c = self._make_contract("Development of 100-qubit system")
+        assert UsaSpendingAdapter.is_quantum_related(c) is True
+
+    def test_trapped_ion_keyword(self):
+        c = self._make_contract("Trapped-ion quantum processor development")
+        assert UsaSpendingAdapter.is_quantum_related(c) is True
+
+    def test_not_quantum_related(self):
+        c = self._make_contract("Cloud infrastructure maintenance services")
+        assert UsaSpendingAdapter.is_quantum_related(c) is False
+
+    def test_none_description(self):
+        c = self._make_contract(None)
+        assert UsaSpendingAdapter.is_quantum_related(c) is False
+
+    def test_case_insensitive(self):
+        c = self._make_contract("QUANTUM COMPUTING RESEARCH")
+        assert UsaSpendingAdapter.is_quantum_related(c) is True
