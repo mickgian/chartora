@@ -332,6 +332,20 @@ class TestParseForm4Xml:
         )
         assert result is None
 
+    def test_handles_namespace(self):
+        xml = """\
+<?xml version="1.0"?>
+<ownershipDocument xmlns="http://www.sec.gov/cgi-bin/browse-edgar?action=getcompany">
+  <reportingOwner>
+    <reportingOwnerId>
+      <rptOwnerName>Ns Test</rptOwnerName>
+    </reportingOwnerId>
+  </reportingOwner>
+</ownershipDocument>"""
+        result = SecEdgarAdapter._parse_form4_xml(xml)
+        assert result is not None
+        assert result["insider_name"] == "Ns Test"
+
     def test_handles_multiple_transactions(self):
         xml = """\
 <?xml version="1.0"?>
@@ -373,3 +387,668 @@ class TestParseForm4Xml:
         assert result["transactions"][0]["shares"] == 5000.0
         assert result["transactions"][1]["type"] == "P"
         assert result["transactions"][1]["shares"] == 2000.0
+
+
+class TestFetchFilingsErrorPaths:
+    @pytest.mark.asyncio
+    async def test_fetch_filings_http_error(self):
+        """Lines 93-100: HTTP error returns empty list."""
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            url = str(request.url)
+            if "company_tickers" in url:
+                return httpx.Response(
+                    200,
+                    json={"0": {"cik_str": 123, "ticker": "IONQ", "title": "IonQ"}},
+                    request=request,
+                )
+            return httpx.Response(500, request=request)
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        filings = await adapter.fetch_filings("IONQ")
+        assert filings == []
+
+    @pytest.mark.asyncio
+    async def test_fetch_filings_generic_exception(self):
+        """Lines 98-100: generic exception returns empty list."""
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            raise RuntimeError("network down")
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        filings = await adapter.fetch_filings("IONQ")
+        assert filings == []
+
+
+class TestFetchInstitutionalHoldings:
+    @pytest.mark.asyncio
+    async def test_fetch_institutional_holdings_success(self):
+        """Lines 114-123."""
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            url = str(request.url)
+            if "company_tickers" in url:
+                return httpx.Response(
+                    200,
+                    json={"0": {"cik_str": 123, "ticker": "IONQ", "title": "IonQ"}},
+                    request=request,
+                )
+            if "submissions" in url:
+                return httpx.Response(
+                    200,
+                    json={
+                        "filings": {
+                            "recent": {
+                                "form": ["13F-HR"],
+                                "filingDate": ["2025-09-01"],
+                                "primaryDocDescription": ["13F"],
+                                "accessionNumber": ["0001-25-000001"],
+                                "primaryDocument": ["primary.xml"],
+                            }
+                        }
+                    },
+                    request=request,
+                )
+            # 13F enrichment doc request
+            return httpx.Response(
+                200,
+                text="<filingManager><name>Big Fund LP</name></filingManager>",
+                request=request,
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        filings = await adapter.fetch_institutional_holdings("IONQ")
+        assert len(filings) == 1
+        assert filings[0].filing_type == FilingType.FORM_13F
+
+
+class TestEnrichForm4:
+    @pytest.mark.asyncio
+    async def test_enrich_form4_builds_description(self):
+        """Lines 302-342: builds human-readable description."""
+        import json
+
+        from src.domain.models.entities import Filing
+
+        form4_xml = """\
+<?xml version="1.0"?>
+<ownershipDocument>
+  <reportingOwner>
+    <reportingOwnerId><rptOwnerName>Jane Doe</rptOwnerName></reportingOwnerId>
+    <reportingOwnerRelationship><officerTitle>CFO</officerTitle></reportingOwnerRelationship>
+  </reportingOwner>
+  <nonDerivativeTable>
+    <nonDerivativeTransaction>
+      <transactionDate><value>2026-03-10</value></transactionDate>
+      <transactionCoding><transactionCode>S</transactionCode></transactionCoding>
+      <transactionAmounts>
+        <transactionShares><value>5000</value></transactionShares>
+        <transactionPricePerShare><value>12.50</value></transactionPricePerShare>
+        <transactionAcquiredDisposedCode><value>D</value></transactionAcquiredDisposedCode>
+      </transactionAmounts>
+    </nonDerivativeTransaction>
+  </nonDerivativeTable>
+</ownershipDocument>"""
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(200, text=form4_xml, request=request)
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+
+        filing = Filing(
+            company_id=0,
+            filing_type=FilingType.FORM_4,
+            filing_date=date(2026, 3, 10),
+            description="Form 4",
+            url="https://sec.gov/test",
+            data_json=json.dumps(
+                {"accession": "0001-26-000001", "primary_document": "doc.xml"}
+            ),
+        )
+
+        await adapter._enrich_form4(filing, "0000000123", mock_client)
+        assert "Jane Doe" in filing.description
+        assert "CFO" in filing.description
+        assert "Sale" in filing.description
+        assert "5,000 shares" in filing.description
+        assert "@ $12.50" in filing.description
+
+    @pytest.mark.asyncio
+    async def test_enrich_form4_no_accession(self):
+        """Returns early when accession is missing."""
+        import json
+
+        from src.domain.models.entities import Filing
+
+        mock_client = httpx.AsyncClient(
+            transport=httpx.MockTransport(lambda req: httpx.Response(200, request=req))
+        )
+        adapter = SecEdgarAdapter(http_client=mock_client)
+
+        filing = Filing(
+            company_id=0,
+            filing_type=FilingType.FORM_4,
+            filing_date=date(2026, 3, 10),
+            description="Original",
+            url="https://sec.gov/test",
+            data_json=json.dumps({}),
+        )
+
+        await adapter._enrich_form4(filing, "123", mock_client)
+        assert filing.description == "Original"
+
+    @pytest.mark.asyncio
+    async def test_enrich_form4_http_404(self):
+        """Handles non-200 response gracefully."""
+        import json
+
+        from src.domain.models.entities import Filing
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(404, request=request)
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+
+        filing = Filing(
+            company_id=0,
+            filing_type=FilingType.FORM_4,
+            filing_date=date(2026, 3, 10),
+            description="Original",
+            url="https://sec.gov/test",
+            data_json=json.dumps(
+                {"accession": "0001-26-000001", "primary_document": "doc.xml"}
+            ),
+        )
+
+        await adapter._enrich_form4(filing, "123", mock_client)
+        assert filing.description == "Original"
+
+    @pytest.mark.asyncio
+    async def test_enrich_form4_gift_transaction(self):
+        """Tests Gift code path in description."""
+        import json
+
+        from src.domain.models.entities import Filing
+
+        form4_xml = """\
+<?xml version="1.0"?>
+<ownershipDocument>
+  <reportingOwner>
+    <reportingOwnerId><rptOwnerName>Bob Gift</rptOwnerName></reportingOwnerId>
+  </reportingOwner>
+  <nonDerivativeTable>
+    <nonDerivativeTransaction>
+      <transactionDate><value>2026-03-10</value></transactionDate>
+      <transactionCoding><transactionCode>G</transactionCode></transactionCoding>
+      <transactionAmounts>
+        <transactionShares><value>1000</value></transactionShares>
+      </transactionAmounts>
+    </nonDerivativeTransaction>
+  </nonDerivativeTable>
+</ownershipDocument>"""
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(200, text=form4_xml, request=request)
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+
+        filing = Filing(
+            company_id=0,
+            filing_type=FilingType.FORM_4,
+            filing_date=date(2026, 3, 10),
+            description="Form 4",
+            url=None,
+            data_json=json.dumps({"accession": "acc-1", "primary_document": "doc.xml"}),
+        )
+
+        await adapter._enrich_form4(filing, "123", mock_client)
+        assert "Gift" in filing.description
+        assert "Bob Gift" in filing.description
+
+    @pytest.mark.asyncio
+    async def test_enrich_form4_name_only_no_transactions(self):
+        """Tests description when no transactions but name+title exist."""
+        import json
+
+        from src.domain.models.entities import Filing
+
+        form4_xml = """\
+<?xml version="1.0"?>
+<ownershipDocument>
+  <reportingOwner>
+    <reportingOwnerId><rptOwnerName>Alice No-Trade</rptOwnerName></reportingOwnerId>
+    <reportingOwnerRelationship><officerTitle>Director</officerTitle></reportingOwnerRelationship>
+  </reportingOwner>
+</ownershipDocument>"""
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(200, text=form4_xml, request=request)
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+
+        filing = Filing(
+            company_id=0,
+            filing_type=FilingType.FORM_4,
+            filing_date=date(2026, 3, 10),
+            description="Form 4",
+            url=None,
+            data_json=json.dumps({"accession": "acc-1", "primary_document": "doc.xml"}),
+        )
+
+        await adapter._enrich_form4(filing, "123", mock_client)
+        assert filing.description == "Alice No-Trade (Director)"
+
+
+class TestEnrich13f:
+    @pytest.mark.asyncio
+    async def test_enrich_13f_with_filing_manager(self):
+        """Lines 425-459: extracts institution name from filingManager XML."""
+        import json
+
+        from src.domain.models.entities import Filing
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                text="<filingManager><name>Vanguard Group</name></filingManager>",
+                request=request,
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+
+        filing = Filing(
+            company_id=0,
+            filing_type=FilingType.FORM_13F,
+            filing_date=date(2025, 9, 1),
+            description="13F",
+            url=None,
+            data_json=json.dumps(
+                {"accession": "0001-25-000001", "primary_document": "report.xml"}
+            ),
+        )
+
+        await adapter._enrich_13f(filing, "0000000123", mock_client)
+        assert "Vanguard Group" in filing.description
+
+    @pytest.mark.asyncio
+    async def test_enrich_13f_fallback_company_name(self):
+        """Falls back to COMPANY CONFORMED NAME regex."""
+        import json
+
+        from src.domain.models.entities import Filing
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                text="COMPANY CONFORMED NAME:		BlackRock Inc",
+                request=request,
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+
+        filing = Filing(
+            company_id=0,
+            filing_type=FilingType.FORM_13F,
+            filing_date=date(2025, 9, 1),
+            description="13F",
+            url=None,
+            data_json=json.dumps(
+                {"accession": "acc-1", "primary_document": "report.htm"}
+            ),
+        )
+
+        await adapter._enrich_13f(filing, "123", mock_client)
+        assert "BlackRock Inc" in filing.description
+
+    @pytest.mark.asyncio
+    async def test_enrich_13f_no_accession(self):
+        """Returns early when accession missing."""
+        import json
+
+        from src.domain.models.entities import Filing
+
+        mock_client = httpx.AsyncClient(
+            transport=httpx.MockTransport(lambda req: httpx.Response(200, request=req))
+        )
+        adapter = SecEdgarAdapter(http_client=mock_client)
+
+        filing = Filing(
+            company_id=0,
+            filing_type=FilingType.FORM_13F,
+            filing_date=date(2025, 9, 1),
+            description="Original",
+            url=None,
+            data_json=json.dumps({}),
+        )
+
+        await adapter._enrich_13f(filing, "123", mock_client)
+        assert filing.description == "Original"
+
+    @pytest.mark.asyncio
+    async def test_enrich_13f_404(self):
+        """Handles non-200 gracefully."""
+        import json
+
+        from src.domain.models.entities import Filing
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(404, request=request)
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+
+        filing = Filing(
+            company_id=0,
+            filing_type=FilingType.FORM_13F,
+            filing_date=date(2025, 9, 1),
+            description="Original",
+            url=None,
+            data_json=json.dumps(
+                {"accession": "acc-1", "primary_document": "report.xml"}
+            ),
+        )
+
+        await adapter._enrich_13f(filing, "123", mock_client)
+        assert filing.description == "Original"
+
+
+class TestFetchFormDFilings:
+    @pytest.mark.asyncio
+    async def test_fetch_form_d_success(self):
+        """Lines 135-200."""
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "hits": {
+                        "hits": [
+                            {
+                                "_source": {
+                                    "file_date": "2025-06-15",
+                                    "accession_no": "0001-25-000010",
+                                    "entity_name": "IonQ Inc",
+                                    "display_names": ["IonQ, Inc."],
+                                }
+                            }
+                        ]
+                    }
+                },
+                request=request,
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        filings = await adapter.fetch_form_d_filings("IonQ")
+        assert len(filings) == 1
+        assert filings[0].filing_type == FilingType.FORM_D
+        assert "IonQ, Inc." in filings[0].description
+
+    @pytest.mark.asyncio
+    async def test_fetch_form_d_invalid_date_skipped(self):
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "hits": {
+                        "hits": [
+                            {
+                                "_source": {
+                                    "file_date": "bad-date",
+                                    "accession_no": "a1",
+                                }
+                            },
+                            {
+                                "_source": {
+                                    "file_date": "2025-01-01",
+                                    "accession_no": "a2",
+                                    "entity_name": "Good Co",
+                                }
+                            },
+                        ]
+                    }
+                },
+                request=request,
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        filings = await adapter.fetch_form_d_filings("Test")
+        assert len(filings) == 1
+
+    @pytest.mark.asyncio
+    async def test_fetch_form_d_http_error(self):
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(500, request=request)
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        filings = await adapter.fetch_form_d_filings("Test")
+        assert filings == []
+
+    @pytest.mark.asyncio
+    async def test_fetch_form_d_generic_exception(self):
+        def transport(request: httpx.Request) -> httpx.Response:
+            raise RuntimeError("boom")
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        filings = await adapter.fetch_form_d_filings("Test")
+        assert filings == []
+
+    @pytest.mark.asyncio
+    async def test_fetch_form_d_empty_accession_no_url(self):
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "hits": {
+                        "hits": [
+                            {
+                                "_source": {
+                                    "file_date": "2025-06-15",
+                                    "accession_no": "",
+                                    "entity_name": "No Acc Co",
+                                }
+                            }
+                        ]
+                    }
+                },
+                request=request,
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        filings = await adapter.fetch_form_d_filings("Test")
+        assert len(filings) == 1
+        assert filings[0].url is None
+
+
+class TestFetchFormDTotalRaised:
+    @pytest.mark.asyncio
+    async def test_fetch_form_d_total_raised_success(self):
+        """Lines 208-246."""
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            url = str(request.url)
+            if "company_tickers" in url:
+                return httpx.Response(
+                    200,
+                    json={"0": {"cik_str": 123, "ticker": "IONQ", "title": "IonQ"}},
+                    request=request,
+                )
+            if "submissions" in url:
+                return httpx.Response(
+                    200,
+                    json={
+                        "filings": {
+                            "recent": {
+                                "form": ["D", "D/A", "10-K"],
+                                "primaryDocument": ["d1.xml", "d2.xml", "10k.htm"],
+                                "accessionNumber": ["acc-1", "acc-2", "acc-3"],
+                            }
+                        }
+                    },
+                    request=request,
+                )
+            # Form D XML docs
+            return httpx.Response(
+                200,
+                text="<totalAmountSold>5000000</totalAmountSold>",
+                request=request,
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        total = await adapter.fetch_form_d_total_raised("IONQ")
+        assert total == 10000000.0
+
+    @pytest.mark.asyncio
+    async def test_fetch_form_d_total_raised_no_cik(self):
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={"0": {"cik_str": 123, "ticker": "OTHER", "title": "Other"}},
+                request=request,
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        result = await adapter.fetch_form_d_total_raised("IONQ")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_fetch_form_d_total_raised_no_d_filings(self):
+        def transport(request: httpx.Request) -> httpx.Response:
+            url = str(request.url)
+            if "company_tickers" in url:
+                return httpx.Response(
+                    200,
+                    json={"0": {"cik_str": 123, "ticker": "IONQ", "title": "IonQ"}},
+                    request=request,
+                )
+            return httpx.Response(
+                200,
+                json={
+                    "filings": {
+                        "recent": {
+                            "form": ["10-K"],
+                            "primaryDocument": ["10k.htm"],
+                            "accessionNumber": ["acc-1"],
+                        }
+                    }
+                },
+                request=request,
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        result = await adapter.fetch_form_d_total_raised("IONQ")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_fetch_form_d_total_raised_exception(self):
+        def transport(request: httpx.Request) -> httpx.Response:
+            raise RuntimeError("network error")
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        result = await adapter.fetch_form_d_total_raised("IONQ")
+        assert result is None
+
+
+class TestExtractFormDAmount:
+    @pytest.mark.asyncio
+    async def test_extracts_total_amount_sold(self):
+        """Lines 256-286."""
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                text="<totalAmountSold>1500000.50</totalAmountSold>",
+                request=request,
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        amount = await adapter._extract_form_d_amount(
+            mock_client, "0000000123", "0001-25-000001", "form.xml"
+        )
+        assert amount == 1500000.50
+
+    @pytest.mark.asyncio
+    async def test_falls_back_to_total_offering_amount(self):
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                text="<totalOfferingAmount>2000000</totalOfferingAmount>",
+                request=request,
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        amount = await adapter._extract_form_d_amount(
+            mock_client, "123", "acc-1", "form.xml"
+        )
+        assert amount == 2000000.0
+
+    @pytest.mark.asyncio
+    async def test_returns_none_on_404(self):
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(404, request=request)
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        amount = await adapter._extract_form_d_amount(
+            mock_client, "123", "acc-1", "form.xml"
+        )
+        assert amount is None
+
+    @pytest.mark.asyncio
+    async def test_returns_none_when_no_match(self):
+        def transport(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200, text="<noRelevantField>123</noRelevantField>", request=request
+            )
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        amount = await adapter._extract_form_d_amount(
+            mock_client, "123", "acc-1", "form.xml"
+        )
+        assert amount is None
+
+    @pytest.mark.asyncio
+    async def test_returns_none_on_exception(self):
+        def transport(request: httpx.Request) -> httpx.Response:
+            raise RuntimeError("fail")
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        amount = await adapter._extract_form_d_amount(
+            mock_client, "123", "acc-1", "form.xml"
+        )
+        assert amount is None
+
+
+class TestResolveCikError:
+    @pytest.mark.asyncio
+    async def test_resolve_cik_exception(self):
+        """Lines 480-481."""
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            raise RuntimeError("network error")
+
+        mock_client = httpx.AsyncClient(transport=httpx.MockTransport(transport))
+        adapter = SecEdgarAdapter(http_client=mock_client)
+        result = await adapter._resolve_cik("IONQ")
+        assert result is None
