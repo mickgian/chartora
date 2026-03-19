@@ -34,11 +34,15 @@ const PERIOD_OPTIONS = [
   { value: 365, label: "1 year" },
 ];
 
+interface ChartDataPoint extends HistoricalScore {
+  timestamp: number;
+}
+
 export function HistoricalScoreChart() {
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [selectedSlug, setSelectedSlug] = useState<string>("");
   const [period, setPeriod] = useState(365);
-  const [scores, setScores] = useState<HistoricalScore[]>([]);
+  const [scores, setScores] = useState<ChartDataPoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,7 +80,12 @@ export function HistoricalScoreChart() {
       }
 
       const data = await res.json();
-      setScores(data.scores ?? []);
+      setScores(
+        (data.scores ?? []).map((s: HistoricalScore) => ({
+          ...s,
+          timestamp: new Date(s.date).getTime(),
+        })),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
@@ -141,9 +150,15 @@ export function HistoricalScoreChart() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={"#374151"} opacity={0.5} />
               <XAxis
-                dataKey="date"
+                dataKey="timestamp"
+                type="number"
+                scale="time"
+                domain={[
+                  new Date().getTime() - period * 24 * 60 * 60 * 1000,
+                  new Date().getTime(),
+                ]}
                 tick={{ fontSize: 11, fill: "#d1d5db" }}
-                tickFormatter={(v: string) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                tickFormatter={(v: number) => new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                 stroke={"#4b5563"}
               />
               <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#d1d5db" }} stroke={"#4b5563"} />
@@ -151,7 +166,7 @@ export function HistoricalScoreChart() {
                 contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #4b5563", borderRadius: "8px", fontSize: "12px", color: "#f3f4f6" }}
                 itemStyle={{ color: "#f3f4f6" }}
                 labelStyle={{ color: "#ffffff", fontWeight: 600 }}
-                labelFormatter={(v) => new Date(String(v)).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                labelFormatter={(v) => new Date(Number(v)).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
               />
               <Area
                 type="monotone"
