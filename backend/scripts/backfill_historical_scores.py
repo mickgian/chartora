@@ -80,14 +80,29 @@ QUBIT_MILESTONES: dict[str, list[tuple[date, int]]] = {
     "intel": [
         (date(2023, 6, 15), 12),       # Tunnel Falls 12-qubit silicon
     ],
+    "infleqtion": [
+        (date(2024, 6, 1), 12),        # Sqorpius neutral-atom processor
+    ],
+    "fujitsu": [
+        (date(2023, 10, 5), 64),       # Superconducting 64-qubit with RIKEN
+        (date(2025, 3, 1), 256),       # 256-qubit system announced
+    ],
+    "nvidia": [],                       # GPU/software platform, no own qubits
     # Companies with 0 qubits (no quantum hardware)
     "quantum-computing-inc": [],
     "arqit-quantum": [],
-    "zapata-computing": [],
+    "sealsq": [],
+    "btq-technologies": [],
+    "quantumctek": [],
+    "quantum-emotion": [],
+    "01-communique": [],
     "microsoft": [],
     "amazon-aws": [],
     "defiance-quantum-etf": [],
-    "ark-space-exploration-etf": [],
+    "wisdomtree-quantum-etf": [],
+    "vaneck-quantum-etf": [],
+    "ishares-quantum-etf": [],
+    "globalx-ai-quantum-etf": [],
 }
 
 # Known annual patent filing counts — same as in refresh_data.py.
@@ -98,15 +113,25 @@ KNOWN_PATENT_COUNTS: dict[str, int] = {
     "rigetti-computing": 45,
     "quantum-computing-inc": 15,
     "arqit-quantum": 12,
-    "zapata-computing": 10,
+    "infleqtion": 25,
+    "sealsq": 10,
+    "btq-technologies": 5,
+    "quantumctek": 20,
+    "quantum-emotion": 5,
+    "01-communique": 8,
     "ibm": 190,
     "alphabet-google": 170,
     "microsoft": 50,
     "amazon-aws": 30,
     "intel": 35,
     "honeywell-quantinuum": 45,
+    "nvidia": 40,
+    "fujitsu": 60,
     "defiance-quantum-etf": 0,
-    "ark-space-exploration-etf": 0,
+    "wisdomtree-quantum-etf": 0,
+    "vaneck-quantum-etf": 0,
+    "ishares-quantum-etf": 0,
+    "globalx-ai-quantum-etf": 0,
 }
 
 
