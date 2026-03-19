@@ -33,17 +33,41 @@ QUANTUM_KEYWORDS: re.Pattern[str] = re.compile(
 
 # Alternate / legal entity names for USASpending.gov searches.
 # Keys are the company names as stored in the DB (from seed_companies.py).
-# Values are additional search terms to try.
+# Values are additional search terms to try — these are the legal entity
+# names that appear as recipients in USASpending.gov federal award records.
 ALTERNATE_SEARCH_NAMES: dict[str, list[str]] = {
-    "Rigetti Computing": ["RIGETTI & CO", "RIGETTI"],
-    "D-Wave Quantum": ["D-WAVE SYSTEMS", "D-WAVE"],
+    # Pure-play quantum companies
     "IonQ": ["IONQ INC"],
+    "D-Wave Quantum": ["D-WAVE SYSTEMS", "D-WAVE SYSTEMS INC"],
+    "Rigetti Computing": ["RIGETTI & CO", "RIGETTI & CO LLC"],
     "Quantum Computing Inc": ["QUANTUM COMPUTING INC"],
     "Arqit Quantum": ["ARQIT LIMITED", "ARQIT"],
-    "Zapata Computing": ["ZAPATA COMPUTING INC", "ZAPATA AI"],
-    "Honeywell (Quantinuum)": ["QUANTINUUM", "HONEYWELL"],
-    "Alphabet (Google)": ["GOOGLE", "ALPHABET"],
-    "Amazon (AWS)": ["AMAZON", "AMAZON WEB SERVICES"],
+    "Zapata Computing": ["ZAPATA COMPUTING INC", "ZAPATA AI", "ZAPATA AI INC"],
+    # Big tech — DB names contain parentheticals that won't match
+    "IBM": [
+        "INTERNATIONAL BUSINESS MACHINES CORPORATION",
+        "INTERNATIONAL BUSINESS MACHINES",
+        "IBM CORPORATION",
+    ],
+    "Alphabet (Google)": [
+        "ALPHABET INC",
+        "GOOGLE LLC",
+        "GOOGLE INC",
+        "GOOGLE",
+    ],
+    "Microsoft": ["MICROSOFT CORPORATION"],
+    "Amazon (AWS)": [
+        "AMAZON WEB SERVICES INC",
+        "AMAZON.COM SERVICES LLC",
+        "AMAZON",
+    ],
+    "Intel": ["INTEL CORPORATION", "INTEL FEDERAL LLC"],
+    "Honeywell (Quantinuum)": [
+        "QUANTINUUM LLC",
+        "QUANTINUUM",
+        "HONEYWELL INTERNATIONAL INC",
+        "HONEYWELL",
+    ],
 }
 
 
