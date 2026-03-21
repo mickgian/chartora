@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { CompanyDetail } from "@/components/company/CompanyDetail";
 import { ShareButtons } from "@/components/sharing/ShareButtons";
+import { ALL_COMPANY_SLUGS } from "@/lib/mock-data";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://chartora.com";
+
+export function generateStaticParams() {
+  return ALL_COMPANY_SLUGS.map((slug) => ({ slug }));
+}
 
 interface CompanyPageProps {
   params: Promise<{ slug: string }>;
