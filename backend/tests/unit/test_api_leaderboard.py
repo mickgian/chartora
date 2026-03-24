@@ -60,8 +60,12 @@ def mock_company_repo() -> AsyncMock:
         _make_company(2, "D-Wave", "d-wave", "QBTS"),
         _make_company(3, "Rigetti", "rigetti", "RGTI"),
         _make_company(
-            4, "Defiance Quantum ETF", "defiance-quantum-etf",
-            "QTUM", sector=Sector.ETF, is_etf=True,
+            4,
+            "Defiance Quantum ETF",
+            "defiance-quantum-etf",
+            "QTUM",
+            sector=Sector.ETF,
+            is_etf=True,
         ),
     ]
     repo = AsyncMock()
