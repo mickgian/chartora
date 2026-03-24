@@ -226,11 +226,26 @@ function generateFilings(slug: string): FilingListResponse {
 // --- Public API matching apiClient interface ---
 
 export const mockApi = {
-  getLeaderboard(params?: { sort_by?: SortableMetric; limit?: number }): LeaderboardResponse {
+  getLeaderboard(params?: {
+    sort_by?: SortableMetric;
+    limit?: number;
+    sector?: "pure_play" | "big_tech" | "etf";
+  }): LeaderboardResponse {
     const sortBy = params?.sort_by ?? "total_score";
     let entries = buildLeaderboardEntries(sortBy);
+    if (params?.sector) {
+      entries = entries.filter((e) => e.company.sector === params.sector);
+      entries = entries.map((e, i) => ({ ...e, rank: i + 1 }));
+    }
     if (params?.limit) entries = entries.slice(0, params.limit);
-    return { metric: sortBy, entries, count: entries.length, updated_at: `${MOCK_DATE}T08:00:00Z`, hardcoded_metrics: ["qubit_progress", "funding_strength", "patent_velocity"] };
+    return {
+      metric: sortBy,
+      entries,
+      count: entries.length,
+      updated_at: `${MOCK_DATE}T08:00:00Z`,
+      hardcoded_metrics: ["qubit_progress", "funding_strength", "patent_velocity"],
+      sector: params?.sector ?? null,
+    };
   },
 
   getCompany(slug: string): CompanyDetailResponse {

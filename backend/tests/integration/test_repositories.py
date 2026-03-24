@@ -145,8 +145,8 @@ class TestPgCompanyRepository:
     async def test_company_without_ticker(self, session):
         repo = PgCompanyRepository(session)
         company = Company(
-            name="Zapata",
-            slug="zapata",
+            name="Quantum Startup",
+            slug="quantum-startup",
             sector=Sector.PURE_PLAY,
             ticker=None,
         )

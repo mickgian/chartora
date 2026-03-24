@@ -147,11 +147,13 @@ export const apiClient = {
   getLeaderboard(params?: {
     sort_by?: SortableMetric;
     limit?: number;
+    sector?: "pure_play" | "big_tech" | "etf";
   }): Promise<LeaderboardResponse> {
     if (IS_DEMO) return Promise.resolve(mockApi.getLeaderboard(params));
     const searchParams = new URLSearchParams();
     if (params?.sort_by) searchParams.set("sort_by", params.sort_by);
     if (params?.limit) searchParams.set("limit", String(params.limit));
+    if (params?.sector) searchParams.set("sector", params.sector);
     const qs = searchParams.toString();
     return get(`/api/v1/leaderboard${qs ? `?${qs}` : ""}`);
   },

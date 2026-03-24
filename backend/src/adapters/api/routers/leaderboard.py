@@ -43,6 +43,11 @@ async def get_leaderboard(
         le=100,
         description="Top N companies",
     ),
+    sector: str | None = Query(
+        default=None,
+        description="Filter by sector: pure_play, big_tech, etf",
+        pattern="^(pure_play|big_tech|etf)$",
+    ),
 ) -> LeaderboardResponse:
     """Get the full leaderboard ranked by Quantum Power Score."""
     logger.info(
@@ -75,9 +80,19 @@ async def get_leaderboard(
     if limit is not None:
         ranked = ranking_result.top(limit)
 
-    # Build company lookup
-    companies = await company_repo.get_all()
+    # Build company lookup, optionally filtered by sector
+    if sector:
+        companies = await company_repo.get_by_sector(sector)
+    else:
+        companies = await company_repo.get_all()
     company_map = {c.id: c for c in companies}
+
+    # Filter scores to only include matching companies
+    if sector:
+        company_ids = set(company_map.keys())
+        scores = [s for s in scores if s.company_id in company_ids]
+        # Re-rank within the filtered set
+        ranking_result = rank_companies(scores, metric=metric)
 
     entries: list[LeaderboardEntry] = []
     for rc in ranked:
@@ -138,4 +153,5 @@ async def get_leaderboard(
         count=len(entries),
         updated_at=updated_at,
         hardcoded_metrics=hardcoded_metrics,
+        sector=sector,
     )

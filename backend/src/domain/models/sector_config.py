@@ -32,6 +32,22 @@ class SectorConfig:
             raise ValueError(msg)
 
 
+DEFAULT_ETF_SECTOR = SectorConfig(
+    name="etf",
+    display_name="Quantum ETFs",
+    slug="etf",
+    description=(
+        "Quantum computing and related ETFs ranked by "
+        "price performance and news sentiment."
+    ),
+    score_weights={
+        "stock_momentum": 0.60,
+        "news_sentiment": 0.40,
+    },
+    enabled=True,
+)
+
+
 DEFAULT_QUANTUM_SECTOR = SectorConfig(
     name="quantum_computing",
     display_name="Quantum Computing",

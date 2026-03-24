@@ -18,13 +18,21 @@ from src.domain.models.entities import Company, QuantumPowerScore
 from src.domain.models.value_objects import Sector, Ticker
 
 
-def _make_company(id: int, name: str, slug: str, ticker: str | None = None) -> Company:
+def _make_company(
+    id: int,
+    name: str,
+    slug: str,
+    ticker: str | None = None,
+    sector: Sector = Sector.PURE_PLAY,
+    is_etf: bool = False,
+) -> Company:
     return Company(
         id=id,
         name=name,
         slug=slug,
-        sector=Sector.PURE_PLAY,
+        sector=sector,
         ticker=Ticker(ticker) if ticker else None,
+        is_etf=is_etf,
     )
 
 
@@ -47,14 +55,26 @@ def _make_score(
 
 @pytest.fixture
 def mock_company_repo() -> AsyncMock:
+    all_companies = [
+        _make_company(1, "IonQ", "ionq", "IONQ"),
+        _make_company(2, "D-Wave", "d-wave", "QBTS"),
+        _make_company(3, "Rigetti", "rigetti", "RGTI"),
+        _make_company(
+            4,
+            "Defiance Quantum ETF",
+            "defiance-quantum-etf",
+            "QTUM",
+            sector=Sector.ETF,
+            is_etf=True,
+        ),
+    ]
     repo = AsyncMock()
-    repo.get_all = AsyncMock(
-        return_value=[
-            _make_company(1, "IonQ", "ionq", "IONQ"),
-            _make_company(2, "D-Wave", "d-wave", "QBTS"),
-            _make_company(3, "Rigetti", "rigetti", "RGTI"),
-        ]
-    )
+    repo.get_all = AsyncMock(return_value=all_companies)
+
+    async def _get_by_sector(sector: str) -> list[Company]:
+        return [c for c in all_companies if c.sector.value == sector]
+
+    repo.get_by_sector = AsyncMock(side_effect=_get_by_sector)
     return repo
 
 
@@ -66,6 +86,7 @@ def mock_score_repo() -> AsyncMock:
             _make_score(1, total=80.0),
             _make_score(2, total=60.0),
             _make_score(3, total=40.0),
+            _make_score(4, total=50.0),
         ]
     )
     return repo
@@ -87,8 +108,8 @@ def test_leaderboard_returns_ranked_companies(
     assert response.status_code == 200
     data = response.json()
     assert data["metric"] == "total_score"
-    assert data["count"] == 3
-    assert len(data["entries"]) == 3
+    assert data["count"] == 4
+    assert len(data["entries"]) == 4
     # First entry should be highest score
     assert data["entries"][0]["rank"] == 1
     assert data["entries"][0]["company"]["name"] == "IonQ"
@@ -162,3 +183,37 @@ def test_leaderboard_entry_has_all_fields(
     assert "stock_momentum" in score
     assert "patent_velocity" in score
     assert "score_date" in score
+
+
+def test_leaderboard_filter_by_sector_etf(
+    client: TestClient,
+) -> None:
+    response = client.get("/api/v1/leaderboard?sector=etf")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["sector"] == "etf"
+    assert data["count"] == 1
+    assert data["entries"][0]["company"]["name"] == "Defiance Quantum ETF"
+    assert data["entries"][0]["company"]["is_etf"] is True
+
+
+def test_leaderboard_filter_by_sector_pure_play(
+    client: TestClient,
+) -> None:
+    response = client.get("/api/v1/leaderboard?sector=pure_play")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["sector"] == "pure_play"
+    assert data["count"] == 3
+    for entry in data["entries"]:
+        assert entry["company"]["sector"] == "pure_play"
+
+
+def test_leaderboard_no_sector_returns_all(
+    client: TestClient,
+) -> None:
+    response = client.get("/api/v1/leaderboard")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["sector"] is None
+    assert data["count"] == 4
