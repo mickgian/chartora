@@ -2,7 +2,11 @@
 
 import pytest
 
-from src.domain.models.sector_config import DEFAULT_ETF_SECTOR, DEFAULT_QUANTUM_SECTOR, SectorConfig
+from src.domain.models.sector_config import (
+    DEFAULT_ETF_SECTOR,
+    DEFAULT_QUANTUM_SECTOR,
+    SectorConfig,
+)
 
 
 class TestSectorConfig:

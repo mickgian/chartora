@@ -9,6 +9,15 @@
             "command": "echo '🔍 Pre-commit checks will run via git hooks. Ensure all tests pass before committing.'"
           }
         ]
+      },
+      {
+        "matcher": "Bash(git push*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/user/chartora/backend && ruff check src/ tests/ && echo '✅ Backend lint passed' && cd /home/user/chartora/frontend && npx tsc --noEmit 2>&1 | grep -v 'tests/' | grep -v 'vitest' | grep -v 'setup.ts' | grep 'error TS' && echo '❌ Frontend type errors found' && exit 1 || echo '✅ Frontend type check passed'"
+          }
+        ]
       }
     ],
     "PostToolUse": [
