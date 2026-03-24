@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/user/chartora/backend && ruff check src/ tests/ && echo '✅ Backend lint passed' && ruff format --check src/ tests/ && echo '✅ Backend format passed' && cd /home/user/chartora/frontend && npx tsc --noEmit 2>&1 | grep -v 'tests/' | grep -v 'vitest' | grep -v 'setup.ts' | grep 'error TS' && echo '❌ Frontend type errors found' && exit 1 || echo '✅ Frontend type check passed'"
+            "command": "cd /home/user/chartora/backend && python -m pytest tests/unit/ -q && echo '✅ Backend tests passed' && ruff check src/ tests/ && echo '✅ Backend lint passed' && ruff format --check src/ tests/ && echo '✅ Backend format passed' && cd /home/user/chartora/frontend && npx tsc --noEmit 2>&1 | grep -v 'tests/' | grep -v 'vitest' | grep -v 'setup.ts' | grep 'error TS' && echo '❌ Frontend type errors found' && exit 1 || echo '✅ Frontend type check passed'"
           }
         ]
       }

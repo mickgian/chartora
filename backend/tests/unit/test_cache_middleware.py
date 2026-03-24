@@ -3,6 +3,7 @@
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse
+from starlette.routing import Route
 from starlette.testclient import TestClient
 
 from src.adapters.api.cache_middleware import (
@@ -12,29 +13,22 @@ from src.adapters.api.cache_middleware import (
 )
 
 
+async def _cache_key_handler(request: Request):
+    key = cache_key_for_request(request)
+    return PlainTextResponse(key)
+
+
 class TestCacheKeyForRequest:
     def test_simple_path(self):
         """Build a cache key from a simple request."""
-        app = Starlette()
-
-        @app.route("/api/test")
-        async def handler(request: Request):
-            key = cache_key_for_request(request)
-            return PlainTextResponse(key)
-
+        app = Starlette(routes=[Route("/api/test", _cache_key_handler)])
         client = TestClient(app)
         response = client.get("/api/test")
         assert response.text == "GET:/api/test"
 
     def test_with_query_params_sorted(self):
         """Query params should be sorted for deterministic keys."""
-        app = Starlette()
-
-        @app.route("/api/test")
-        async def handler(request: Request):
-            key = cache_key_for_request(request)
-            return PlainTextResponse(key)
-
+        app = Starlette(routes=[Route("/api/test", _cache_key_handler)])
         client = TestClient(app)
         response = client.get("/api/test?b=2&a=1")
         assert "a=1" in response.text
