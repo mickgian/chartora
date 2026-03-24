@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
+export const dynamic = "force-static";
 export const runtime = "edge";
 
 const CARD_WIDTH = 1200;
