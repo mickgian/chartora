@@ -30,18 +30,21 @@ const BAR_COLORS = [
 ];
 
 export function MetricChart({ entries, metricLabel }: MetricChartProps) {
-  const chartData = entries.map((e) => ({
+  const chartData = entries.map((e, i) => ({
+    id: `${i}-${e.company.slug}`,
     name: e.company.ticker ?? e.company.name.slice(0, 10),
     value: e.metric_value,
     fullName: e.company.name,
   }));
 
+  const chartHeight = Math.max(400, chartData.length * 32);
+
   return (
-    <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer width="100%" height={chartHeight}>
       <BarChart data={chartData} layout="vertical" margin={{ left: 20 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={"#374151"} />
         <XAxis type="number" tick={{ fontSize: 12, fill: "#d1d5db" }} stroke={"#4b5563"} />
-        <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "#d1d5db" }} width={80} stroke={"#4b5563"} />
+        <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "#d1d5db" }} width={80} stroke={"#4b5563"} interval={0} />
         <Tooltip
           formatter={(value) => [Number(value).toFixed(2), metricLabel]}
           labelFormatter={(_label, payload) => {
@@ -53,8 +56,8 @@ export function MetricChart({ entries, metricLabel }: MetricChartProps) {
           labelStyle={{ color: "#ffffff", fontWeight: 600 }}
         />
         <Bar dataKey="value" name={metricLabel} radius={[0, 4, 4, 0]}>
-          {chartData.map((_, index) => (
-            <Cell key={index} fill={BAR_COLORS[index % BAR_COLORS.length]} />
+          {chartData.map((entry, index) => (
+            <Cell key={entry.id} fill={BAR_COLORS[index % BAR_COLORS.length]} />
           ))}
         </Bar>
       </BarChart>
